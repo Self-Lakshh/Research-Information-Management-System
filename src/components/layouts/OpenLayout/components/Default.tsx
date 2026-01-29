@@ -3,6 +3,7 @@ import Logo from '@/components/template/Logo'
 import { Link } from 'react-router-dom'
 import Footer from '@/components/template/Footer'
 import { Button } from '@/components/shadcn/ui/button'
+import AnimatedBackdrop from '@/components/shared/AnimatedBackdrop'
 
 interface OpenLayoutProps {
     children?: ReactNode
@@ -10,7 +11,8 @@ interface OpenLayoutProps {
 
 const OpenLayout = ({ children }: OpenLayoutProps) => {
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="flex flex-col min-h-screen relative">
+            <AnimatedBackdrop />
             <header className="flex top-0 z-50 items-center justify-between h-16 px-4 sm:px-6 bg-white dark:bg-gray-900 border border-secondary m-10 rounded-2xl dark:border-gray-800">
                 <div className="flex items-center">
                     <Link to="/">
