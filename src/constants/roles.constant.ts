@@ -1,0 +1,6 @@
+export const ADMIN = 'ADMIN'
+export const USER = 'USER'
+export const TENANT_ADMIN = 'TENANT_ADMIN'
+export const MANAGER = 'MANAGER'
+export const DEVELOPER = 'DEVELOPER'
+export const CASHIER = 'CASHIER'
