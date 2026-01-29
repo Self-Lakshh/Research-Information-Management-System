@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/shadcn/ui/button"
 import { StatCard } from "../components/shared/StatCard"
 import { Database, BookOpen, FileText, Users } from "lucide-react"
 
