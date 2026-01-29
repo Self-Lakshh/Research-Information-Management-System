@@ -1,1 +1,0 @@
-# Research-Information-Management-System
