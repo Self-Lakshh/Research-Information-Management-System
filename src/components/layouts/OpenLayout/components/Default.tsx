@@ -26,69 +26,56 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
             <AnimatedBackdrop />
 
             {/* Desktop & Mobile Header */}
-            <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16 lg:h-20">
-                        {/* Logo */}
-                        <div className="flex items-center">
-                            <Link to="/" className="flex items-center">
-                                <Logo logoWidth={180} className="lg:w-[240px]" />
-                            </Link>
-                        </div>
-
-                        {/* Desktop Navigation */}
-                        <nav className="hidden lg:flex items-center gap-8">
-                            {navLinks.map((link) => (
-                                <a
-                                    key={link.href}
-                                    href={link.href}
-                                    className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200 relative group"
-                                >
-                                    {link.label}
-                                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full" />
-                                </a>
-                            ))}
-                        </nav>
-
-                        {/* Desktop Sign In Button */}
-                        <div className="hidden lg:flex items-center gap-4">
-                            <Link to="/sign-in">
-                                <Button
-                                    variant="default"
-                                    className="bg-warning hover:bg-warning/90 text-white rounded-full px-6 shadow-lg hover:shadow-xl transition-all duration-300"
-                                >
-                                    Sign In
-                                </Button>
-                            </Link>
-                        </div>
-
-                        {/* Mobile Menu Button */}
-                        <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                            aria-label="Toggle menu"
-                        >
-                            {mobileMenuOpen ? (
-                                <X className="w-6 h-6" />
-                            ) : (
-                                <Menu className="w-6 h-6" />
-                            )}
-                        </button>
-                    </div>
+            <header className="flex top-0 z-50 items-center justify-between h-16 px-4 sm:px-6 bg-white dark:bg-gray-900 border border-secondary m-4 sm:m-6 lg:m-10 rounded-2xl dark:border-gray-800">
+                {/* Logo */}
+                <div className="flex items-center">
+                    <Link to="/" className="flex items-center">
+                        <Logo logoWidth={160} className="sm:w-[200px] lg:w-[240px]" />
+                    </Link>
                 </div>
 
-                {/* Mobile Menu */}
-                <div
-                    className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                        }`}
+                {/* Desktop Navigation */}
+                <nav className="hidden lg:flex items-center gap-8">
+                    {navLinks.map((link) => (
+                        <a
+                            key={link.href}
+                            href={link.href}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            {link.label}
+                        </a>
+                    ))}
+                    <Link to="/sign-in">
+                        <Button variant="default" className="bg-warning rounded-full">
+                            Sign In
+                        </Button>
+                    </Link>
+                </nav>
+
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Toggle menu"
                 >
-                    <nav className="px-4 pb-6 pt-2 space-y-2 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+                    {mobileMenuOpen ? (
+                        <X className="w-6 h-6" />
+                    ) : (
+                        <Menu className="w-6 h-6" />
+                    )}
+                </button>
+            </header>
+
+            {/* Mobile Menu - Outside header */}
+            {mobileMenuOpen && (
+                <div className="lg:hidden mx-4 sm:mx-6 mb-4 bg-white dark:bg-gray-900 border border-secondary rounded-2xl dark:border-gray-800 overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                    <nav className="px-4 py-4 space-y-2">
                         {navLinks.map((link) => (
                             <a
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="block px-4 py-3 text-base font-medium text-muted-foreground hover:text-primary hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+                                className="block px-4 py-3 text-base text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             >
                                 {link.label}
                             </a>
@@ -96,21 +83,21 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
                         <Link
                             to="/sign-in"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="block"
+                            className="block pt-2"
                         >
                             <Button
                                 variant="default"
-                                className="w-full bg-warning hover:bg-warning/90 text-white rounded-lg mt-4 shadow-md"
+                                className="w-full bg-warning rounded-full"
                             >
                                 Sign In
                             </Button>
                         </Link>
                     </nav>
                 </div>
-            </header>
+            )}
 
             <main className="grow">{children}</main>
-            <Footer className="mt-16 sm:mt-24 lg:mt-32" />
+            <Footer className="mt-32" />
         </div>
     )
 }
