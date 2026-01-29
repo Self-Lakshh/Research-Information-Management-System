@@ -10,9 +10,9 @@ const LandingPage = () => {
         <div className="flex flex-col w-full min-h-screen">
             <Hero />
             <About />
-            <Showcase />
             <Features />
             <Domains />
+            <Showcase />
             <Partners/>
         </div>
     )

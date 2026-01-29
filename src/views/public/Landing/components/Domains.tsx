@@ -4,12 +4,12 @@ export const Domains = () => {
   const domains = [
     {
       title: "IPR & Patents",
-      image: "/images/ipr.jpg",
+      image: "/img/categories/1.png",
       points: ["Patents filed/published/granted", "Copyrights", "Trademarks"],
     },
     {
       title: "Journal Publications",
-      image: "/images/journal.jpg",
+      image: "/img/categories/2.png",
       points: ["Journal articles", "Scopus/WoS indexed", "Faculty & scholar entries"],
     },
     // add remaining cards same way
