@@ -56,7 +56,7 @@ const FooterContent = () => {
                     <div className="lg:col-span-2">
                         <div className="flex items-center gap-2 mb-4">
                             <Link to="/">
-                                <Logo logoWidth={320} mode="dark" />
+                                <Logo logoWidth={240} mode="dark" />
                             </Link>
                         </div>
 
@@ -81,7 +81,7 @@ const FooterContent = () => {
 
                     {/* Tab Links */}
                     <div>
-                        <h4 className="font-semibold text-white mb-4">Tabs</h4>
+                        <h4 className="font-semibold text-white mb-4">Links</h4>
                         <ul className="space-y-3">
                             {footerLinks.tabs.map((link, index) => (
                                 <li key={index}>

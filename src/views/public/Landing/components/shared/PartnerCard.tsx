@@ -1,21 +1,55 @@
 import { Card, CardContent } from "@/components/shadcn/ui/card"
-import { Button } from "@/components/shadcn/ui/button"
 
 interface PartnerCardProps {
-  logo: string
+  icon: string
   name: string
   description: string
+  url?: string
 }
 
-export const PartnerCard = ({ logo, name, description }: PartnerCardProps) => {
+export const PartnerCard = ({ icon, name, description, url = "#" }: PartnerCardProps) => {
   return (
-    <Card className="rounded-2xl border shadow-sm hover:shadow-md transition">
-      <CardContent className="p-6 space-y-4">
-        <img src={logo} alt={name} className="h-10 object-contain" />
-        <p className="text-sm text-muted-foreground">{description}</p>
-        <Button variant="link" className="px-0 text-primary">
-          Visit →
-        </Button>
+    <Card
+      className="
+        mx-auto
+        h-[340px] sm:h-[360px]
+        w-full
+        max-w-[320px]
+        rounded-2xl
+        border
+        bg-card
+        shadow-sm
+        transition-all
+        duration-300
+        hover:-translate-y-2
+        hover:shadow-xl
+      "
+    >
+      <CardContent className="flex h-full flex-col p-5 sm:p-6">
+        <div className="mb-4 sm:mb-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+            <img src={icon} alt={name} className="h-5 w-5 object-contain" />
+          </div>
+        </div>
+
+        <h3 className="text-sm sm:text-base font-semibold text-primary">
+          {name}
+        </h3>
+
+        <p className="mt-2 sm:mt-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+
+        <div className="flex-grow" />
+
+        <div className="my-3 sm:my-4 h-px w-full bg-border" />
+
+        <a
+          href={url}
+          className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700"
+        >
+          Visit <span className="ml-2">→</span>
+        </a>
       </CardContent>
     </Card>
   )
