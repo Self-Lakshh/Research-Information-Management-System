@@ -12,8 +12,14 @@ const LandingPage = () => {
             <About />
             <Features />
             <Domains />
-            <Showcase />
-            <Partners/>
+            <Showcase
+                images={[
+                    "/img/others/car1.png",
+                    "/img/others/car2.png",
+                    "/img/others/car3.png",
+                ]}
+            />
+            <Partners />
         </div>
     )
 }

@@ -3,7 +3,7 @@ import { Database, RefreshCcw, Workflow, BarChart } from "lucide-react"
 
 export const Features = () => {
   return (
-    <section className="py-20">
+    <section id="features" className="py-20 px-20">
       <div className="container mx-auto px-6 space-y-12">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-bold text-primary">Key Features of RIMS</h2>

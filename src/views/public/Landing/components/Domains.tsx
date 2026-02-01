@@ -16,7 +16,7 @@ export const Domains = () => {
   ]
 
   return (
-    <section className="py-20">
+    <section id="domains" className="py-20 px-20">
       <div className="container mx-auto px-6 space-y-12">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-primary">Domain / Category</h2>

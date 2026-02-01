@@ -21,11 +21,11 @@
 /* ===== Blob Base ===== */
 .backdrop-blob {
   position: absolute;
-  width: 280px;
-  height: 280px;
+  width: 350px;
+  height: 350px;
   border-radius: 50%;
-  filter: blur(50px);
-  opacity: 0.84;
+  filter: blur(30px);
+  opacity: 1;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -34,85 +34,149 @@
 /* ================= TEAL BLOBS ================= */
 .blob-teal-1,
 .blob-teal-2 {
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35) 0%, transparent 55%),
-    radial-gradient(circle at center,
-      rgba(94, 234, 212, 0.85) 0%,
-      rgba(20, 184, 166, 0.45) 45%,
-      rgba(20, 184, 166, 0.12) 75%,
-      transparent 100%
-    );
+  background: radial-gradient(circle at center,
+      rgba(45, 212, 191, 0.4) 0%,
+      /* Very soft Teal */
+      rgba(20, 184, 166, 0.2) 50%,
+      rgba(20, 184, 166, 0) 70%);
+  mix-blend-mode: multiply;
 }
 
 /* ================= BLUE BLOBS ================= */
 .blob-blue-1,
 .blob-blue-2 {
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35) 0%, transparent 60%),
-    radial-gradient(circle at center,
-      rgba(147, 197, 253, 0.85) 0%,
-      rgba(96, 165, 250, 0.45) 45%,
-      rgba(96, 165, 250, 0.12) 75%,
-      transparent 100%
-    );
+  background: radial-gradient(circle at center,
+      rgba(132, 198, 255, 0.4) 0%,
+      /* Very soft Blue */
+      rgba(96, 165, 250, 0.2) 50%,
+      rgba(96, 165, 250, 0) 70%);
+  mix-blend-mode: multiply;
 }
 
 /* ================= PREMIUM MOTION SYSTEM ================= */
 
-/* Teal 1 — Far layer (slowest) */
+/* Teal 1 — Top Left Start */
 .blob-teal-1 {
-  animation: moveTeal1 36s cubic-bezier(0.4,0,0.2,1) infinite;
+  animation: loopTeal1 20s linear infinite;
 }
 
-@keyframes moveTeal1 {
-  0%   { transform: translate(5vw, 20vh) scale(1) rotate(0deg); }
-  20%  { transform: translate(15vw, 50vh) scale(1.06) rotate(8deg); }
-  40%  { transform: translate(25vw, 70vh) scale(0.96) rotate(15deg); }
-  60%  { transform: translate(10vw, 60vh) scale(1.04) rotate(10deg); }
-  80%  { transform: translate(8vw, 35vh) scale(1.02) rotate(4deg); }
-  100% { transform: translate(5vw, 20vh) scale(1) rotate(0deg); }
-}
-
-/* Teal 2 — Mid layer */
+/* Teal 2 — Bottom Right Start */
 .blob-teal-2 {
-  animation: moveTeal2 30s cubic-bezier(0.4,0,0.2,1) infinite;
+  animation: loopTeal2 22s linear infinite;
 }
 
-@keyframes moveTeal2 {
-  0%   { transform: translate(35vw, 75vh) scale(1) rotate(0deg); }
-  20%  { transform: translate(45vw, 65vh) scale(1.08) rotate(-6deg); }
-  40%  { transform: translate(55vw, 75vh) scale(0.95) rotate(-12deg); }
-  60%  { transform: translate(48vw, 85vh) scale(1.05) rotate(-8deg); }
-  80%  { transform: translate(38vw, 80vh) scale(1.02) rotate(-3deg); }
-  100% { transform: translate(35vw, 75vh) scale(1) rotate(0deg); }
-}
-
-/* Blue 1 — Near layer */
+/* Blue 1 — Top Right Start */
 .blob-blue-1 {
-  animation: moveBlue1 26s cubic-bezier(0.4,0,0.2,1) infinite;
+  animation: loopBlue1 25s linear infinite;
 }
 
-@keyframes moveBlue1 {
-  0%   { transform: translate(65vw, 10vh) scale(1) rotate(0deg); }
-  20%  { transform: translate(75vw, 25vh) scale(1.07) rotate(6deg); }
-  40%  { transform: translate(85vw, 15vh) scale(0.96) rotate(12deg); }
-  60%  { transform: translate(78vw, 35vh) scale(1.05) rotate(8deg); }
-  80%  { transform: translate(68vw, 20vh) scale(1.02) rotate(3deg); }
-  100% { transform: translate(65vw, 10vh) scale(1) rotate(0deg); }
-}
-
-/* Blue 2 — Closest layer (most motion) */
+/* Blue 2 — Bottom Left Start */
 .blob-blue-2 {
-  animation: moveBlue2 22s cubic-bezier(0.4,0,0.2,1) infinite;
+  animation: loopBlue2 18s linear infinite;
 }
 
-@keyframes moveBlue2 {
-  0%   { transform: translate(70vw, 60vh) scale(1) rotate(0deg); }
-  20%  { transform: translate(85vw, 75vh) scale(1.09) rotate(-8deg); }
-  40%  { transform: translate(78vw, 85vh) scale(0.94) rotate(-14deg); }
-  60%  { transform: translate(60vw, 75vh) scale(1.06) rotate(-10deg); }
-  80%  { transform: translate(68vw, 65vh) scale(1.02) rotate(-4deg); }
-  100% { transform: translate(70vw, 60vh) scale(1) rotate(0deg); }
+@keyframes loopTeal1 {
+  0% {
+    transform: translate(10vw, 10vh) scale(1) rotate(0deg);
+  }
+
+  20% {
+    transform: translate(60vw, 15vh) scale(1.1) rotate(72deg);
+  }
+
+  40% {
+    transform: translate(80vw, 60vh) scale(0.95) rotate(144deg);
+  }
+
+  60% {
+    transform: translate(40vw, 80vh) scale(1.05) rotate(216deg);
+  }
+
+  80% {
+    transform: translate(10vw, 50vh) scale(0.9) rotate(288deg);
+  }
+
+  100% {
+    transform: translate(10vw, 10vh) scale(1) rotate(360deg);
+  }
+}
+
+@keyframes loopTeal2 {
+  0% {
+    transform: translate(70vw, 70vh) scale(1) rotate(0deg);
+  }
+
+  20% {
+    transform: translate(20vw, 80vh) scale(1.1) rotate(-72deg);
+  }
+
+  40% {
+    transform: translate(10vw, 40vh) scale(0.9) rotate(-144deg);
+  }
+
+  60% {
+    transform: translate(50vw, 10vh) scale(1.15) rotate(-216deg);
+  }
+
+  80% {
+    transform: translate(85vw, 30vh) scale(0.95) rotate(-288deg);
+  }
+
+  100% {
+    transform: translate(70vw, 70vh) scale(1) rotate(-360deg);
+  }
+}
+
+@keyframes loopBlue1 {
+  0% {
+    transform: translate(80vw, 10vh) scale(1) rotate(0deg);
+  }
+
+  20% {
+    transform: translate(80vw, 80vh) scale(1.1) rotate(72deg);
+  }
+
+  40% {
+    transform: translate(20vw, 70vh) scale(0.9) rotate(144deg);
+  }
+
+  60% {
+    transform: translate(10vw, 20vh) scale(1.05) rotate(216deg);
+  }
+
+  80% {
+    transform: translate(50vw, 50vh) scale(0.95) rotate(288deg);
+  }
+
+  100% {
+    transform: translate(80vw, 10vh) scale(1) rotate(360deg);
+  }
+}
+
+@keyframes loopBlue2 {
+  0% {
+    transform: translate(10vw, 80vh) scale(1) rotate(0deg);
+  }
+
+  20% {
+    transform: translate(15vw, 15vh) scale(1.2) rotate(-72deg);
+  }
+
+  40% {
+    transform: translate(60vw, 10vh) scale(0.9) rotate(-144deg);
+  }
+
+  60% {
+    transform: translate(90vw, 50vh) scale(1.1) rotate(-216deg);
+  }
+
+  80% {
+    transform: translate(60vw, 90vh) scale(0.95) rotate(-288deg);
+  }
+
+  100% {
+    transform: translate(10vw, 80vh) scale(1) rotate(-360deg);
+  }
 }
 
 /* ===== Dark Mode Polish ===== */

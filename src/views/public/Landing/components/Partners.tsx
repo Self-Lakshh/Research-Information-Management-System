@@ -38,7 +38,7 @@ export const Partners = () => {
   }, [totalPages, isPaused])
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-20">
+    <section id="partners" className="relative overflow-hidden py-16 sm:py-20 px-20">
       <div className="container mx-auto px-4 sm:px-6 text-center space-y-10 sm:space-y-12">
 
         {/* Header */}
@@ -77,11 +77,10 @@ export const Partners = () => {
             <button
               key={dotIndex}
               onClick={() => setCurrentPage(dotIndex)}
-              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
-                currentPage === dotIndex
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${currentPage === dotIndex
                   ? "w-6 bg-primary"
                   : "bg-muted-foreground/30"
-              }`}
+                }`}
             />
           ))}
         </div>

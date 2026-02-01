@@ -1,19 +1,18 @@
-import { Button } from "@/components/shadcn/ui/button"
+import { Badge } from "@/components/shadcn/ui/badge"
 import { StatCard } from "../components/shared/StatCard"
 import { Database, BookOpen, FileText, Users } from "lucide-react"
 
 export const Hero = () => {
   return (
-    <section className="relative py-20 ">
-      <div className="container mx-auto px-6 text-center space-y-10">
-        
+    <section id="home" className="relative pb-10 px-20">
+      <div className="container mx-auto px-6 text-center space-y-10 ">
+
         {/* Top Badge */}
         <div>
-          <Button variant="default" className="rounded-full px-5">
+          <Badge className="bg-warning text-xl rounded-full px-10 py-2 hover:bg-warning">
             Research Management Platform
-          </Button>
+          </Badge>
         </div>
-
         {/* Title */}
         <div className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold text-primary">

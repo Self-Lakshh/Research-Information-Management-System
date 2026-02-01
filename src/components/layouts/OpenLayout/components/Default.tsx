@@ -14,11 +14,11 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     const navLinks = [
+        { href: '#home', label: 'Home' },
+        { href: '#about', label: 'About' },
         { href: '#features', label: 'Features' },
-        { href: '#billing', label: 'Billing' },
-        { href: '#inventory', label: 'Inventory' },
-        { href: '#integrations', label: 'Integrations' },
-        { href: '#pricing', label: 'Pricing' },
+        { href: '#domains', label: 'Domains' },
+        { href: '#partners', label: 'Partner Portals' },
     ]
 
     return (
@@ -30,7 +30,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
                 {/* Logo */}
                 <div className="flex items-center">
                     <Link to="/" className="flex items-center">
-                        <Logo logoWidth={160} className="sm:w-[200px] lg:w-[240px]" />
+                        <Logo logoWidth={240} className="g lg:w-[240px]" />
                     </Link>
                 </div>
 
