@@ -30,7 +30,10 @@ interface PageContainerBodyProps {
 interface PageContainerFooterProps {
     className?: string
     footer?: boolean
+    pageContainerType?: 'default' | 'gutterless' | 'contained'
 }
+
+type FooterPageContainerType = 'default' | 'gutterless' | 'contained'
 
 const CustomHeader = <T extends ElementType>({
     header,
@@ -144,7 +147,7 @@ const PageContainer = (props: PageContainerProps) => {
                     className={classNames(
                         defaultClass,
                         pageBackgroundType === 'plain' &&
-                            'bg-white dark:bg-gray-900',
+                        'bg-white dark:bg-gray-900',
                     )}
                 >
                     <main className="h-full">
@@ -152,9 +155,9 @@ const PageContainer = (props: PageContainerProps) => {
                             className={classNames(
                                 pageContainerDefaultClass,
                                 pageContainerType !== 'gutterless' &&
-                                    pageContainerGutterClass,
+                                pageContainerGutterClass,
                                 pageContainerType === 'contained' &&
-                                    'container mx-auto',
+                                'container mx-auto',
                                 !footer && 'pb-0 sm:pb-0 md:pb-0',
                             )}
                         >

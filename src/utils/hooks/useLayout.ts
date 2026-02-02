@@ -15,6 +15,7 @@ export type PageContainerReassembleProps = {
     PageContainerHeader: typeof PageContainerHeader
     PageContainerBody: typeof PageContainerBody
     PageContainerFooter: typeof PageContainerFooter
+    children?: ReactNode
 } & PageContainerProps
 
 export interface LayoutContextProps {

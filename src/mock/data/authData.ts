@@ -17,13 +17,4 @@ export const signInUserData = [
         password: 'password',
         accountUserName: 'user',
     },
-    {
-        id: '3',
-        avatar: '',
-        userName: 'Tenant Admin',
-        email: 'tenant@test.com',
-        authority: ['TENANT_ADMIN'],
-        password: 'password',
-        accountUserName: 'tenant',
-    },
 ]

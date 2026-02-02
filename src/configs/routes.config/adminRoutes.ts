@@ -6,7 +6,7 @@ const adminRoutes: Routes = [
     {
         key: 'admin.dashboard',
         path: '/admin/dashboard',
-        component: lazy(() => import('@/views/Home')), // Placeholder
+        component: lazy(() => import('@/views/admin/Dashboard')),
         authority: [ADMIN],
     },
 ]

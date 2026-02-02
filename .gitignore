@@ -25,3 +25,10 @@ build
 *.sln
 *.sw?
 .vite-cache/
+
+# Firebase credentials & secrets
+secrets/
+*firebase*.json
+*-adminsdk-*.json
+serviceAccountKey.json
+firebase-adminsdk*.json

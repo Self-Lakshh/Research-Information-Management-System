@@ -4,11 +4,11 @@ import type { NavigationTree } from '@/@types/navigation'
 
 const userNavigationConfig: NavigationTree[] = [
     {
-        key: 'user.home',
-        path: '/user/home',
-        title: 'User Home',
-        translateKey: 'nav.user.home',
-        icon: 'home',
+        key: 'user.dashboard',
+        path: '/dashboard',
+        title: 'Dashboard',
+        translateKey: 'nav.user.dashboard',
+        icon: 'dashboard',
         type: NAV_ITEM_TYPE_ITEM,
         authority: [USER],
         subMenu: [],
