@@ -495,3 +495,231 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Custom Animations for Landing Page */
+@keyframes gradient {
+
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+@keyframes float {
+
+	0%,
+	100% {
+		transform: translateY(0px);
+	}
+
+	50% {
+		transform: translateY(-20px);
+	}
+}
+
+@keyframes pulse-glow {
+
+	0%,
+	100% {
+		opacity: 0.5;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 0.8;
+		transform: scale(1.05);
+	}
+}
+
+@keyframes fade-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(-30px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slide-in-left {
+	from {
+		opacity: 0;
+		transform: translateX(-50px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes slide-in-right {
+	from {
+		opacity: 0;
+		transform: translateX(50px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.animate-gradient {
+	animation: gradient 4s ease infinite;
+}
+
+.animate-float {
+	animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+	animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+	animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.animate-fade-in-down {
+	animation: fade-in-down 0.8s ease-out forwards;
+}
+
+.animate-slide-in-left {
+	animation: slide-in-left 0.8s ease-out forwards;
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.8s ease-out forwards;
+}
+
+.animate-scale-in {
+	animation: scale-in 0.6s ease-out forwards;
+}
+
+/* Stagger animation delays */
+.animation-delay-100 {
+	animation-delay: 100ms;
+}
+
+.animation-delay-200 {
+	animation-delay: 200ms;
+}
+
+.animation-delay-300 {
+	animation-delay: 300ms;
+}
+
+.animation-delay-400 {
+	animation-delay: 400ms;
+}
+
+.animation-delay-500 {
+	animation-delay: 500ms;
+}
+
+.animation-delay-600 {
+	animation-delay: 600ms;
+}
+
+.animation-delay-700 {
+	animation-delay: 700ms;
+}
+
+.animation-delay-800 {
+	animation-delay: 800ms;
+}
+
+/* Smooth scroll behavior */
+html {
+	scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--muted-foreground);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--primary);
+}
+
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+.animate-shimmer {
+	background: linear-gradient(90deg,
+			var(--muted) 0%,
+			var(--muted-foreground)/10 25%,
+			var(--muted) 50%,
+			var(--muted-foreground)/10 75%,
+			var(--muted) 100%);
+	background-size: 200% 100%;
+	animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Image fade in animation */
+@keyframes image-fade-in {
+	from {
+		opacity: 0;
+		filter: blur(10px);
+		transform: scale(1.05);
+	}
+
+	to {
+		opacity: 1;
+		filter: blur(0);
+		transform: scale(1);
+	}
+}
+
+.animate-image-fade-in {
+	animation: image-fade-in 0.5s ease-out forwards;
+}

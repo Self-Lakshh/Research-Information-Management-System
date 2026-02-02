@@ -1,24 +1,65 @@
 import { Badge } from "@/components/shadcn/ui/badge"
 import { StatCard } from "../components/shared/StatCard"
 import { Database, BookOpen, FileText, Users } from "lucide-react"
+import { useScrollAnimation, useMouseParallax } from "../hooks/useScrollAnimation"
 
 export const Hero = () => {
+  const [heroRef, isHeroVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 })
+  const mousePosition = useMouseParallax(0.015)
+
   return (
-    <section id="home" className="relative pb-10 px-30">
-      <div className="container mx-auto px-6 text-center space-y-10 ">
+    <section id="home" className="relative min-h-screen flex items-center py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
+
+      {/* Floating Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse"
+          style={{ transform: `translate(${mousePosition.x * 2}px, ${mousePosition.y * 2}px)` }}
+        />
+        <div
+          className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse"
+          style={{
+            transform: `translate(${-mousePosition.x * 1.5}px, ${-mousePosition.y * 1.5}px)`,
+            animationDelay: '1s'
+          }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/3 to-secondary/3 rounded-full blur-3xl"
+          style={{ transform: `translate(calc(-50% + ${mousePosition.x}px), calc(-50% + ${mousePosition.y}px))` }}
+        />
+      </div>
+
+      <div
+        ref={heroRef}
+        className="container mx-auto text-center space-y-8 sm:space-y-10 relative z-10"
+      >
 
         {/* Top Badge */}
-        <div>
-          <Badge className="bg-warning text-xl rounded-full px-10 py-2 hover:bg-warning">
+        <div
+          className={`transition-all duration-1000 ease-out ${isHeroVisible
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 -translate-y-10'
+            }`}
+        >
+          <Badge className="bg-warning text-sm sm:text-base lg:text-lg rounded-full px-4 sm:px-6 lg:px-10 py-1.5 sm:py-2 hover:bg-warning hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-default">
             Research Management Platform
           </Badge>
         </div>
+
         {/* Title */}
-        <div className="space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary">
-            Sir Padampat Singhania University RIMS
+        <div
+          className={`space-y-3 sm:space-y-4 transition-all duration-1000 delay-200 ease-out ${isHeroVisible
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-10'
+            }`}
+        >
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary leading-tight">
+            Sir Padampat Singhania University{' '}
+            <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+              RIMS
+            </span>
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl lg:max-w-2xl mx-auto leading-relaxed px-2">
             Software that integrates databases across the entire lifecycle of
             institutions, helping with reporting, analysis, and promotion of
             research activities.
@@ -26,27 +67,27 @@ export const Hero = () => {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-6">
-          <StatCard
-            icon={<Database size={22} />}
-            value="1L+"
-            label="IPR & Patents"
-          />
-          <StatCard
-            icon={<BookOpen size={22} />}
-            value="50Cr+"
-            label="Journal Publications"
-          />
-          <StatCard
-            icon={<FileText size={22} />}
-            value="200+"
-            label="Conference Publications"
-          />
-          <StatCard
-            icon={<Users size={22} />}
-            value="200+"
-            label="Book Publications"
-          />
+        <div
+          className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 pt-4 sm:pt-6 transition-all duration-1000 delay-500 ease-out ${isHeroVisible
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-10'
+            }`}
+        >
+          {[
+            { icon: <Database className="w-4 h-4 sm:w-5 sm:h-5" />, value: "1L+", label: "IPR & Patents", delay: 0 },
+            { icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
+            { icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, value: "200+", label: "Conference Publications", delay: 200 },
+            { icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, value: "200+", label: "Book Publications", delay: 300 },
+          ].map((stat, i) => (
+            <div
+              key={i}
+              className={`transform hover:scale-105 transition-all duration-500 hover:shadow-lg ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                }`}
+              style={{ transitionDelay: `${600 + stat.delay}ms` }}
+            >
+              <StatCard {...stat} />
+            </div>
+          ))}
         </div>
 
       </div>
