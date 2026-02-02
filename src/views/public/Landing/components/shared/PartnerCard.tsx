@@ -11,7 +11,6 @@ export const PartnerCard = ({ icon, name, description, url = "#" }: PartnerCardP
   return (
     <Card
       className="
-        mx-auto
         h-[340px] sm:h-[360px]
         w-full
         max-w-[320px]
@@ -27,8 +26,8 @@ export const PartnerCard = ({ icon, name, description, url = "#" }: PartnerCardP
     >
       <CardContent className="flex h-full flex-col p-5 sm:p-6">
         <div className="mb-4 sm:mb-5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <img src={icon} alt={name} className="h-5 w-5 object-contain" />
+          <div className="flex h-20 w-full items-center justify-center rounded-lg bg-primary/10">
+            <img src={icon} alt={name} className="object-cover overflow-hidden" />
           </div>
         </div>
 

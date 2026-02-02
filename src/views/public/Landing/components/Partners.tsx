@@ -2,11 +2,11 @@ import { useEffect, useState } from "react"
 import { PartnerCard } from "../components/shared/PartnerCard"
 
 const partners = [
-  { icon: "/logos/spu-irins.png", name: "SPSU IRINS", description: "Faculty Profile a major provider of research resources for libraries, offering databases, e-journals, e-books" },
-  { icon: "/logos/spu-ebsco.png", name: "SPSU EBSCO", description: "A major provider of research resources for libraries, offering databases, e-journals, e-books" },
-  { icon: "/logos/delnet.png", name: "DELNET", description: "Access Millions of Networked Library Resources through DELNET" },
-  { icon: "/logos/jstor.png", name: "JSTOR", description: "Digital library providing access to academic journals, books, and primary sources" },
-  { icon: "/logos/scopus.png", name: "SCOPUS", description: "Abstract and citation database of peer-reviewed literature" },
+  { icon: "/img/others/irins.png", name: "SPSU IRINS", description: "Faculty Profile a major provider of research resources for libraries, offering databases, e-journals, e-books" },
+  { icon: "/img/others/ebsco.png", name: "SPSU EBSCO", description: "A major provider of research resources for libraries, offering databases, e-journals, e-books" },
+  { icon: "/img/others/delnet.png", name: "DELNET", description: "Access Millions of Networked Library Resources through DELNET" },
+  { icon: "/img/others/jstor.png", name: "JSTOR", description: "Digital library providing access to academic journals, books, and primary sources" },
+  { icon: "/img/others/scopus.png", name: "SCOPUS", description: "Abstract and citation database of peer-reviewed literature" },
 ]
 
 export const Partners = () => {
@@ -14,7 +14,6 @@ export const Partners = () => {
   const [isPaused, setIsPaused] = useState(false)
   const [visibleCards, setVisibleCards] = useState(3)
 
-  // Detect screen size
   useEffect(() => {
     const updateVisibleCards = () => {
       if (window.innerWidth < 640) setVisibleCards(1)
@@ -39,10 +38,10 @@ export const Partners = () => {
 
   return (
     <section id="partners" className="relative overflow-hidden py-16 sm:py-20 px-20">
-      <div className="container mx-auto px-4 sm:px-6 text-center space-y-10 sm:space-y-12">
+      <div className="container mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12">
 
-        {/* Header */}
-        <div className="space-y-3">
+        {/* Header (kept centered) */}
+        <div className="text-center space-y-3">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary">
             Our Partner Portal
           </h2>
@@ -51,8 +50,8 @@ export const Partners = () => {
           </p>
         </div>
 
-        {/* Carousel */}
-        <div className="relative mx-auto max-w-6xl overflow-hidden">
+        {/* Carousel Wrapper (LEFT ALIGNED) */}
+        <div className="relative w-full overflow-hidden">
           <div
             className="flex transition-transform duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
             style={{ transform: `translateX(-${currentPage * 100}%)` }}
@@ -77,10 +76,11 @@ export const Partners = () => {
             <button
               key={dotIndex}
               onClick={() => setCurrentPage(dotIndex)}
-              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${currentPage === dotIndex
+              className={`h-2.5 w-2.5 rounded-full transition-all duration-300 ${
+                currentPage === dotIndex
                   ? "w-6 bg-primary"
                   : "bg-muted-foreground/30"
-                }`}
+              }`}
             />
           ))}
         </div>

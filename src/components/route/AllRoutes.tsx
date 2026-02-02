@@ -20,14 +20,11 @@ type AllRoutesProps = ViewsProps
 const { authenticatedEntryPath } = appConfig
 
 
-const Library = lazy(() => import('@/views/public/Library'))
-
 const AllRoutes = (props: AllRoutesProps) => {
     const { user } = useAuth()
 
     return (
         <Routes>
-            <Route path="/library" element={<AppRoute routeKey="library" component={Library} />} />
             <Route element={<PublicRoute />}>
                 {publicRoutes.map((route) => (
                     <Route

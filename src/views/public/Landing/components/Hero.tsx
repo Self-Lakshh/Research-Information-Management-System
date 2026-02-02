@@ -4,7 +4,7 @@ import { Database, BookOpen, FileText, Users } from "lucide-react"
 
 export const Hero = () => {
   return (
-    <section id="home" className="relative pb-10 px-20">
+    <section id="home" className="relative pb-10 px-30">
       <div className="container mx-auto px-6 text-center space-y-10 ">
 
         {/* Top Badge */}

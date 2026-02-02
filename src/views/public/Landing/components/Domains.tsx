@@ -5,6 +5,7 @@ export const Domains = () => {
     {
       title: "IPR & Patents",
       image: "/img/categories/1.png",
+      desc: "Intellectual Property Rights & Patents, Copyrights, Trademarks",
       points: ["Patents filed/published/granted", "Copyrights", "Trademarks"],
     },
     {
@@ -22,7 +23,7 @@ export const Domains = () => {
           <h2 className="text-3xl font-bold text-primary">Domain / Category</h2>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
           {domains.map((d, i) => (
             <DomainCard key={i} {...d} />
           ))}

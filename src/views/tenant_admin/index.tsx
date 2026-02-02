@@ -1,9 +1,9 @@
-import TenantAdminDashboard from "./dashboard"
-
 const TenantAdmin = () => {
     return (
         <>
-            <TenantAdminDashboard />
+        <div>
+            <p>Tenant Admin Dashboard</p>
+        </div>
         </>
     )
 }   
