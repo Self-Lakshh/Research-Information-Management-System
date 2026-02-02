@@ -5,7 +5,7 @@ import type { NavigationTree } from '@/@types/navigation'
 const userNavigationConfig: NavigationTree[] = [
     {
         key: 'user.dashboard',
-        path: '/dashboard',
+        path: '/user/dashboard',
         title: 'Dashboard',
         translateKey: 'nav.user.dashboard',
         icon: 'dashboard',

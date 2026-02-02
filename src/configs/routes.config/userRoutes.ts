@@ -5,7 +5,7 @@ import type { Routes } from '@/@types/routes'
 const userRoutes: Routes = [
     {
         key: 'user.dashboard',
-        path: '/dashboard',
+        path: '/user/dashboard',
         component: lazy(() => import('@/views/user/Dashboard')),
         authority: [USER],
     },

@@ -12,7 +12,7 @@ const Home = () => {
         return <Navigate to="/admin/dashboard" replace />
     }
 
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/user/dashboard" replace />
 }
 
 export default Home
