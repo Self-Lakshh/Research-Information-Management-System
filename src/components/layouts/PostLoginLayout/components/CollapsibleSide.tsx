@@ -23,12 +23,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/shadcn/ui/select'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import Logo from '@/components/template/Logo'
+import { useSessionUser } from '@/store/authStore'
 
 const CollapsibleSide = ({ children }: CommonProps) => {
     const { larger, smaller } = useResponsive()
     const [isDark, setIsDark] = useDarkMode()
     const [time, setTime] = useState(new Date())
+    const { userName } = useSessionUser((state) => state.user)
+    const [displayedText, setDisplayedText] = useState('')
+    const [isTypingComplete, setIsTypingComplete] = useState(false)
+
+    const welcomeMessage = useMemo(() => `Welcome, ${userName || 'User'}!`, [userName])
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -37,6 +44,70 @@ const CollapsibleSide = ({ children }: CommonProps) => {
 
         return () => clearInterval(interval) // cleanup
     }, [])
+
+    // Typing effect for welcome message - continuous loop
+    useEffect(() => {
+        let currentIndex = 0
+        let isDeleting = false
+        let pauseTimeout: NodeJS.Timeout | null = null
+
+        const typingInterval = setInterval(() => {
+            if (!isDeleting) {
+                // Typing forward
+                if (currentIndex < welcomeMessage.length) {
+                    setDisplayedText(welcomeMessage.slice(0, currentIndex + 1))
+                    currentIndex++
+                } else {
+                    // Pause at the end before deleting
+                    setIsTypingComplete(true)
+                    clearInterval(typingInterval)
+                    pauseTimeout = setTimeout(() => {
+                        isDeleting = true
+                        setIsTypingComplete(false)
+                        startDeletingLoop()
+                    }, 2000) // Pause for 2 seconds
+                }
+            }
+        }, 80) // Typing speed in ms
+
+        const startDeletingLoop = () => {
+            const deleteInterval = setInterval(() => {
+                if (currentIndex > 0) {
+                    currentIndex--
+                    setDisplayedText(welcomeMessage.slice(0, currentIndex))
+                } else {
+                    // Start typing again
+                    clearInterval(deleteInterval)
+                    setTimeout(() => {
+                        isDeleting = false
+                        startTypingLoop()
+                    }, 500) // Brief pause before retyping
+                }
+            }, 40) // Deleting is faster
+        }
+
+        const startTypingLoop = () => {
+            const typeInterval = setInterval(() => {
+                if (currentIndex < welcomeMessage.length) {
+                    setDisplayedText(welcomeMessage.slice(0, currentIndex + 1))
+                    currentIndex++
+                } else {
+                    setIsTypingComplete(true)
+                    clearInterval(typeInterval)
+                    setTimeout(() => {
+                        setIsTypingComplete(false)
+                        isDeleting = true
+                        startDeletingLoop()
+                    }, 2000)
+                }
+            }, 80)
+        }
+
+        return () => {
+            clearInterval(typingInterval)
+            if (pauseTimeout) clearTimeout(pauseTimeout)
+        }
+    }, [welcomeMessage])
 
     return (
         <LayoutBase
@@ -51,28 +122,9 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                         {/* {larger.lg && <SideNavToggle />} */}
 
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 shrink-0 bg-[#EA580C] rounded-lg flex items-center justify-center p-1.5 shadow-sm">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="w-full h-full text-white"
-                                >
-                                    <path
-                                        d="M7 17L17 7M10 17L17 10"
-                                        stroke="currentColor"
-                                        strokeWidth="2.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                            </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-slate-500 font-semibold leading-none mb-0.5">
-                                    Somi
-                                </span>
-                                <span className="text-sm font-bold text-slate-900 dark:text-white leading-none">
-                                    Restaurant
+                                    <Logo logoWidth={220} />
                                 </span>
                             </div>
                         </div>
@@ -94,49 +146,24 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                 }
                 headerEnd={
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <Select  defaultValue="ahmedabad-1">
-                            <SelectTrigger className="w-[230px] hidden md:flex h-9 text-xs font-semibold">
-                                <SelectValue placeholder="Select Location" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="ahmedabad-1">
-                                    Ahmedabad - Devendra Nagar
-                                </SelectItem>
-                                <SelectItem value="ahmedabad-2">
-                                    Ahmedabad - Prahlad Nagar
-                                </SelectItem>
-                                <SelectItem value="ahmedabad-3">
-                                    Ahmedabad - Satellite Area
-                                </SelectItem>
-                                <SelectItem value="ahmedabad-4">
-                                    Ahmedabad - Bodakdev
-                                </SelectItem>
-                                <SelectItem value="ahmedabad-5">
-                                    Ahmedabad - Vastrapur
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select defaultValue="last-30-days">
-                            <SelectTrigger className="w-[140px] hidden md:flex h-9 text-xs font-semibold">
-                                <SelectValue placeholder="Select Range" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="today">Today</SelectItem>
-                                <SelectItem value="yesterday">
-                                    Yesterday
-                                </SelectItem>
-                                <SelectItem value="last-7-days">
-                                    Last 7 Days
-                                </SelectItem>
-                                <SelectItem value="last-30-days">
-                                    Last 30 Days
-                                </SelectItem>
-                                <SelectItem value="this-month">
-                                    This Month
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                        {/* Welcome message with typing effect */}
+                        <div className="hidden md:flex items-center">
+                            <span className="text-sm font-semibold relative">
+                                {/* Invisible placeholder to maintain fixed width */}
+                                <span className="invisible">{welcomeMessage}</span>
+                                {/* Actual typed text positioned absolutely */}
+                                <span className="absolute left-0 top-0 whitespace-nowrap">
+                                    {/* Split displayedText into "Welcome, " part and username part */}
+                                    <span className="text-black dark:text-white">
+                                        {displayedText.slice(0, Math.min(displayedText.length, 9))}
+                                    </span>
+                                    <span className="text-secondary dark:text-teal-400">
+                                        {displayedText.length > 9 ? displayedText.slice(9) : ''}
+                                    </span>
+                                    <span className="inline-block w-0.5 h-4 ml-0.5 bg-secondary dark:bg-teal-400 animate-pulse align-middle" />
+                                </span>
+                            </span>
+                        </div>
 
                         <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
                             <Button
@@ -153,24 +180,6 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                                     ) : (
                                         <PiSunDuotone className="text-xl" />
                                     )
-                                }
-                            />
-                            <Button
-                                size="sm"
-                                shape="circle"
-                                variant="plain"
-                                className="w-9 h-9 border hidden md:flex border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                                icon={
-                                    <PiArrowClockwiseBold className="text-lg text-slate-600 dark:text-slate-400" />
-                                }
-                            />
-                            <Button
-                                size="sm"
-                                shape="circle"
-                                variant="plain"
-                                className="w-9 h-9 border hidden md:flex border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
-                                icon={
-                                    <PiBellDuotone className="text-xl text-slate-600 dark:text-slate-400" />
                                 }
                             />
                         </div>

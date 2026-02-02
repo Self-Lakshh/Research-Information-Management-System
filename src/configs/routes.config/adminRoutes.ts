@@ -9,6 +9,24 @@ const adminRoutes: Routes = [
         component: lazy(() => import('@/views/admin/Dashboard')),
         authority: [ADMIN],
     },
+    {
+        key: 'admin.records',
+        path: '/admin/records',
+        component: lazy(() => import('@/views/admin/Records')),
+        authority: [ADMIN],
+    },
+    {
+        key: 'admin.recent-requests',
+        path: '/admin/recent-requests',
+        component: lazy(() => import('@/views/admin/Recent_Requests')),
+        authority: [ADMIN],
+    },
+    {
+        key: 'admin.user-management',
+        path: '/admin/user-management',
+        component: lazy(() => import('@/views/admin/User_Management')),
+        authority: [ADMIN],
+    },
 ]
 
 export default adminRoutes
