@@ -1,303 +1,154 @@
-import { useEffect, useState, useRef } from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { OptimizedImage } from "./shared/OptimizedImage"
-import { cn } from "@/components/shadcn/utils"
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence, PanInfo } from 'framer-motion'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { OptimizedImage } from './shared/OptimizedImage'
+import { cn } from '@/components/shadcn/utils'
 
 interface ShowcaseProps {
-  images: string[]
-  autoPlay?: boolean
-  interval?: number
+    images: string[]
+    autoPlay?: boolean
+    interval?: number
+}
+
+const variants = {
+    enter: (direction: number) => ({
+        zIndex: 0,
+        opacity: 0,
+    }),
+    center: {
+        zIndex: 1,
+        opacity: 1,
+        transition: {
+            opacity: { duration: 0.5, ease: 'easeInOut' },
+        },
+    },
+    exit: (direction: number) => ({
+        zIndex: 0,
+        opacity: 0,
+        transition: {
+            opacity: { duration: 0.5, ease: 'easeInOut' },
+        },
+    }),
+}
+
+const swipeConfidenceThreshold = 10000
+const swipePower = (offset: number, velocity: number) => {
+    return Math.abs(offset) * velocity
 }
 
 export const Showcase = ({
-  images,
-  autoPlay = true,
-  interval = 5000,
+    images,
+    autoPlay = true,
+    interval = 5000,
 }: ShowcaseProps) => {
-  const extendedImages = [
-    images[images.length - 1],
-    ...images,
-    images[0],
-  ]
+    const [[page, direction], setPage] = useState([0, 0])
+    const [isHovered, setIsHovered] = useState(false)
 
-  const [currentIndex, setCurrentIndex] = useState(1)
-  const [isTransitioning, setIsTransitioning] = useState(true)
-  const [isHovered, setIsHovered] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState(0)
-  const [dragOffset, setDragOffset] = useState(0)
-  const sliderRef = useRef<HTMLDivElement>(null)
-  const autoPlayRef = useRef<NodeJS.Timeout | null>(null)
+    // We only have 3 images effectively in the original logic, but here we can handle any number
+    const imageIndex = Math.abs(page % images.length)
 
-  const prevSlide = () => {
-    if (!isTransitioning) return
-    resetAutoplay()
-    setCurrentIndex((prev) => prev - 1)
-  }
+    const paginate = useCallback((newDirection: number) => {
+        setPage((prev) => [prev[0] + newDirection, newDirection])
+    }, [])
 
-  const nextSlide = () => {
-    if (!isTransitioning) return
-    setCurrentIndex((prev) => prev + 1)
-  }
+    useEffect(() => {
+        if (!autoPlay || isHovered) return
+        const timer = setInterval(() => {
+            paginate(1)
+        }, interval)
+        return () => clearInterval(timer)
+    }, [autoPlay, interval, isHovered, paginate])
 
-  useEffect(() => {
-    const slider = sliderRef.current
-    if (!slider) return
+    // Preload next image logic could go here if needed, but browsers handle it reasonably well
+    // or OptimizedImage handles it.
 
-    const handleTransitionEnd = () => {
-      if (currentIndex === 0 || currentIndex === images.length + 1) {
-        setIsTransitioning(false)
-
-        const newIndex = currentIndex === 0 ? images.length : 1
-        setCurrentIndex(newIndex)
-
-        requestAnimationFrame(() => {
-          slider.style.transition = "none"
-          slider.style.transform = `translateX(-${newIndex * 100}%)`
-
-          requestAnimationFrame(() => {
-            slider.style.transition = ""
-            setIsTransitioning(true)
-          })
-        })
-      }
-    }
-
-    slider.addEventListener("transitionend", handleTransitionEnd)
-    return () => slider.removeEventListener("transitionend", handleTransitionEnd)
-  }, [currentIndex, images.length])
-
-  const resetAutoplay = () => {
-    if (autoPlayRef.current) clearInterval(autoPlayRef.current)
-    if (autoPlay && !isHovered) {
-      autoPlayRef.current = setInterval(nextSlide, interval)
-    }
-  }
-
-  useEffect(() => {
-    resetAutoplay()
-    return () => {
-      if (autoPlayRef.current) clearInterval(autoPlayRef.current)
-    }
-  }, [autoPlay, interval, isHovered])
-
-  const getRealIndex = () => {
-    if (currentIndex === 0) return images.length - 1
-    if (currentIndex === images.length + 1) return 0
-    return currentIndex - 1
-  }
-
-  const goToSlide = (realIndex: number) => {
-    resetAutoplay()
-    setCurrentIndex(realIndex + 1)
-  }
-
-  // Touch/Mouse drag handling
-  const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
-    setIsDragging(true)
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    setDragStart(clientX)
-    setDragOffset(0)
-  }
-
-  const handleDragMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!isDragging) return
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
-    const offset = clientX - dragStart
-    setDragOffset(offset)
-  }
-
-  const handleDragEnd = () => {
-    if (!isDragging) return
-    setIsDragging(false)
-
-    const threshold = 80
-    if (dragOffset > threshold) {
-      prevSlide()
-    } else if (dragOffset < -threshold) {
-      nextSlide()
-    }
-    setDragOffset(0)
-  }
-
-  return (
-    <div className="w-full">
-      {/* Main Carousel Container */}
-      <div className="relative max-w-6xl mx-auto">
-        {/* Glow Effect Background */}
+    return (
         <div
-          className={cn(
-            "absolute -inset-4 rounded-[2rem] opacity-0 transition-opacity duration-700 blur-2xl",
-            "bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/30",
-            isHovered && "opacity-100"
-          )}
-        />
-
-        {/* Carousel Frame */}
-        <div
-          className={cn(
-            "relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden group",
-            "shadow-2xl shadow-black/20",
-            "ring-1 ring-white/10",
-            "before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent before:z-10 before:pointer-events-none"
-          )}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => { setIsHovered(false); handleDragEnd(); }}
-          onMouseDown={handleDragStart}
-          onMouseMove={handleDragMove}
-          onMouseUp={handleDragEnd}
-          onTouchStart={handleDragStart}
-          onTouchMove={handleDragMove}
-          onTouchEnd={handleDragEnd}
+            className="w-full relative group max-w-6xl mx-auto"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
         >
-          {/* Gradient Overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10 z-10 pointer-events-none" />
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-lg border border-border/50 bg-card aspect-[16/9] sm:aspect-[21/9] md:aspect-[2/1] lg:aspect-[2.4/1]">
+                <AnimatePresence
+                    initial={false}
+                    custom={direction}
+                    mode="popLayout"
+                >
+                    <motion.div
+                        key={page}
+                        custom={direction}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={1}
+                        onDragEnd={(e, { offset, velocity }: PanInfo) => {
+                            const swipe = swipePower(offset.x, velocity.x)
+                            if (swipe < -swipeConfidenceThreshold) {
+                                paginate(1)
+                            } else if (swipe > swipeConfidenceThreshold) {
+                                paginate(-1)
+                            }
+                        }}
+                        className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent"
+                    >
+                        <OptimizedImage
+                            src={images[imageIndex]}
+                            alt={`Slide ${imageIndex + 1}`}
+                            className="w-full h-full object-cover pointer-events-none"
+                        />
+                    </motion.div>
+                </AnimatePresence>
 
-          {/* Vignette Effect */}
-          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.3)] z-10 pointer-events-none" />
+                {/* Navigation Buttons */}
+                <div className="absolute inset-0 flex items-center justify-between p-2 pointer-events-none z-20">
+                    <button
+                        onClick={() => paginate(-1)}
+                        className="pointer-events-auto p-2 rounded-full bg-secondary text-white transition-colors z-20"
+                        aria-label="Previous slide"
+                    >
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                        onClick={() => paginate(1)}
+                        className="pointer-events-auto p-2 rounded-full bg-secondary text-white transition-colors z-20"
+                        aria-label="Next slide"
+                    >
+                        <ChevronRight className="w-6 h-6" />
+                    </button>
+                </div>
 
-          {/* Slider Track */}
-          <div
-            ref={sliderRef}
-            className={cn(
-              "flex",
-              isTransitioning && !isDragging
-                ? "transition-transform duration-[900ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]"
-                : "",
-              isDragging && "cursor-grabbing"
-            )}
-            style={{
-              transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
-              cursor: isDragging ? 'grabbing' : 'grab'
-            }}
-          >
-            {extendedImages.map((src, i) => (
-              <div
-                key={i}
-                className="w-full flex-shrink-0 relative h-[180px] sm:h-[280px] md:h-[350px] lg:h-[400px] xl:h-[450px]"
-              >
-                <OptimizedImage
-                  src={src}
-                  alt={`Slide ${i + 1}`}
-                  className={cn(
-                    "w-full h-full object-cover transition-all duration-700 select-none",
-                    isHovered ? 'scale-105' : 'scale-100'
-                  )}
-                />
-              </div>
-            ))}
-          </div>
+                {/* Page Counter Badge */}
+                <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-10 pointer-events-none">
+                    {imageIndex + 1} / {images.length}
+                </div>
+            </div>
 
-          {/* Slide Counter Badge */}
-          <div className={cn(
-            "absolute top-3 right-3 sm:top-4 sm:right-4 z-20",
-            "px-3 py-1.5 rounded-full",
-            "bg-black/40 backdrop-blur-md",
-            "text-white text-xs sm:text-sm font-medium",
-            "border border-white/20",
-            "transition-all duration-300",
-            "opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
-          )}>
-            <span className="text-white font-semibold">{getRealIndex() + 1}</span>
-            <span className="text-white/60 mx-1">/</span>
-            <span className="text-white/60">{images.length}</span>
-          </div>
-
-          {/* Navigation Buttons */}
-          <button
-            onClick={prevSlide}
-            className={cn(
-              "absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20",
-              "bg-white/10 hover:bg-white/25 backdrop-blur-xl",
-              "text-white p-2.5 sm:p-3 lg:p-4 rounded-full",
-              "transition-all duration-300",
-              "hover:scale-110 active:scale-95",
-              "opacity-0 group-hover:opacity-100",
-              "-translate-x-4 group-hover:translate-x-0",
-              "shadow-lg shadow-black/20",
-              "border border-white/20",
-              "hover:border-white/40",
-              "hover:shadow-xl hover:shadow-primary/20"
-            )}
-          >
-            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-          </button>
-
-          <button
-            onClick={nextSlide}
-            className={cn(
-              "absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20",
-              "bg-white/10 hover:bg-white/25 backdrop-blur-xl",
-              "text-white p-2.5 sm:p-3 lg:p-4 rounded-full",
-              "transition-all duration-300",
-              "hover:scale-110 active:scale-95",
-              "opacity-0 group-hover:opacity-100",
-              "translate-x-4 group-hover:translate-x-0",
-              "shadow-lg shadow-black/20",
-              "border border-white/20",
-              "hover:border-white/40",
-              "hover:shadow-xl hover:shadow-primary/20"
-            )}
-          >
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-          </button>
-
-          {/* Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30 z-20 overflow-hidden">
-            <div
-              className={cn(
-                "h-full transition-all duration-500 ease-out",
-                "bg-gradient-to-r from-primary via-secondary to-primary",
-                "shadow-[0_0_10px_2px] shadow-primary/50"
-              )}
-              style={{ width: `${((getRealIndex() + 1) / images.length) * 100}%` }}
-            />
-            {/* Animated shine effect on progress bar */}
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent"
-              style={{
-                width: '50%',
-                transform: `translateX(${((getRealIndex() + 1) / images.length) * 200}%)`,
-                transition: 'transform 0.5s ease-out'
-              }}
-            />
-          </div>
+            {/* Dots - Below the image, Centered */}
+            <div className="flex items-center justify-center mt-4 px-2">
+                <div className="flex items-center gap-2">
+                    {images.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => {
+                                const diff = i - imageIndex
+                                if (diff !== 0) paginate(diff)
+                            }}
+                            className={cn(
+                                'h-2 w-2 rounded-full transition-colors duration-300',
+                                i === imageIndex
+                                    ? 'bg-primary'
+                                    : 'bg-muted-foreground/30 hover:bg-muted-foreground/50',
+                            )}
+                            aria-label={`Go to slide ${i + 1}`}
+                        />
+                    ))}
+                </div>
+            </div>
         </div>
-      </div>
-
-      {/* Dots Navigation */}
-      <div className="flex justify-center items-center gap-2 sm:gap-3 mt-4 sm:mt-5 lg:mt-6">
-        {images.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goToSlide(i)}
-            className={cn(
-              "relative transition-all duration-500 rounded-full",
-              "hover:scale-125 active:scale-95",
-              "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background",
-              getRealIndex() === i
-                ? "w-8 sm:w-10 lg:w-12 h-2 sm:h-2.5 lg:h-3"
-                : "w-2 sm:w-2.5 lg:w-3 h-2 sm:h-2.5 lg:h-3"
-            )}
-          >
-            {/* Background */}
-            <span
-              className={cn(
-                "absolute inset-0 rounded-full transition-all duration-500",
-                getRealIndex() === i
-                  ? "bg-gradient-to-r from-primary to-secondary shadow-md shadow-primary/30"
-                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-              )}
-            />
-            {/* Glow effect for active dot */}
-            {getRealIndex() === i && (
-              <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-secondary blur-sm opacity-50" />
-            )}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
+    )
 }
 
 export default Showcase
