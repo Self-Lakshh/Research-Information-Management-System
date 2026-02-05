@@ -9,7 +9,7 @@ export const About = () => {
   return (
     <section
       id="about"
-      className="min-h-screen flex items-center py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-12 xl:px-16 relative overflow-hidden"
+      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-12 xl:px-16 relative overflow-hidden"
     >
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">
@@ -17,8 +17,8 @@ export const About = () => {
         <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
       </div>
 
-      <div ref={sectionRef} className="container mx-auto relative z-10">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
+      <div ref={sectionRef} className="max-w-7xl mx-auto relative z-10 w-full">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-10 xl:gap-12 items-center">
 
           {/* Image with Parallax Effect */}
           <div
@@ -52,41 +52,48 @@ export const About = () => {
           {/* Content */}
           <div
             ref={contentRef}
-            className={`space-y-4 sm:space-y-5 lg:space-y-6 order-1 md:order-2 transition-all duration-1000 delay-300 ease-out ${isContentVisible
+            className={`space-y-6 sm:space-y-8 transition-all duration-1000 delay-300 ease-out ${isContentVisible
               ? 'opacity-100 translate-x-0'
               : 'opacity-0 translate-x-20'
               }`}
           >
             <div className="inline-block">
-              <span className="text-xs sm:text-sm font-semibold text-primary/70 uppercase tracking-wider">About Us</span>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary mt-2">
+              <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em]">About Us</span>
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-3 transition-all duration-300">
                 About RIMS
               </h2>
-              <div className="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-3" />
+              <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-3 sm:mt-4" />
+            </div>
+            
+            <div className="space-y-2 sm:space-y-3">
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed transition-all duration-300">
+                <span className="font-semibold">RIMS</span> is a
+                <span className="font-semibold">centralized research information platform</span>
+                for the SPSU academic community, designed to
+                <span className="font-semibold">document, manage, and showcase</span>
+                scholarly research and innovation activities.
+              </p>
+
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed transition-all duration-300">
+                It highlights
+                <span className="font-semibold">academic excellence</span>,
+                <span className="font-semibold">research productivity</span>, and
+                <span className="font-semibold">societal impact</span>
+                while ensuring
+                <span className="font-semibold">transparency, accessibility, and structured data management</span>.
+                RIMS supports
+                <span className="font-semibold">accreditation, rankings, collaborations,</span>
+                and informed institutional decision-making.
+              </p>
             </div>
 
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed">
-              RIMS is a dedicated portal consolidating all research-related
-              information from the SPSU academic community. The Research
-              Information Management System (RIMS) serves as a centralized
-              digital platform to document, manage, and showcase the
-              scholarly, research, and innovation activities of the institution.
-            </p>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed">
-              It reflects the academic excellence, research productivity, and
-              societal contributions of faculty members, researchers, and
-              scholars. Through RIMS, the institution ensures transparency,
-              accessibility, and systematic organization of all research-related
-              data, supporting accreditation, rankings, collaborations, and
-              strategic decision-making.
-            </p>
 
             {/* Feature Pills */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 pt-2">
+            <div className="flex flex-wrap gap-2 sm:gap-3 pt-4">
               {['Centralized', 'Transparent', 'Data-Driven', 'Accessible'].map((tag, i) => (
                 <span
                   key={tag}
-                  className={`px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/10 text-primary text-xs sm:text-sm font-medium rounded-full transition-all duration-500 hover:bg-primary hover:text-primary-foreground cursor-default ${isContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 bg-primary/10 text-primary text-xs sm:text-sm font-bold rounded-full transition-all duration-500 hover:bg-primary hover:text-primary-foreground cursor-default ${isContentVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                     }`}
                   style={{ transitionDelay: `${800 + i * 100}ms` }}
                 >

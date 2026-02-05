@@ -8,7 +8,7 @@ export const Hero = () => {
   const mousePosition = useMouseParallax(0.015)
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
+    <section id="home" className="relative min-h-fit flex items-center pt-20 pb-4 sm:pt-24 sm:pb-6 lg:pt-28 lg:pb-8 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
 
       {/* Floating Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -31,7 +31,7 @@ export const Hero = () => {
 
       <div
         ref={heroRef}
-        className="container mx-auto text-center space-y-8 sm:space-y-10 relative z-10"
+        className="max-w-7xl mx-auto text-center space-y-4 sm:space-y-6 relative z-10"
       >
 
         {/* Top Badge */}
@@ -41,25 +41,25 @@ export const Hero = () => {
             : 'opacity-0 -translate-y-10'
             }`}
         >
-          <Badge className="bg-warning text-sm sm:text-base lg:text-lg rounded-full px-4 sm:px-6 lg:px-10 py-1.5 sm:py-2 hover:bg-warning hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-default">
+          <Badge className="bg-warning text-sm sm:text-base lg:text-lg rounded-full px-6 sm:px-8 lg:px-12 py-2 sm:py-2.5 hover:bg-warning hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl cursor-default">
             Research Management Platform
           </Badge>
         </div>
 
         {/* Title */}
         <div
-          className={`space-y-3 sm:space-y-4 transition-all duration-1000 delay-200 ease-out ${isHeroVisible
+          className={`space-y-4 sm:space-y-6 transition-all duration-1000 delay-200 ease-out ${isHeroVisible
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-10'
             }`}
         >
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-primary leading-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-primary leading-tight tracking-tight">
             Sir Padampat Singhania University{' '}
             <span className="bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
               RIMS
             </span>
           </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl lg:max-w-2xl mx-auto leading-relaxed px-2">
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed px-4">
             Software that integrates databases across the entire lifecycle of
             institutions, helping with reporting, analysis, and promotion of
             research activities.
@@ -68,16 +68,16 @@ export const Hero = () => {
 
         {/* Stats Row */}
         <div
-          className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 pt-4 sm:pt-6 transition-all duration-1000 delay-500 ease-out ${isHeroVisible
+          className={`grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 pt-2 sm:pt-4 transition-all duration-1000 delay-500 ease-out ${isHeroVisible
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-10'
             }`}
         >
           {[
-            { icon: <Database className="w-4 h-4 sm:w-5 sm:h-5" />, value: "1L+", label: "IPR & Patents", delay: 0 },
-            { icon: <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
-            { icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, value: "200+", label: "Conference Publications", delay: 200 },
-            { icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, value: "200+", label: "Book Publications", delay: 300 },
+            { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "1L+", label: "IPR & Patents", delay: 0 },
+            { icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
+            { icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Conference Publications", delay: 200 },
+            { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book Publications", delay: 300 },
           ].map((stat, i) => (
             <div
               key={i}

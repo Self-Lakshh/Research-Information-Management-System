@@ -59,7 +59,7 @@ export const Domains = () => {
   return (
     <section
       id="domains"
-      className="min-h-screen flex flex-col px-4 sm:px-6 lg:px-12 xl:px-16 py-8 sm:py-10 lg:py-12 relative overflow-hidden"
+      className="min-h-fit flex flex-col px-4 sm:px-6 lg:px-12 xl:px-16 py-6 sm:py-8 lg:py-12 relative overflow-hidden"
     >
       {/* Background Decoration */}
       <div className="absolute inset-0 pointer-events-none">
@@ -67,41 +67,41 @@ export const Domains = () => {
         <div className="absolute top-1/2 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto flex flex-col h-full relative z-10">
+      <div className="max-w-7xl mx-auto flex flex-col h-full relative z-10 w-full space-y-6 sm:space-y-10 lg:space-y-12">
 
         {/* Domains Section */}
-        <div className="flex-[2] flex flex-col justify-center">
+        <div className="flex-[2] flex flex-col justify-center w-full">
           {/* Header */}
           <div
             ref={headerRef}
             className={`text-center mb-6 sm:mb-8 transition-all duration-1000 ease-out ${isHeaderVisible
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 -translate-y-10'
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 -translate-y-10'
               }`}
           >
-            <span className="text-xs sm:text-sm font-semibold text-primary/70 uppercase tracking-wider">Explore</span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-primary mt-1 mb-2">
+            <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em]">Explore</span>
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-2 mb-3 sm:mb-4">
               Domain / Category
             </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-xl lg:max-w-2xl mx-auto px-2">
-              Explore our comprehensive research domains and categories
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4">
+              Explore our comprehensive research domains and categories providing deep insights into institutional progress.
             </p>
-            <div className="flex justify-center pt-3">
-              <div className="h-1 w-20 bg-gradient-to-r from-primary to-secondary rounded-full" />
+            <div className="flex justify-center pt-3 sm:pt-6">
+              <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full" />
             </div>
           </div>
 
           {/* Cards Grid */}
           <div
             ref={cardsRef}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 max-w-5xl mx-auto w-full"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-10 w-full"
           >
             {visibleDomains.map((d, i) => (
               <div
                 key={i}
                 className={`transform hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 hover:shadow-xl ${isCardsVisible
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-10'
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-10'
                   }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
@@ -113,12 +113,12 @@ export const Domains = () => {
           {/* View More / View Less Button */}
           {domains.length > 4 && (
             <div
-              className={`flex justify-center mt-6 sm:mt-8 transition-all duration-700 delay-500 ${isCardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              className={`flex justify-center mt-10 sm:mt-12 transition-all duration-700 delay-500 ${isCardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                 }`}
             >
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="group flex items-center gap-2 px-5 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground text-sm sm:text-base font-semibold rounded-full transition-all duration-300 border border-primary/20 hover:border-primary hover:shadow-lg hover:shadow-primary/20 active:scale-95"
+                className="group flex items-center gap-3 px-8 sm:px-10 py-3 sm:py-4 bg-primary/10 hover:bg-primary text-primary hover:text-primary-foreground text-sm sm:text-base font-bold rounded-full transition-all duration-300 border border-primary/20 hover:border-primary hover:shadow-lg hover:shadow-primary/20 active:scale-95"
               >
                 <span>{isExpanded ? "View Less" : "View More Domains"}</span>
                 {isExpanded ? (
@@ -134,9 +134,9 @@ export const Domains = () => {
         {/* Showcase Section */}
         <div
           ref={showcaseRef}
-          className={`flex-[3] flex flex-col justify-center mt-6 sm:mt-8 lg:mt-10 transition-all duration-1000 ease-out ${isShowcaseVisible
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-20'
+          className={`flex-[3] flex flex-col justify-center transition-all duration-1000 ease-out ${isShowcaseVisible
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-20'
             }`}
         >
           <Showcase
