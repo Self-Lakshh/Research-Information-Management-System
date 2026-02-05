@@ -27,14 +27,15 @@ export const PartnerCard = ({
         bg-card
         shadow-sm
         transition-all
-        duration-300
+        duration-500
+        ease-out
         hover:-translate-y-2
-        hover:shadow-xl
-        hover:border-primary/30"
+        hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)]
+        hover:border-primary/20"
         >
             <CardContent className="flex h-full flex-col items-center text-center p-4 sm:p-5 lg:p-6">
                 <div className="mb-4 sm:mb-5 lg:mb-6 w-full flex justify-center">
-                    <div className="flex h-16 sm:h-18 lg:h-20 w-full items-center justify-center rounded-xl bg-primary/5 transition-all duration-300 group-hover:bg-primary/10 overflow-hidden">
+                    <div className="flex h-16 sm:h-18 lg:h-20 w-full items-center justify-center rounded-xl bg-primary/5 transition-all duration-300 overflow-hidden">
                         <OptimizedImage
                             src={icon}
                             alt={name}
@@ -62,7 +63,7 @@ export const PartnerCard = ({
                 >
                     Visit{' '}
                     <span className="ml-1.5 sm:ml-2 transition-transform duration-300 group-hover:translate-x-1">
-                        <ArrowRight/>
+                        <ArrowRight />
                     </span>
                 </a>
             </CardContent>

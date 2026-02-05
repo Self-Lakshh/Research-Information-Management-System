@@ -15,9 +15,9 @@ export const DomainCard = ({ title, description, points, image }: DomainCardProp
       className={cn(
         "group rounded-xl sm:rounded-2xl overflow-hidden h-full",
         "border bg-card",
-        "shadow-sm hover:shadow-lg",
-        "transition-all duration-300 ease-out",
-        "hover:-translate-y-1"
+        "shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)]",
+        "transition-all duration-500 ease-out",
+        "hover:-translate-y-2"
       )}
     >
       {/* Image Container */}

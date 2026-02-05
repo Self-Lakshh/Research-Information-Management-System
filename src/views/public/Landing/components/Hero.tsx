@@ -8,26 +8,7 @@ export const Hero = () => {
   const mousePosition = useMouseParallax(0.015)
 
   return (
-    <section id="home" className="relative min-h-fit flex items-center pt-20 pb-4 sm:pt-24 sm:pb-6 lg:pt-28 lg:pb-8 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
-
-      {/* Floating Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl animate-pulse"
-          style={{ transform: `translate(${mousePosition.x * 2}px, ${mousePosition.y * 2}px)` }}
-        />
-        <div
-          className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-pulse"
-          style={{
-            transform: `translate(${-mousePosition.x * 1.5}px, ${-mousePosition.y * 1.5}px)`,
-            animationDelay: '1s'
-          }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/3 to-secondary/3 rounded-full blur-3xl"
-          style={{ transform: `translate(calc(-50% + ${mousePosition.x}px), calc(-50% + ${mousePosition.y}px))` }}
-        />
-      </div>
+    <section id="home" className="relative min-h-fit flex items-center pt-8 pb-4 sm:pt-8 sm:pb-4 lg:pt-4 lg:pb-4 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
 
       <div
         ref={heroRef}
@@ -81,7 +62,7 @@ export const Hero = () => {
           ].map((stat, i) => (
             <div
               key={i}
-              className={`transform hover:scale-105 transition-all duration-500 hover:shadow-lg ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              className={`transition-all duration-500 ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                 }`}
               style={{ transitionDelay: `${600 + stat.delay}ms` }}
             >

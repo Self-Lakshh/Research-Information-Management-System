@@ -57,13 +57,6 @@ export const Partners = () => {
         }
       `}</style>
 
-            {/* Background Decoration */}
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-gradient-to-t from-primary/5 to-transparent rounded-full blur-3xl" />
-                <div className="absolute top-1/4 left-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl" />
-                <div className="absolute top-1/3 right-0 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-            </div>
-
             <div className="w-full relative z-10">
                 {/* Header */}
                 <div className="text-center space-y-2 sm:space-y-3 mb-8 sm:mb-12 lg:mb-16 px-4">
@@ -89,30 +82,11 @@ export const Partners = () => {
                         {marqueePartners.map((partner, i) => (
                             <div
                                 key={i}
-                                className="mx-4 w-[260px] sm:w-[300px] lg:w-[320px] transition-transform duration-300 hover:scale-105"
+                                className="mx-4 w-[260px] sm:w-[300px] lg:w-[320px] transition-transform duration-500"
                             >
                                 <PartnerCard {...partner} />
                             </div>
                         ))}
-                    </div>
-                </div>
-
-                {/* Bottom stats */}
-                <div className="flex justify-center mt-10 sm:mt-12 lg:mt-16 px-4">
-                    <div className="flex items-center gap-3 sm:gap-4 px-6 py-3 sm:py-4 bg-primary/5 rounded-full border border-primary/10 backdrop-blur-sm animate-fade-in-up delay-500">
-                        <div className="flex -space-x-3">
-                            {[...Array(3)].map((_, i) => (
-                                <div
-                                    key={i}
-                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background"
-                                />
-                            ))}
-                        </div>
-                        <span className="text-xs sm:text-sm text-muted-foreground">
-                            Trusted by{' '}
-                            <span className="font-bold text-primary">500+</span>{' '}
-                            Researchers worldwide
-                        </span>
                     </div>
                 </div>
             </div>

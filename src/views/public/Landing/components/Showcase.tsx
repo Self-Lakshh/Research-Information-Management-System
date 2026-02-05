@@ -68,7 +68,7 @@ export const Showcase = ({
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-lg border border-border/50 bg-card aspect-[16/9] sm:aspect-[21/9] md:aspect-[2/1] lg:aspect-[2.4/1]">
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-border/50 bg-card aspect-[16/9] sm:aspect-[21/9] md:aspect-[2/1] lg:aspect-[2.4/1]">
                 <AnimatePresence
                     initial={false}
                     custom={direction}

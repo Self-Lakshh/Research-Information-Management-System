@@ -13,43 +13,43 @@ export const Domains = () => {
   const domains = [
     {
       title: "IPR & Patents",
-      image: "/img/categories/1.png",
+      image: "/img/categories/ipr.png",
       desc: "Intellectual Property Rights & Patents, Copyrights, Trademarks",
       points: ["Patents filed/published/granted", "Copyrights", "Trademarks"],
     },
     {
       title: "Journal Publications",
-      image: "/img/categories/2.png",
+      image: "/img/categories/journal.png",
       points: ["Journal articles", "Scopus/WoS indexed", "Faculty & scholar entries"],
     },
     {
       title: "Conference Publications",
-      image: "/img/categories/3.png",
+      image: "/img/categories/conference.png",
       points: ["Conference papers", "Proceedings", "Presentations"],
     },
     {
       title: "Book Publications",
-      image: "/img/categories/4.png",
+      image: "/img/categories/book.png",
       points: ["Books authored", "Book chapters", "Edited volumes"],
     },
     {
       title: "Research Projects",
-      image: "/img/categories/5.png",
+      image: "/img/categories/phd.png",
       points: ["Funded projects", "Ongoing research", "Completed projects"],
     },
     {
       title: "Awards & Recognition",
-      image: "/img/categories/6.png",
+      image: "/img/categories/awards.png",
       points: ["Awards received", "Honors", "Fellowships"],
     },
     {
       title: "Consultancy",
-      image: "/img/categories/7.png",
+      image: "/img/categories/cpg.png",
       points: ["Industry consultancy", "Expert services", "Technical advice"],
     },
     {
       title: "Collaborations",
-      image: "/img/categories/8.png",
+      image: "/img/categories/fdp.png",
       points: ["MoUs", "Research partnerships", "International collaborations"],
     },
   ]
@@ -61,11 +61,6 @@ export const Domains = () => {
       id="domains"
       className="min-h-fit flex flex-col px-4 sm:px-6 lg:px-12 xl:px-16 py-6 sm:py-8 lg:py-12 relative overflow-hidden"
     >
-      {/* Background Decoration */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-0 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl" />
-      </div>
 
       <div className="max-w-7xl mx-auto flex flex-col h-full relative z-10 w-full space-y-6 sm:space-y-10 lg:space-y-12">
 
@@ -99,7 +94,7 @@ export const Domains = () => {
             {visibleDomains.map((d, i) => (
               <div
                 key={i}
-                className={`transform hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500 hover:shadow-xl ${isCardsVisible
+                className={`transition-all duration-500 ${isCardsVisible
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-10'
                   }`}

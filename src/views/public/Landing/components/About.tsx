@@ -34,7 +34,7 @@ export const About = () => {
             {/* Decorative Frame */}
             <div className="absolute -inset-2 border-2 border-primary/20 rounded-2xl sm:rounded-3xl transform rotate-2 group-hover:rotate-0 transition-transform duration-500" />
 
-            <div className="relative rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden w-full aspect-video transform group-hover:scale-[1.02] transition-all duration-700">
+            <div className="relative rounded-xl sm:rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden w-full aspect-video transform group-hover:scale-[1.02] group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] transition-all duration-700">
               <OptimizedImage
                 src="/img/others/mockup.png"
                 className="w-full h-full object-cover"
@@ -64,7 +64,7 @@ export const About = () => {
               </h2>
               <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-3 sm:mt-4" />
             </div>
-            
+
             <div className="space-y-2 sm:space-y-3">
               <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed transition-all duration-300">
                 <span className="font-semibold">RIMS</span> is a

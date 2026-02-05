@@ -64,7 +64,7 @@ export const Features = () => {
           {features.map((feature, i) => (
             <div
               key={i}
-              className={`transform hover:scale-[1.02] hover:-translate-y-2 transition-all duration-500 h-full ${isCardsVisible
+              className={`transform hover:scale-[1.02] hover:-translate-y-2 transition-all duration-700 ease-out h-full ${isCardsVisible
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-10'
                 }`}
