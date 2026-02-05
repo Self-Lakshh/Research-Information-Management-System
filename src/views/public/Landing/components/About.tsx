@@ -9,7 +9,7 @@ export const About = () => {
   return (
     <section
       id="about"
-      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-12 xl:px-16 relative overflow-hidden"
+      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
     >
       {/* Subtle Background Pattern */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">

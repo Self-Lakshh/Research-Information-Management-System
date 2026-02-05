@@ -72,10 +72,10 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
             <AnimatedBackdrop />
 
             {/* Desktop & Mobile Header */}
-              <header className="m-10 top-0 left-0 right-0 z-50 flex items-center justify-between h-20 px-6 sm:px-10 lg:px-16 border border-secondary rounded-xl bg-transparent backdrop-blur-md">               {/* Logo */}
+            <header className="m-4 lg:m-10 top-0 left-0 right-0 z-50 flex items-center justify-between h-16 sm:h-20 px-6 sm:px-10 lg:px-12 xl:px-16 border border-secondary rounded-xl bg-transparent backdrop-blur-md">
                 <div className="flex items-center">
                     <Link to="/" className="flex items-center">
-                        <Logo logoWidth={240} className="g lg:w-[240px]" />
+                        <Logo className="w-32 sm:w-40 lg:w-60" imgClass="w-full" logoWidth="100%" />
                     </Link>
                 </div>
 

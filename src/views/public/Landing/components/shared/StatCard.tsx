@@ -8,7 +8,7 @@ interface StatCardProps {
 
 export const StatCard = ({ icon, value, label }: StatCardProps) => {
   return (
-    <Card className="relative bg-white/55 rounded-2xl sm:rounded-[32px] px-4 sm:px-5 lg:px-6 py-4 sm:py-5 lg:py-6 shadow-sm border border-gray-100 transition-all duration-500 ease-out hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/10">
+    <Card className="relative bg-white/55 rounded-2xl sm:rounded-[32px] px-4 sm:px-5 lg:px-6 py-4 sm:py-5 lg:py-6 shadow-sm border border-gray-100 transition-all duration-500 ease-out hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/10 h-full">
       <div className="flex flex-col items-start gap-2 sm:gap-3 lg:gap-4">
 
         {/* Icon Bubble */}

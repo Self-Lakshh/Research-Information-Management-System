@@ -40,7 +40,7 @@ export const Partners = () => {
     return (
         <section
             id="partners"
-            className="min-h-fit flex flex-col justify-center py-6 sm:py-8 lg:py-12 relative overflow-hidden"
+            className="min-h-fit flex flex-col justify-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
         >
             <style>{`
         @keyframes scroll {
@@ -59,7 +59,7 @@ export const Partners = () => {
 
             <div className="w-full relative z-10">
                 {/* Header */}
-                <div className="text-center space-y-2 sm:space-y-3 mb-8 sm:mb-12 lg:mb-16 px-4">
+                <div className="text-center space-y-2 sm:space-y-3 mb-8 sm:mb-12 lg:mb-16">
                     <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em] animate-fade-in-up">
                         Collaborations
                     </span>

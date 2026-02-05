@@ -31,7 +31,7 @@ export const Features = () => {
   return (
     <section
       id="features"
-      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-10 relative overflow-hidden"
+      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
     >
 
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full">

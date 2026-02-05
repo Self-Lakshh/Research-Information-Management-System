@@ -59,7 +59,7 @@ export const Domains = () => {
   return (
     <section
       id="domains"
-      className="min-h-fit flex flex-col px-4 sm:px-6 lg:px-12 xl:px-16 py-6 sm:py-8 lg:py-12 relative overflow-hidden"
+      className="min-h-fit flex flex-col px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 lg:py-12 relative overflow-hidden"
     >
 
       <div className="max-w-7xl mx-auto flex flex-col h-full relative z-10 w-full space-y-6 sm:space-y-10 lg:space-y-12">

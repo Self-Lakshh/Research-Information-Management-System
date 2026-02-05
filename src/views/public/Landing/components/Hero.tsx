@@ -8,7 +8,7 @@ export const Hero = () => {
   const mousePosition = useMouseParallax(0.015)
 
   return (
-    <section id="home" className="relative min-h-fit flex items-center pt-8 pb-4 sm:pt-8 sm:pb-4 lg:pt-4 lg:pb-4 px-4 sm:px-6 lg:px-12 xl:px-16 overflow-hidden">
+    <section id="home" className="relative min-h-fit flex items-center pt-8 pb-4 sm:pt-8 sm:pb-4 lg:pt-4 lg:pb-4 px-6 sm:px-10 lg:px-12 xl:px-16 overflow-hidden">
 
       <div
         ref={heroRef}
@@ -62,7 +62,7 @@ export const Hero = () => {
           ].map((stat, i) => (
             <div
               key={i}
-              className={`transition-all duration-500 ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              className={`transition-all duration-500 h-full ${isHeroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                 }`}
               style={{ transitionDelay: `${600 + stat.delay}ms` }}
             >
