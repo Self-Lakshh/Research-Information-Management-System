@@ -14,43 +14,58 @@ export const Domains = () => {
     {
       title: "IPR & Patents",
       image: "/img/categories/ipr.png",
-      desc: "Intellectual Property Rights & Patents, Copyrights, Trademarks",
-      points: ["Patents filed/published/granted", "Copyrights", "Trademarks"],
+      description:
+        "Comprehensive intellectual property portfolio including patents, copyrights, and trademarks, reflecting institutional innovation output, technology transfer potential, and legal protection of research-driven intellectual assets.",
+      tags: ["Patents", "Copyrights", "Trademarks", "Technology Transfer"],
     },
     {
       title: "Journal Publications",
       image: "/img/categories/journal.png",
-      points: ["Journal articles", "Scopus/WoS indexed", "Faculty & scholar entries"],
+      description:
+        "Peer-reviewed scholarly articles published in high-impact journals indexed in Scopus and Web of Science, demonstrating academic excellence, research visibility, and global citation footprint.",
+      tags: ["Scopus Indexed", "WoS Indexed", "Peer-Reviewed", "Faculty & Scholars"],
     },
     {
       title: "Conference Publications",
       image: "/img/categories/conference.png",
-      points: ["Conference papers", "Proceedings", "Presentations"],
+      description:
+        "Research papers presented and published in reputed national and international conference proceedings, fostering scholarly dissemination, academic networking, and emerging research dialogue.",
+      tags: ["Conference Papers", "Proceedings", "Presentations", "Technical Sessions"],
     },
     {
-      title: "Book Publications",
+      title: "Book & Chapter Publications",
       image: "/img/categories/book.png",
-      points: ["Books authored", "Book chapters", "Edited volumes"],
+      description:
+        "Authored and edited academic books and book chapters contributing to disciplinary knowledge, scholarly documentation, and long-form research dissemination across diverse subject domains.",
+      tags: ["Authored Books", "Book Chapters", "Edited Volumes", "Academic Publishing"],
     },
     {
-      title: "Research Projects",
+      title: "Consultancy Project Grants",
+      image: "/img/categories/cpg.png",
+      description:
+        "Industry and government-sponsored consultancy projects delivering domain expertise, applied research solutions, and revenue-generating knowledge transfer aligned with societal and technological challenges.",
+      tags: ["Industry Consultancy", "Funded Projects", "Expert Services", "Applied Research"],
+    },
+    {
+      title: "PhD Student Data",
       image: "/img/categories/phd.png",
-      points: ["Funded projects", "Ongoing research", "Completed projects"],
+      description:
+        "Doctoral research ecosystem encompassing enrolled scholars, thesis progress, supervisors, and awarded degrees, representing advanced research training, knowledge creation, and institutional research capacity.",
+      tags: ["Doctoral Scholars", "Thesis Progress", "Supervisors", "PhD Awards"],
     },
     {
       title: "Awards & Recognition",
       image: "/img/categories/awards.png",
-      points: ["Awards received", "Honors", "Fellowships"],
+      description:
+        "Prestigious awards, honors, fellowships, and recognitions received by faculty and researchers, highlighting academic distinction, research impact, and national and international professional acclaim.",
+      tags: ["Awards", "Honors", "Fellowships", "Distinctions"],
     },
     {
-      title: "Consultancy",
-      image: "/img/categories/cpg.png",
-      points: ["Industry consultancy", "Expert services", "Technical advice"],
-    },
-    {
-      title: "Collaborations",
+      title: "Workshops, Seminars & FDP",
       image: "/img/categories/fdp.png",
-      points: ["MoUs", "Research partnerships", "International collaborations"],
+      description:
+        "Academic events including workshops, seminars, faculty development programs, and keynote lectures that promote knowledge exchange, capacity building, and interdisciplinary scholarly engagement.",
+      tags: ["Workshops", "Seminars", "FDP", "Keynote Speakers"],
     },
   ]
 
@@ -59,7 +74,7 @@ export const Domains = () => {
   return (
     <section
       id="domains"
-      className="min-h-fit flex flex-col px-6 sm:px-10 lg:px-12 xl:px-16 py-6 sm:py-8 lg:py-12 relative overflow-hidden"
+      className="min-h-fit flex flex-col px-6 sm:px-10 lg:px-12 xl:px-16 py-4 sm:py-6 lg:py-10 relative overflow-hidden"
     >
 
       <div className="max-w-7xl mx-auto flex flex-col h-full relative z-10 w-full space-y-6 sm:space-y-10 lg:space-y-12">
@@ -69,16 +84,16 @@ export const Domains = () => {
           {/* Header */}
           <div
             ref={headerRef}
-            className={`text-center mb-6 sm:mb-8 transition-all duration-1000 ease-out ${isHeaderVisible
+            className={`text-center mb-4 sm:mb-6 transition-all duration-1000 ease-out ${isHeaderVisible
               ? 'opacity-100 translate-y-0'
               : 'opacity-0 -translate-y-10'
               }`}
           >
             <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em]">Explore</span>
-            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-2 mb-3 sm:mb-4">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-2 mb-3 sm:mb-4 font-heading">
               Domain / Category
             </h2>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto px-4 leading-snug">
               Explore our comprehensive research domains and categories providing deep insights into institutional progress.
             </p>
             <div className="flex justify-center pt-3 sm:pt-6">
@@ -108,7 +123,7 @@ export const Domains = () => {
           {/* View More / View Less Button */}
           {domains.length > 4 && (
             <div
-              className={`flex justify-center mt-10 sm:mt-12 transition-all duration-700 delay-500 ${isCardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+              className={`flex justify-center mt-8 sm:mt-10 transition-all duration-700 delay-500 ${isCardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
                 }`}
             >
               <button

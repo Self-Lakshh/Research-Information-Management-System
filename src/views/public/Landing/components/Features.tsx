@@ -31,7 +31,7 @@ export const Features = () => {
   return (
     <section
       id="features"
-      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
+      className="min-h-fit flex items-center py-4 sm:py-6 lg:py-10 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
     >
 
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full">
@@ -45,10 +45,10 @@ export const Features = () => {
             }`}
         >
           <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em]">What We Offer</span>
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary font-heading">
             Key Features of RIMS
           </h2>
-          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl mx-auto px-4">
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl mx-auto px-4 leading-snug">
             Comprehensive tools designed to streamline research management and foster academic excellence.
           </p>
           <div className="flex justify-center pt-2 sm:pt-4">

@@ -31,6 +31,10 @@ module.exports = {
 				'"Segoe UI Symbol"',
 				'"Noto Color Emoji"',
 			],
+			heading: [
+				'"D-DIN"',
+				'sans-serif',
+			],
 			serif: [
 				'ui-serif',
 				'Georgia',

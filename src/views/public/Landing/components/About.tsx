@@ -9,13 +9,8 @@ export const About = () => {
   return (
     <section
       id="about"
-      className="min-h-fit flex items-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
+      className="min-h-fit flex items-center py-4 sm:py-6 lg:py-10 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
     >
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-secondary/10 rounded-full blur-3xl" />
-      </div>
 
       <div ref={sectionRef} className="max-w-7xl mx-auto relative z-10 w-full">
         <div className="grid md:grid-cols-2 gap-6 lg:gap-10 xl:gap-12 items-center">
@@ -59,30 +54,30 @@ export const About = () => {
           >
             <div className="inline-block">
               <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em]">About Us</span>
-              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-3 transition-all duration-300">
+              <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary mt-2 transition-all duration-300 font-heading">
                 About RIMS
               </h2>
-              <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-3 sm:mt-4" />
+              <div className="h-1 sm:h-1.2 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full mt-2 sm:mt-3" />
             </div>
 
             <div className="space-y-2 sm:space-y-3">
-              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed transition-all duration-300">
-                <span className="font-semibold">RIMS</span> is a
-                <span className="font-semibold">centralized research information platform</span>
-                for the SPSU academic community, designed to
-                <span className="font-semibold">document, manage, and showcase</span>
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-snug transition-all duration-300">
+                <span className="font-semibold">RIMS</span> is a{' '}
+                <span className="font-semibold">centralized research information platform</span>{' '}
+                for the SPSU academic community, designed to{' '}
+                <span className="font-semibold">document, manage, and showcase</span>{' '}
                 scholarly research and innovation activities.
               </p>
 
-              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed transition-all duration-300">
-                It highlights
-                <span className="font-semibold">academic excellence</span>,
-                <span className="font-semibold">research productivity</span>, and
-                <span className="font-semibold">societal impact</span>
-                while ensuring
-                <span className="font-semibold">transparency, accessibility, and structured data management</span>.
-                RIMS supports
-                <span className="font-semibold">accreditation, rankings, collaborations,</span>
+              <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground leading-snug transition-all duration-300">
+                It highlights{' '}
+                <span className="font-semibold">academic excellence</span>,{' '}
+                <span className="font-semibold">research productivity</span>, and{' '}
+                <span className="font-semibold">societal impact</span>{' '}
+                while ensuring{' '}
+                <span className="font-semibold">transparency, accessibility, and structured data management</span>.{' '}
+                RIMS supports{' '}
+                <span className="font-semibold">accreditation, rankings, collaborations,</span>{' '}
                 and informed institutional decision-making.
               </p>
             </div>

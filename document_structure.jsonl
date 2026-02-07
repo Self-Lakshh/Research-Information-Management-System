@@ -47,7 +47,7 @@
         "published_date": "",
         "patent_type": "", //design/patent/copyright/trademark
         "status": "", 
-        "sources" : ["doc-ref1","odc-ref2","",""],
+        "sources" : ["doc-ref1","doc-ref2","",""],
         "approval_status": "", //approved/rejected/pending
         "approval_action_by": "",
         "action_at": "",
@@ -173,6 +173,7 @@
         }
     ],
     
+    //  Workshops, seminaars, fdp, keynotespeakers
     "Others": [
         {
             "type": "", //FDP/Seminar/Workshop/Keynote Speaker

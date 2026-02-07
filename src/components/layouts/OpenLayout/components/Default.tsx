@@ -26,7 +26,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
     useEffect(() => {
         const observerOptions = {
             root: null,
-            rootMargin: '-40% 0px -40% 0px',
+            rootMargin: '-10% 0px -80% 0px',
             threshold: 0,
         }
 
@@ -49,20 +49,37 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
     }, [])
 
     const scrollToSection = (direction: 'up' | 'down') => {
-        const currentIndex = navLinks.findIndex((link) => link.id === activeSection)
-        let nextIndex = currentIndex
+        const sectionElements = navLinks.map(link => document.getElementById(link.id))
 
-        if (direction === 'up' && currentIndex > 0) {
-            nextIndex = currentIndex - 1
-        } else if (direction === 'down' && currentIndex < navLinks.length - 1) {
-            nextIndex = currentIndex + 1
+        // Find current section index based on scroll position
+        const viewportMiddle = window.innerHeight / 3
+        let currentIdx = sectionElements.findIndex((el) => {
+            if (!el) return false
+            const rect = el.getBoundingClientRect()
+            return rect.top <= viewportMiddle && rect.bottom > viewportMiddle
+        })
+
+        // Fallback for edge cases
+        if (currentIdx === -1) {
+            currentIdx = navLinks.findIndex(l => l.id === activeSection)
         }
 
-        if (nextIndex !== currentIndex) {
-            const nextSectionId = navLinks[nextIndex].id
-            const element = document.getElementById(nextSectionId)
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' })
+        let nextIdx = currentIdx
+        if (direction === 'up') {
+            nextIdx = Math.max(0, currentIdx - 1)
+        } else {
+            nextIdx = Math.min(navLinks.length - 1, currentIdx + 1)
+        }
+
+        if (nextIdx !== currentIdx || currentIdx === -1) {
+            const nextSection = sectionElements[nextIdx]
+            if (nextSection) {
+                // If it's the home section, scroll to top
+                if (nextIdx === 0) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                } else {
+                    nextSection.scrollIntoView({ behavior: 'smooth' })
+                }
             }
         }
     }
@@ -75,7 +92,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
             <header className="m-4 lg:m-10 top-0 left-0 right-0 z-50 flex items-center justify-between h-16 sm:h-20 px-6 sm:px-10 lg:px-12 xl:px-16 border border-secondary rounded-xl bg-transparent backdrop-blur-md">
                 <div className="flex items-center">
                     <Link to="/" className="flex items-center">
-                        <Logo className="w-32 sm:w-40 lg:w-60" imgClass="w-full" logoWidth="100%" />
+                        <Logo imgClass="w-full" logoWidth="80%" />
                     </Link>
                 </div>
 
@@ -163,7 +180,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
                     onClick={() => scrollToSection('up')}
                     disabled={activeSection === navLinks[0].id}
                     className={cn(
-                        "p-3 rounded-full bg-secondary text-secondary-foreground shadow-lg border border-white/10 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:shadow-secondary/20 hover:shadow-2xl",
+                        "p-3 rounded-full bg-primary/20 backdrop-blur-md text-primary shadow-xl border border-white/20 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:shadow-primary/20 hover:bg-primary hover:text-background",
                     )}
                     aria-label="Previous section"
                 >
@@ -173,7 +190,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
                     onClick={() => scrollToSection('down')}
                     disabled={activeSection === navLinks[navLinks.length - 1].id}
                     className={cn(
-                        "p-3 rounded-full bg-secondary text-secondary-foreground shadow-lg border border-white/10 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:shadow-secondary/20 hover:shadow-2xl",
+                        "p-3 rounded-full bg-primary/20 backdrop-blur-md text-primary shadow-xl border border-white/20 transition-all duration-300 hover:scale-110 active:scale-95 disabled:opacity-0 disabled:pointer-events-none hover:shadow-primary/20 hover:bg-primary hover:text-background",
                     )}
                     aria-label="Next section"
                 >

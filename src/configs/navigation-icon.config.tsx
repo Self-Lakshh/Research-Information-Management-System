@@ -11,6 +11,8 @@ import {
     PiReceiptDuotone,
     PiUserListDuotone,
     PiChartLineUpDuotone,
+    PiUserDuotone,
+    PiFileTextDuotone,
 } from 'react-icons/pi'
 
 export type NavigationIcons = Record<string, ReactNode>
@@ -31,6 +33,8 @@ const navigationIcon: NavigationIcons = {
     groupSingleMenu: <PiSquaresFourDuotone />,
     groupCollapseMenu: <PiSquaresFourDuotone />,
     groupMenu: <PiSquaresFourDuotone />,
+    user: <PiUserDuotone />,
+    submissions: <PiFileTextDuotone />,
 }
 
 export default navigationIcon

@@ -9,6 +9,18 @@ const userRoutes: Routes = [
         component: lazy(() => import('@/views/user/Dashboard')),
         authority: [USER],
     },
+    {
+        key: 'user.profile',
+        path: '/user/profile',
+        component: lazy(() => import('@/views/user/Profile')),
+        authority: [USER],
+    },
+    {
+        key: 'user.submissions',
+        path: '/user/submissions',
+        component: lazy(() => import('@/views/user/Submissions')),
+        authority: [USER],
+    },
 ]
 
 export default userRoutes

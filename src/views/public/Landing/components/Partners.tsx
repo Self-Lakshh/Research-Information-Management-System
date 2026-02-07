@@ -40,7 +40,7 @@ export const Partners = () => {
     return (
         <section
             id="partners"
-            className="min-h-fit flex flex-col justify-center py-6 sm:py-8 lg:py-12 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
+            className="min-h-fit flex flex-col justify-center py-4 sm:py-6 lg:py-10 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
         >
             <style>{`
         @keyframes scroll {
@@ -59,14 +59,14 @@ export const Partners = () => {
 
             <div className="w-full relative z-10">
                 {/* Header */}
-                <div className="text-center space-y-2 sm:space-y-3 mb-8 sm:mb-12 lg:mb-16">
+                <div className="text-center space-y-2 sm:space-y-3 mb-6 sm:mb-10 lg:mb-12">
                     <span className="text-[10px] sm:text-xs font-bold text-primary/70 uppercase tracking-[0.2em] animate-fade-in-up">
                         Collaborations
                     </span>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary animate-fade-in-up delay-100">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-primary animate-fade-in-up delay-100 font-heading">
                         Our Partner Portal
                     </h2>
-                    <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto animate-fade-in-up delay-200">
+                    <p className="text-xs sm:text-sm md:text-base lg:text-lg text-muted-foreground max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto animate-fade-in-up delay-200 leading-snug">
                         Building bridges across academia, industry, and
                         government for impactful research and sustainable
                         innovation.

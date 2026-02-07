@@ -38,43 +38,52 @@ const FooterContent = ({ className }: FooterProps) => {
             )}
         >
             {/* ================= ROW 1 ================= */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                {/* Logo */}
-                <Link to="/" className="flex justify-center md:justify-start">
-                    <Logo logoWidth={220} mode="dark" />
-                </Link>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 sm:gap-10">
+                {/* Logo & Description */}
+                <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
+                    <Link to="/" className="inline-block transition-transform duration-300 hover:scale-105">
+                        <Logo logoWidth={200} mode="dark" />
+                    </Link>
+                    <p className="max-w-xs text-xs sm:text-sm text-background/60 dark:text-foreground/60 leading-relaxed font-medium">
+                        Empowering research innovation at SPSU through centralized data management and scholarly showcasing.
+                    </p>
+                </div>
 
-                <div className="flex flex-col sm:flex-row sm:flex-wrap justify-center items-center gap-4">
+                {/* Developers Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center justify-center gap-3 sm:gap-4">
                     {developers.map((dev, i) => (
                         <div
                             key={i}
-                            className="flex items-center gap-3 px-4 py-2 rounded-lg bg-background/5 transition-colors hover:bg-background/10"
+                            className="flex items-center gap-3 p-3 rounded-xl bg-background/5 border border-background/10 transition-all duration-300 hover:bg-background/10 hover:border-background/20 group backdrop-blur-sm"
                         >
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg group-hover:scale-110 transition-transform">
+                                {dev.name.charAt(0)}
+                            </div>
                             <div className="flex flex-col">
-                                <span className="text-sm font-semibold">
+                                <span className="text-sm font-bold tracking-tight">
                                     {dev.name}
                                 </span>
-                                <span className="text-xs text-background/60 dark:text-foreground/60">
+                                <span className="text-[10px] sm:text-xs font-medium text-background/50 dark:text-foreground/50 uppercase tracking-wider">
                                     {dev.role}
                                 </span>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 ml-auto pl-2 border-l border-background/10">
                                 <a
                                     href={dev.github}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-primary transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-background/20 transition-colors text-background/70 hover:text-primary"
                                 >
-                                    <Github size={16} />
+                                    <Github size={14} />
                                 </a>
                                 <a
                                     href={dev.linkedin}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="hover:text-blue-600 transition-colors"
+                                    className="p-1.5 rounded-full hover:bg-background/20 transition-colors text-background/70 hover:text-blue-500"
                                 >
-                                    <Linkedin size={16} />
+                                    <Linkedin size={14} />
                                 </a>
                             </div>
                         </div>
@@ -83,33 +92,37 @@ const FooterContent = ({ className }: FooterProps) => {
             </div>
 
             {/* ================= DIVIDER ================= */}
-            <div className="my-6 h-px bg-background/10 dark:bg-foreground/10" />
+            <div className="my-8 h-px bg-gradient-to-r from-transparent via-background/10 to-transparent dark:via-foreground/10" />
 
             {/* ================= ROW 2 ================= */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm">
                 {/* Rights */}
-                <p className="text-center md:text-left text-background/50 dark:text-foreground/50">
-                    © {new Date().getFullYear()} All rights reserved @ Sir
-                    Padampat Singhania University, Udaipur
-                </p>
+                <div className="order-2 md:order-1 text-center md:text-left space-y-1">
+                    <p className="text-background/50 dark:text-foreground/50 font-medium">
+                        © {new Date().getFullYear()} Sir Padampat Singhania University, Udaipur
+                    </p>
+                    <p className="text-[10px] text-background/30 dark:text-foreground/30">
+                        Design & Development with ❤️ by Research Team
+                    </p>
+                </div>
 
                 {/* College Socials */}
-                <div className="flex justify-center md:justify-end gap-5">
-                    <a href="#" aria-label="Twitter">
-                        <Twitter size={18} />
-                    </a>
-
-                    <a href="#" aria-label="LinkedIn">
-                        <Linkedin size={18} />
-                    </a>
-
-                    <a href="#" aria-label="YouTube">
-                        <Youtube size={18} />
-                    </a>
-
-                    <a href="mailto:support@spsu.ac.in" aria-label="Mail">
-                        <Mail size={18} />
-                    </a>
+                <div className="order-1 md:order-2 flex items-center justify-center gap-4">
+                    {[
+                        { icon: <Twitter size={18} />, label: "Twitter", href: "#" },
+                        { icon: <Linkedin size={18} />, label: "LinkedIn", href: "#" },
+                        { icon: <Youtube size={18} />, label: "YouTube", href: "#" },
+                        { icon: <Mail size={18} />, label: "Mail", href: "mailto:support@spsu.ac.in" }
+                    ].map((social, i) => (
+                        <a
+                            key={i}
+                            href={social.href}
+                            aria-label={social.label}
+                            className="h-10 w-10 flex items-center justify-center rounded-full bg-background/5 border border-background/10 hover:bg-background/10 hover:-translate-y-1 transition-all duration-300 text-background/70 hover:text-primary"
+                        >
+                            {social.icon}
+                        </a>
+                    ))}
                 </div>
             </div>
         </div>

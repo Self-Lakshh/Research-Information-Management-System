@@ -4,74 +4,54 @@ import { cn } from "@/components/shadcn/utils"
 
 interface DomainCardProps {
   title: string
-  description?: string
-  points?: string[]
+  description: string
+  tags: string[]
   image: string
 }
 
-export const DomainCard = ({ title, description, points, image }: DomainCardProps) => {
+export const DomainCard = ({ title, description, tags, image }: DomainCardProps) => {
   return (
     <Card
       className={cn(
-        "group rounded-xl sm:rounded-2xl overflow-hidden h-full",
-        "border bg-card",
-        "shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)]",
-        "transition-all duration-500 ease-out",
-        "hover:-translate-y-2"
+        "group rounded-2xl overflow-hidden h-full",
+        "border border-gray-100 bg-white dark:bg-gray-900",
+        "shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)]",
+        "transition-all duration-700 ease-out hover:-translate-y-1 hover:border-primary/10"
       )}
     >
-      {/* Image Container */}
-      <div className="relative m-2 sm:m-3 lg:m-4 rounded-lg overflow-hidden h-32 sm:h-36 lg:h-40 xl:h-45">
+      {/* Image */}
+      <div className="relative m-3 rounded-xl overflow-hidden h-40 sm:h-44 lg:h-48">
         <OptimizedImage
           src={image}
           alt={title}
-          className={cn(
-            "w-full h-full object-cover",
-            "transition-transform duration-500 ease-out",
-            "group-hover:scale-105"
-          )}
-          skeletonClassName="rounded-lg"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          skeletonClassName="rounded-xl"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
       </div>
 
-      <CardContent className="p-3 sm:p-4 lg:p-5">
+      <CardContent className="p-5 sm:p-6 flex flex-col gap-4">
         {/* Title */}
-        <h3
-          className={cn(
-            "font-semibold text-base sm:text-lg mb-1.5 sm:mb-2",
-            "transition-transform duration-300 ease-out",
-            "group-hover:translate-x-0.5"
-          )}
-        >
+        <h3 className="font-bold text-lg sm:text-xl lg:text-2xl leading-none text-primary transition-colors duration-300">
           {title}
         </h3>
 
         {/* Description */}
-        {description && (
-          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-            {description}
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+          {description}
+        </p>
 
-        {/* Points list */}
-        {points && points.length > 0 && (
-          <ul className="text-xs sm:text-sm text-muted-foreground space-y-1 sm:space-y-1.5">
-            {points.map((p, i) => (
-              <li
-                key={i}
-                className={cn(
-                  "flex items-start gap-2",
-                  "transition-transform duration-300 ease-out",
-                  "group-hover:translate-x-0.5"
-                )}
-                style={{ transitionDelay: `${i * 30}ms` }}
-              >
-                <span className="inline-block w-1 h-1 rounded-full bg-muted-foreground/50 mt-1.5 flex-shrink-0" />
-                <span>{p}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* Tags */}
+        <div className="flex flex-wrap gap-2 mt-auto">
+          {tags.map((tag, i) => (
+            <span
+              key={i}
+              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-secondary/5 text-secondary border border-secondary/10 transition-colors duration-300 group-hover:bg-secondary/10"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </CardContent>
     </Card>
   )
