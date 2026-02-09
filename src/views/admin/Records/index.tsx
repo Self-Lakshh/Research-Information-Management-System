@@ -2,14 +2,12 @@ import { useState } from 'react'
 import { Eye, Download, MoreHorizontal } from 'lucide-react'
 import {
     DataTable,
-    TableActionMenu,
     FilterBar,
     RecordDetailModal,
-    StatusBadge,
-    RecordTypeBadge
-} from '../components'
-import { recordFilters } from '../config'
-import type { ResearchRecord, RecordType, ApprovalStatus } from '../types'
+} from '@/components/admin'
+import { recordFilters } from '@/configs/admin.config'
+import type { ResearchRecord, RecordType, ApprovalStatus } from '@/@types/admin'
+import { useAdminUI } from '@/utils/hooks/useAdminUI'
 
 // ============================================
 // MOCK DATA
@@ -132,6 +130,7 @@ const Records = () => {
     const [filters, setFilters] = useState<Record<string, unknown>>({})
     const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const { StatusBadge, RecordTypeBadge } = useAdminUI()
 
     const handleFilterChange = (key: string, value: unknown) => {
         setFilters((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))
@@ -224,22 +223,18 @@ const Records = () => {
                 columns={columns}
                 data={records}
                 onRowClick={handleViewRecord}
-                rowActions={(row: ResearchRecord) => (
-                    <TableActionMenu
-                        actions={[
-                            {
-                                label: 'View Details',
-                                onClick: () => handleViewRecord(row),
-                                icon: <Eye className="w-4 h-4" />
-                            },
-                            {
-                                label: 'Download',
-                                onClick: () => console.log('Download:', row.id),
-                                icon: <Download className="w-4 h-4" />
-                            }
-                        ]}
-                    />
-                )}
+                rowActions={(row: ResearchRecord) => [
+                    {
+                        label: 'View Details',
+                        onClick: () => handleViewRecord(row),
+                        icon: <Eye className="w-4 h-4" />
+                    },
+                    {
+                        label: 'Download',
+                        onClick: () => console.log('Download:', row.id),
+                        icon: <Download className="w-4 h-4" />
+                    }
+                ]}
             />
 
             {/* Record Detail Modal */}

@@ -11,7 +11,7 @@ const userRoutes: Routes = [
     },
     {
         key: 'user.profile',
-        path: '/user/profile',
+        path: '/profile',
         component: lazy(() => import('@/views/user/Profile')),
         authority: [USER],
     },

@@ -9,10 +9,16 @@ import { useAuth } from '@/auth'
 type DropdownList = {
     label: string
     path: string
-    icon: JSX.Element
+    icon: React.ReactNode
 }
 
-const dropdownItemList: DropdownList[] = []
+const dropdownItemList: DropdownList[] = [
+    {
+        label: 'Profile',
+        path: '/profile',
+        icon: <PiUserDuotone />,
+    },
+]
 
 const _UserDropdown = () => {
     const { avatar, userName, email } = useSessionUser((state) => state.user)

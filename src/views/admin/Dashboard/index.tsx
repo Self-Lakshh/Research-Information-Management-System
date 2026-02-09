@@ -1,14 +1,6 @@
 import { useState, useMemo } from 'react'
 import {
-    FileText,
-    Users,
-    Award,
-    Clock,
-    TrendingUp,
-    BarChart3,
-    PieChart,
-    Activity,
-    Calendar,
+    FileText, Users, Award, Clock, TrendingUp, BarChart3, PieChart, Activity, Calendar,
     Shield,
     BookOpen,
     Briefcase,
@@ -20,10 +12,11 @@ import {
 } from 'lucide-react'
 import {
     StatCard,
-    ChartContainer as DashboardChartContainer,
+    DashboardChartContainer,
     RecordsSummaryTable
-} from '../components'
-import { recordTypeMeta } from '../config'
+} from './components'
+import { recordTypeMeta } from '@/configs/admin.config'
+import type { RecordType, UserRole } from '@/@types/admin'
 import { cn } from '@/components/shadcn/utils'
 import {
     Select,

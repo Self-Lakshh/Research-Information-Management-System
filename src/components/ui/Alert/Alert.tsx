@@ -51,10 +51,10 @@ const TYPE_MAP = {
         icon: <HiExclamation />,
     },
     danger: {
-        backgroundColor: 'bg-error-subtle',
-        titleColor: 'text-error',
-        textColor: 'text-error',
-        iconColor: 'text-error',
+        backgroundColor: 'bg-destructive/10',
+        titleColor: 'text-destructive',
+        textColor: 'text-destructive',
+        iconColor: 'text-destructive',
         icon: <HiXCircle />,
     },
 }

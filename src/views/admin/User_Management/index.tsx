@@ -1,17 +1,20 @@
 import { useState } from 'react'
-import { Plus, Edit2, Trash2, Mail } from 'lucide-react'
+import {
+    Plus,
+    Edit2,
+    Trash2,
+    Mail
+} from 'lucide-react'
 import {
     DataTable,
-    TableActionMenu,
     FilterBar,
-    UserFormModal,
     ConfirmDialog,
-    RoleBadge,
-    UserStatusBadge
-} from '../components'
-import type { UserFormData } from '../components'
-import { userFilters } from '../config'
-import type { User, UserRole } from '../types'
+} from '@/components/admin'
+import { UserFormModal } from './components'
+import type { UserFormData } from './components'
+import { userFilters } from '@/configs/admin.config'
+import type { User, UserRole } from '@/@types/admin'
+import { useAdminUI } from '@/utils/hooks/useAdminUI'
 
 // ============================================
 // MOCK DATA
@@ -76,6 +79,7 @@ const UserManagement = () => {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
     const [selectedUser, setSelectedUser] = useState<User | null>(null)
     const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
+    const { RoleBadge, UserStatusBadge } = useAdminUI()
 
     const handleFilterChange = (key: string, value: unknown) => {
         setFilters((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))
@@ -186,28 +190,24 @@ const UserManagement = () => {
             <DataTable
                 columns={columns}
                 data={users}
-                rowActions={(row: User) => (
-                    <TableActionMenu
-                        actions={[
-                            {
-                                label: 'Edit',
-                                onClick: () => handleEditUser(row),
-                                icon: <Edit2 className="w-4 h-4" />
-                            },
-                            {
-                                label: 'Send Email',
-                                onClick: () => console.log('Email:', row.email),
-                                icon: <Mail className="w-4 h-4" />
-                            },
-                            {
-                                label: 'Delete',
-                                onClick: () => handleDeleteUser(row),
-                                icon: <Trash2 className="w-4 h-4" />,
-                                variant: 'danger'
-                            }
-                        ]}
-                    />
-                )}
+                rowActions={(row: User) => [
+                    {
+                        label: 'Edit',
+                        onClick: () => handleEditUser(row),
+                        icon: <Edit2 className="w-4 h-4" />
+                    },
+                    {
+                        label: 'Send Email',
+                        onClick: () => console.log('Email:', row.email),
+                        icon: <Mail className="w-4 h-4" />
+                    },
+                    {
+                        label: 'Delete',
+                        onClick: () => handleDeleteUser(row),
+                        icon: <Trash2 className="w-4 h-4" />,
+                        variant: 'danger'
+                    }
+                ]}
             />
 
             {/* User Form Modal */}

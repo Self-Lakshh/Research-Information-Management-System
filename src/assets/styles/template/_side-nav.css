@@ -8,15 +8,18 @@
     @apply overflow-y-auto;
   }
 
+  /* Subtle theme-based look (light mode) */
   .side-nav-light {
-    @apply bg-orange-50 border-r border-orange-200;
+    @apply bg-primary/5 border-r border-primary/10 backdrop-blur-md;
   }
 
+  /* Dark mode version */
   .side-nav-dark {
-    @apply bg-gray-800 border-r border-gray-600;
+    @apply bg-background border-r border-border/40;
   }
 
+  /* Main sidebar background */
   .side-nav-bg {
-    @apply border-r bg-orange-50 border-orange-200 dark:bg-gray-900 dark:border-gray-800;
+    @apply border-r bg-primary/5 border-primary/10 dark:bg-background dark:border-border/40;
   }
 }

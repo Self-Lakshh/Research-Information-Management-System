@@ -1,3 +1,3 @@
-export const VIEWER = 'VIEWER'
-export const USER = 'USER'
-export const ADMIN = 'ADMIN'
+export const VIEWER = 'viewer'
+export const USER = 'user'
+export const ADMIN = 'admin'

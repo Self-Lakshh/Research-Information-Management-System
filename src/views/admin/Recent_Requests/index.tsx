@@ -2,14 +2,16 @@ import { useState } from 'react'
 import { CheckCircle, XCircle, LayoutGrid, List } from 'lucide-react'
 import {
     FilterBar,
+    ConfirmDialog,
+    RecordDetailModal
+} from '@/components/admin'
+import {
     RecordApprovalCard,
-    CompactApprovalCard,
-    RecordDetailModal,
-    ConfirmDialog
-} from '../components'
-import { approvalFilters } from '../config'
+    CompactApprovalCard
+} from './components'
+import { approvalFilters } from '@/configs/admin.config'
 import { cn } from '@/components/shadcn/utils'
-import type { ApprovalRequest, ResearchRecord, User } from '../types'
+import type { ApprovalRequest, ResearchRecord, User } from '@/@types/admin'
 
 // ============================================
 // MOCK DATA

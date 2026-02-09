@@ -1,7 +1,7 @@
 import Logo from '@/components/template/Logo'
 import Alert from '@/components/ui/Alert'
 import SignInForm from './components/SignInForm'
-import OauthSignIn from './components/OauthSignIn'
+
 import ActionLink from '@/components/shared/ActionLink'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
@@ -48,13 +48,13 @@ export const SignInBase = ({
                 setMessage={setMessage}
                 passwordHint={
                     <div className="mb-6 mt-2 text-right">
-                        <ActionLink
+                        {/* <ActionLink
                             to={forgetPasswordUrl}
                             className="text-sm font-medium text-primary hover:underline"
                             themeColor={false}
                         >
                             Forgot password?
-                        </ActionLink>
+                        </ActionLink> */}
                     </div>
                 }
             />

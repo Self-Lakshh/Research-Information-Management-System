@@ -33,7 +33,7 @@ const ICONS: Record<
         icon: <HiExclamation />,
     },
     danger: {
-        color: 'text-error',
+        color: 'text-destructive',
         icon: <HiXCircle />,
     },
 }

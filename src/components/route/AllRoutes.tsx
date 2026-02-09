@@ -43,7 +43,12 @@ const AllRoutes = (props: AllRoutesProps) => {
             <Route element={<ProtectedRoute />}>
                 <Route
                     path="/"
-                    element={<Navigate replace to={authenticatedEntryPath} />}
+                    element={
+                        <Navigate
+                            replace
+                            to={user?.authority?.includes('admin') ? '/admin/dashboard' : '/user/dashboard'}
+                        />
+                    }
                 />
                 {protectedRoutes.map((route) => (
                     <Route
