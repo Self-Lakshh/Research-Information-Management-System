@@ -1,4 +1,3 @@
-export * from './DataTable'
 export * from './FilterBar'
 export * from './ConfirmDialog'
-export * from './RecordDetailModal'
+// Common components used in admin are imported directly from @/components/common

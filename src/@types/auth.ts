@@ -37,23 +37,7 @@ export type AuthResult = Promise<{
     message: string
 }>
 
-export type User = {
-    userId?: string | null
-    uid?: string | null
-    avatar?: string | null
-    userName?: string | null
-    name?: string | null
-    email?: string | null
-    authority?: string[]
-    user_role?: string
-    phone_number?: string
-    address?: string
-    designation?: string
-    department?: string
-    is_active?: boolean
-    profile_picture_url?: string | null
-    created_at?: any
-}
+import { User } from './rims.types'
 
 export type Token = {
     accessToken: string

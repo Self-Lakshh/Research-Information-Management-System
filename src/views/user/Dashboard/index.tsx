@@ -22,7 +22,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
-import { ResearchCategory } from '@/@types/research'
+import { ResearchCategory } from '@/@types/rims.types'
+import { RecordFormModal } from '@/components/common'
 
 import { useNavigate } from 'react-router-dom'
 
@@ -42,14 +43,14 @@ const StatsCard = ({ title, value, icon: Icon, description, colorClass }: any) =
 )
 
 const categories: { label: string; value: ResearchCategory; icon: any }[] = [
-    { label: 'IPR', value: 'IPR', icon: Globe },
-    { label: 'PhD Student Data', value: 'PHD_Student_Data', icon: GraduationCap },
-    { label: 'Journal', value: 'Journal', icon: BookOpen },
-    { label: 'Conference', value: 'Conference', icon: Users },
-    { label: 'Book', value: 'Book', icon: FileText },
-    { label: 'Consultancy & Grants', value: 'Consultancy_Project_Grants', icon: Briefcase },
-    { label: 'Awards', value: 'Awards', icon: Trophy },
-    { label: 'Others', value: 'Others', icon: MoreHorizontal },
+    { label: 'IPR', value: 'ipr', icon: Globe },
+    { label: 'PhD Student Data', value: 'phd_student', icon: GraduationCap },
+    { label: 'Journal', value: 'journal', icon: BookOpen },
+    { label: 'Conference', value: 'conference', icon: Users },
+    { label: 'Book', value: 'book', icon: FileText },
+    { label: 'Consultancy', value: 'consultancy', icon: Briefcase },
+    { label: 'Awards', value: 'award', icon: Trophy },
+    { label: 'Others', value: 'other', icon: MoreHorizontal },
 ]
 
 const UserDashboard = () => {
@@ -204,6 +205,16 @@ const UserDashboard = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            <RecordFormModal
+                isOpen={!!selectedCategory}
+                onClose={() => setSelectedCategory(null)}
+                type={selectedCategory || 'journal'}
+                onSubmit={(data) => {
+                    console.log('Submission:', data)
+                    setSelectedCategory(null)
+                }}
+            />
         </div>
     )
 }

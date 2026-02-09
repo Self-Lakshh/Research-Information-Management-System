@@ -5,21 +5,8 @@ import React from 'react'
 // ============================================
 
 // Record Types
-export type RecordType =
-    | 'ipr'
-    | 'journal'
-    | 'conference'
-    | 'book'
-    | 'award'
-    | 'consultancy'
-    | 'grant'
-    | 'other'
-
-// Approval Status
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'draft'
-
-// User Role
-export type UserRole = 'admin' | 'faculty' | 'hod' | 'dean' | 'viewer'
+export { type RecordType, type ApprovalStatus, type UserRole } from './rims.types'
+import { RecordType, ApprovalStatus, UserRole } from './rims.types'
 
 // ============================================
 // FIELD CONFIGURATION TYPES
@@ -62,9 +49,9 @@ export interface User {
     id: string
     name: string
     email: string
-    role: UserRole
-    department: string
-    joinedDate: string
+    user_role: UserRole
+    faculty: string
+    created_at: string
     avatar?: string
     status: 'active' | 'inactive'
 }

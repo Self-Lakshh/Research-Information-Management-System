@@ -3,6 +3,7 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
+import { getFunctions, Functions } from 'firebase/functions'; // Add thisimport
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -21,12 +22,14 @@ let auth: Auth;
 let db: Firestore;
 let storage: FirebaseStorage;
 let analytics: Analytics | null = null;
+let functions: Functions;
 
 try {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
+    functions = getFunctions(app);
 
     // Analytics only in production
     if (typeof window !== 'undefined' && import.meta.env.PROD) {
@@ -37,5 +40,5 @@ try {
     throw error;
 }
 
-export { app, auth, db, storage, analytics };
+export { app, auth, db, storage, analytics, functions };
 export default app;

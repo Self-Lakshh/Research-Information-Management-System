@@ -31,7 +31,7 @@ export const createUser = async (uid: string, data: CreateUserData): Promise<Use
             phone_number: data.phone_number,
             address: data.address,
             designation: data.designation,
-            department: data.department,
+            faculty: data.faculty,
             is_active: true,
             created_at: Timestamp.now(),
             updated_at: Timestamp.now(),
@@ -192,7 +192,7 @@ export const searchUsers = async (searchTerm: string): Promise<User[]> => {
             .filter(user =>
                 user.name.toLowerCase().includes(searchLower) ||
                 user.email.toLowerCase().includes(searchLower) ||
-                (user.department && user.department.toLowerCase().includes(searchLower))
+                (user.faculty && user.faculty.toLowerCase().includes(searchLower))
             );
     } catch (error: any) {
         console.error('Search users error:', error);

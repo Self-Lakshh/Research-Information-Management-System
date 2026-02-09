@@ -1,5 +1,5 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
+import React, { useState, useMemo } from 'react'
+import { Card, CardContent, CardHeader } from '@/components/shadcn/ui/card'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { Button } from '@/components/shadcn/ui/button'
 import { Input } from '@/components/shadcn/ui/input'
@@ -7,11 +7,23 @@ import {
     FileText,
     Search,
     Filter,
-    MoreHorizontal,
     ArrowUpDown,
     CheckCircle2,
     Clock,
-    XCircle
+    XCircle,
+    Plus,
+    BookOpen,
+    Users,
+    Lightbulb,
+    Trophy,
+    Briefcase,
+    Banknote,
+    LayoutGrid,
+    List,
+    MoreHorizontal,
+    Eye,
+    Edit2,
+    Trash2
 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -19,118 +31,232 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
+import { cn } from '@/components/shadcn/utils'
+import { SUBMISSION_TYPES, getStatusColor } from '@/configs/submission.config'
+import {
+    RecordCard,
+    RecordFormModal,
+    RecordDetailModal,
+    RecordTable
+} from '@/components/common'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/shadcn/ui/select'
 
 const Submissions = () => {
-    const submissions = [
-        { id: '1', title: 'Improving AI Efficiency in Healthcare', category: 'Journal', date: 'Oct 12, 2023', status: 'Approved' },
-        { id: '2', title: 'Blockchain for Academic Veracity', category: 'Conference', date: 'Oct 10, 2023', status: 'Pending' },
-        { id: '3', title: 'AI-based Healthcare Diagnostic System', category: 'IPR', date: 'Sep 25, 2023', status: 'Approved' },
-        { id: '4', title: 'Deep Learning for Everyone', category: 'Book', date: 'Sep 15, 2023', status: 'Rejected' },
-        { id: '5', title: 'Federated Learning in IOT', category: 'Journal', date: 'Aug 30, 2023', status: 'Pending' },
-    ]
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const [selectedType, setSelectedType] = useState('journal')
+    const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [selectedDomain, setSelectedDomain] = useState<string>('all')
 
-    const getStatusIcon = (status: string) => {
-        switch (status) {
-            case 'Approved': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            case 'Pending': return <Clock className="h-4 w-4 text-amber-500" />
-            case 'Rejected': return <XCircle className="h-4 w-4 text-rose-500" />
-            default: return null
+    // Mock Data
+    const [submissions, setSubmissions] = useState([
+        { id: '1', title: 'Improving AI Efficiency in Healthcare', category: 'journal', date: 'Oct 12, 2023', status: 'Approved', journalName: 'IEEE Health Informatics', authors: 'John Doe, Jane Smith', publicationDate: '2023-10-12', indexing: 'scopus' },
+        { id: '2', title: 'Blockchain for Academic Veracity', category: 'conference', date: 'Oct 10, 2023', status: 'Pending', conferenceName: 'International Conference on Blockchain', location: 'Dubai, UAE', startDate: '2023-10-10' },
+        { id: '3', title: 'AI-based Healthcare Diagnostic System', category: 'ipr', date: 'Sep 25, 2023', status: 'Approved', inventors: 'John Doe', applicationNo: '2023/APP/1234', filingDate: '2023-09-25', patentStatus: 'published' },
+        { id: '4', title: 'Deep Learning for Everyone', category: 'book', date: 'Sep 15, 2023', status: 'Rejected', publisher: 'Springer', isbn: '978-3-16-148410-0', publicationYear: 2023 },
+        { id: '5', title: 'Smart Cities using IoT', category: 'grant', date: 'Aug 30, 2023', status: 'Pending', agency: 'DST', amount: 500000, pi: 'John Doe', startDate: '2023-08-30' },
+    ])
+
+    const filteredSubmissions = submissions.filter(s => {
+        const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            s.status.toLowerCase().includes(searchQuery.toLowerCase())
+
+        const matchesDomain = selectedDomain === 'all' || s.category.toLowerCase() === selectedDomain.toLowerCase()
+
+        return matchesSearch && matchesDomain
+    })
+
+    const handleAddClick = (type: string) => {
+        setSelectedType(type)
+        setSelectedSubmission(null)
+        setIsAddModalOpen(true)
+    }
+
+    const handleViewDetail = (submission: any) => {
+        setSelectedSubmission(submission)
+        setIsDetailOpen(true)
+    }
+
+    const handleEditSubmission = (submission: any) => {
+        setSelectedType(submission.category.toLowerCase())
+        setSelectedSubmission(submission)
+        setIsAddModalOpen(true)
+    }
+
+    const handleDeleteSubmission = (id: string) => {
+        if (confirm('Are you sure you want to delete this submission?')) {
+            setSubmissions(prev => prev.filter(s => s.id !== id))
         }
     }
 
-    const getStatusVariant = (status: string) => {
-        switch (status) {
-            case 'Approved': return 'default'
-            case 'Pending': return 'secondary'
-            case 'Rejected': return 'outline'
-            default: return 'outline'
+    const handleFormSubmit = (data: any) => {
+        if (selectedSubmission) {
+            setSubmissions(prev => prev.map(s => s.id === selectedSubmission.id ? { ...s, ...data } : s))
+        } else {
+            const newSubmission = {
+                ...data,
+                id: Math.random().toString(36).substr(2, 9),
+                category: selectedType,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                status: 'Pending'
+            }
+            setSubmissions(prev => [newSubmission, ...prev])
         }
+        setIsAddModalOpen(false)
     }
 
     return (
-        <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">My Submissions</h1>
-                    <p className="text-muted-foreground">Manage and track all your research submissions in one place.</p>
+        <div className="p-4 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-foreground/90">My Submissions</h1>
+                    <p className="text-muted-foreground font-medium">Manage and track your research portfolio across all domains.</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="outline" className="rounded-xl gap-2">
-                        <Filter className="h-4 w-4" /> Filter
-                    </Button>
-                    <Button className="rounded-xl gap-2">
+
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* View Mode Switcher */}
+                    <div className="flex items-center gap-1 p-1 bg-muted rounded-2xl border border-muted-foreground/10 h-11">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={cn(
+                                'px-3 h-full flex items-center justify-center rounded-xl transition-all duration-300',
+                                viewMode === 'grid' ? 'bg-background shadow-premium text-primary' : 'text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            <LayoutGrid className="w-4 h-4 mr-2" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={cn(
+                                'px-3 h-full flex items-center justify-center rounded-xl transition-all duration-300',
+                                viewMode === 'table' ? 'bg-background shadow-premium text-primary' : 'text-muted-foreground hover:text-foreground'
+                            )}
+                        >
+                            <List className="w-4 h-4 mr-2" />
+                        </button>
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="rounded-2xl h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-soft transition-all duration-300 gap-2">
+                                <Plus className="h-4 w-4" /> Add Submission
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-primary/10 shadow-premium">
+                            <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Domain Type</div>
+                            {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
+                                <DropdownMenuItem
+                                    key={key}
+                                    onClick={() => handleAddClick(key)}
+                                    className="cursor-pointer rounded-xl py-2.5 gap-3 group transition-colors"
+                                >
+                                    <div className={cn("p-2 rounded-lg bg-background border border-muted group-hover:bg-primary/5 transition-colors", config.color.replace('text-', 'bg-').replace('500', '50'))}>
+                                        <FileText className={cn("h-4 w-4", config.color)} />
+                                    </div>
+                                    <span className="font-semibold text-sm">{config.label}</span>
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
+                <Card className="flex-1 border-none shadow-soft rounded-[1.5rem] overflow-hidden bg-muted/20">
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Search by title..."
+                            className="bg-transparent border-none h-12 pl-12 rounded-none focus-visible:ring-0 text-sm font-medium"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </Card>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <Select value={selectedDomain} onValueChange={setSelectedDomain}>
+                        <SelectTrigger className="w-[180px] h-12 rounded-[1.5rem] border-muted-foreground/10 bg-muted/20 font-bold px-5 focus:ring-primary/20">
+                            <SelectValue placeholder="All Domains" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
+                            <SelectItem value="all" className="rounded-lg">All Domains</SelectItem>
+                            {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
+                                <SelectItem key={key} value={key} className="rounded-lg capitalize">
+                                    {config.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Button variant="outline" className="rounded-[1.5rem] h-12 border-muted-foreground/10 bg-muted/20 gap-2 font-bold px-6 hover:bg-muted/30">
                         <ArrowUpDown className="h-4 w-4" /> Export
                     </Button>
                 </div>
             </div>
 
-            <Card className="border-none shadow-premium overflow-hidden">
-                <CardHeader className="p-4 bg-muted/30 border-b">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search submissions..." className="pl-10 rounded-xl bg-background border-none shadow-inner" />
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-muted-foreground uppercase bg-muted/20">
-                                <tr>
-                                    <th className="px-6 py-4 font-medium">Research Title</th>
-                                    <th className="px-6 py-4 font-medium text-center">Category</th>
-                                    <th className="px-6 py-4 font-medium text-center">Submission Date</th>
-                                    <th className="px-6 py-4 font-medium text-center">Status</th>
-                                    <th className="px-6 py-4 font-medium text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                                {submissions.map((item) => (
-                                    <tr key={item.id} className="hover:bg-muted/50 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                                                    <FileText className="h-4 w-4" />
-                                                </div>
-                                                <span className="font-medium">{item.title}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <Badge variant="secondary" className="rounded-lg">{item.category}</Badge>
-                                        </td>
-                                        <td className="px-6 py-4 text-center text-muted-foreground">
-                                            {item.date}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-center gap-2">
-                                                {getStatusIcon(item.status)}
-                                                <Badge variant={getStatusVariant(item.status) as any} className="capitalize">
-                                                    {item.status}
-                                                </Badge>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="rounded-full">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="rounded-xl">
-                                                    <DropdownMenuItem className="cursor-pointer">View Details</DropdownMenuItem>
-                                                    <DropdownMenuItem className="cursor-pointer">Edit Submission</DropdownMenuItem>
-                                                    <DropdownMenuItem className="cursor-pointer text-rose-500">Delete</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+            {/* Content View */}
+            {viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                    {filteredSubmissions.length > 0 ? (
+                        filteredSubmissions.map((item) => (
+                            <RecordCard
+                                key={item.id}
+                                record={item}
+                                onView={handleViewDetail}
+                                onEdit={handleEditSubmission}
+                                onDelete={handleDeleteSubmission}
+                            />
+                        ))
+                    ) : (
+                        <div className="col-span-full py-20 text-center space-y-4">
+                            <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-50">
+                                <Search className="h-10 w-10 text-muted-foreground " />
+                            </div>
+                            <p className="text-muted-foreground font-bold">No submissions found matching your search.</p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <Card className="border-none shadow-premium rounded-2xl overflow-hidden">
+                    <RecordTable
+                        records={filteredSubmissions}
+                        selectedDomain={selectedDomain}
+                        onView={handleViewDetail}
+                        onEdit={handleEditSubmission}
+                        onDelete={handleDeleteSubmission}
+                    />
+                </Card>
+            )}
+
+            {/* Modals */}
+            <RecordFormModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                type={selectedType}
+                initialData={selectedSubmission}
+                onSubmit={handleFormSubmit}
+            />
+
+            <RecordDetailModal
+                isOpen={isDetailOpen}
+                onClose={() => setIsDetailOpen(false)}
+                record={selectedSubmission}
+            />
         </div>
     )
 }
+
 
 export default Submissions

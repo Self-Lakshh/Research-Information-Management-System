@@ -3,12 +3,12 @@ import { CheckCircle, XCircle, LayoutGrid, List } from 'lucide-react'
 import {
     FilterBar,
     ConfirmDialog,
-    RecordDetailModal
 } from '@/components/admin'
 import {
-    RecordApprovalCard,
-    CompactApprovalCard
-} from './components'
+    RecordTable,
+    RecordDetailModal,
+    RecordCard
+} from '@/components/common'
 import { approvalFilters } from '@/configs/admin.config'
 import { cn } from '@/components/shadcn/utils'
 import type { ApprovalRequest, ResearchRecord, User } from '@/@types/admin'
@@ -21,9 +21,9 @@ const mockUser: User = {
     id: '1',
     name: 'Dr. Priya Sharma',
     email: 'priya.sharma@university.edu',
-    role: 'faculty',
-    department: 'Electronics',
-    joinedDate: '2021-08-20',
+    user_role: 'user',
+    faculty: 'Electronics',
+    created_at: '2021-08-20',
     status: 'active'
 }
 
@@ -141,7 +141,7 @@ const mockRequests: ApprovalRequest[] = [
 const RecentRequests = () => {
     const [requests] = useState<ApprovalRequest[]>(mockRequests)
     const [filters, setFilters] = useState<Record<string, unknown>>({})
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
     const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [actionDialog, setActionDialog] = useState<{
@@ -170,12 +170,9 @@ const RecentRequests = () => {
         setActionDialog({ isOpen: true, type: 'reject', requestId: id })
     }
 
-    const handleView = (id: string) => {
-        const request = requests.find((r) => r.id === id)
-        if (request) {
-            setSelectedRecord(request.record)
-            setIsDetailOpen(true)
-        }
+    const handleView = (record: any) => {
+        setSelectedRecord(record)
+        setIsDetailOpen(true)
     }
 
     const handleConfirmAction = () => {
@@ -188,6 +185,30 @@ const RecentRequests = () => {
     }
 
     const pendingCount = requests.filter((r) => r.status === 'pending').length
+
+    // Records formatted for table/card view
+    const records = requests.map(req => ({
+        ...req.record,
+        id: req.record.id,
+        requestId: req.id,
+        submittedBy: req.submittedBy,
+        requestedAt: req.submittedAt
+    }))
+
+    const approvalActions = [
+        {
+            label: 'Approve Request',
+            onClick: (record: any) => handleApprove(record.requestId),
+            icon: <CheckCircle className="w-4 h-4" />,
+            variant: 'success' as const
+        },
+        {
+            label: 'Reject Request',
+            onClick: (record: any) => handleReject(record.requestId),
+            icon: <XCircle className="w-4 h-4" />,
+            variant: 'danger' as const
+        }
+    ]
 
     return (
         <div className="space-y-6">
@@ -203,28 +224,30 @@ const RecentRequests = () => {
                 </div>
 
                 {/* View Mode Toggle */}
-                <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-muted/50">
                     <button
                         onClick={() => setViewMode('grid')}
                         className={cn(
-                            'p-2 rounded-md transition-colors',
+                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300',
                             viewMode === 'grid'
-                                ? 'bg-card shadow-sm text-foreground'
+                                ? 'bg-background text-primary shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground'
                         )}
                     >
-                        <LayoutGrid className="w-4 h-4" />
+                        <LayoutGrid className="w-3.5 h-3.5" />
+                        Cards
                     </button>
                     <button
-                        onClick={() => setViewMode('list')}
+                        onClick={() => setViewMode('table')}
                         className={cn(
-                            'p-2 rounded-md transition-colors',
-                            viewMode === 'list'
-                                ? 'bg-card shadow-sm text-foreground'
+                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300',
+                            viewMode === 'table'
+                                ? 'bg-background text-primary shadow-sm'
                                 : 'text-muted-foreground hover:text-foreground'
                         )}
                     >
-                        <List className="w-4 h-4" />
+                        <List className="w-3.5 h-3.5" />
+                        Table
                     </button>
                 </div>
             </div>
@@ -237,41 +260,37 @@ const RecentRequests = () => {
                 onClear={handleClearFilters}
             />
 
-            {/* Requests Grid/List */}
-            {requests.length === 0 ? (
-                <div className="bg-card rounded-xl border border-border/50 p-12 text-center">
-                    <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-foreground mb-1">
+            {/* Requests Content */}
+            {records.length === 0 ? (
+                <div className="bg-card/50 backdrop-blur-sm rounded-[2rem] border border-border/50 p-16 text-center shadow-premium">
+                    <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">
                         All caught up!
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                        There are no pending requests at the moment.
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
+                        There are no pending requests at the moment. You've processed all recent submissions.
                     </p>
                 </div>
             ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {requests.map((request) => (
-                        <RecordApprovalCard
-                            key={request.id}
-                            request={request}
-                            onApprove={handleApprove}
-                            onReject={handleReject}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {records.map((record) => (
+                        <RecordCard
+                            key={record.id}
+                            record={record}
                             onView={handleView}
+                            actions={approvalActions}
                         />
                     ))}
                 </div>
             ) : (
-                <div className="space-y-2">
-                    {requests.map((request) => (
-                        <CompactApprovalCard
-                            key={request.id}
-                            request={request}
-                            onApprove={handleApprove}
-                            onReject={handleReject}
-                            onView={handleView}
-                        />
-                    ))}
-                </div>
+                <RecordTable
+                    records={records}
+                    selectedDomain="all"
+                    onView={handleView}
+                    actions={approvalActions}
+                />
             )}
 
             {/* Record Detail Modal */}

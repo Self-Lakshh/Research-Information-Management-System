@@ -6,8 +6,9 @@ import {
     updateProfile,
     User as FirebaseUser,
     onAuthStateChanged,
+    getAuth,
 } from 'firebase/auth';
-import { auth } from '@/configs/firebase.config';
+import { auth, app } from '@/configs/firebase.config';
 
 /**
  * Sign in with email and password
@@ -46,48 +47,133 @@ export const resetPassword = async (email: string): Promise<void> => {
     }
 };
 
-/**
- * Create new user account (Admin only)
- * Creates user with a temporary password and sends password reset email
- */
-export const createUserAccount = async (
-    email: string,
-    displayName: string
-): Promise<FirebaseUser> => {
-    try {
-        // Generate a temporary random password (user will set their own via reset link)
-        const tempPassword = Math.random().toString(36).slice(-12) + Math.random().toString(36).slice(-12);
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '@/configs/firebase.config';
 
-        const userCredential = await createUserWithEmailAndPassword(auth, email, tempPassword);
+/**
+ * Interface for Admin Create User response
+ */
+interface AdminCreateUserResponse {
+    success: boolean;
+    uid: string;
+    message: string;
+    resetLink?: string;
+}
+
+/**
+ * Interface for User Data passed to the cloud function
+ */
+interface CreateUserData {
+    email: string;
+    name: string;
+    role: string;
+    faculty?: string;
+    designation?: string;
+    phone_number?: string;
+}
+
+/**
+ * Create user via Cloud Function (Admin only)
+ * REVERTED: Cloud Functions require Blaze plan. Using client-side creation for now.
+ */
+export const createUserByAdmin = async (
+    data: CreateUserData
+): Promise<{ user: { uid: string; email: string }; resetLink?: string }> => {
+    // FALLBACK: Use client-side creation (same logic as createUserAccount used to have)
+    // This is less secure but works on Spark plan.
+
+    let secondaryApp: any = null;
+    try {
+        const { initializeApp, deleteApp } = await import('firebase/app');
+        const config = app.options;
+        secondaryApp = initializeApp(config, 'Secondary');
+
+        const secondaryAuth = getAuth(secondaryApp);
+
+        // Generate a temporary random password
+        const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8) + "Aa1!";
+
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, data.email, tempPassword);
         const user = userCredential.user;
 
-        // Update display name
-        await updateProfile(user, { displayName });
+        await updateProfile(user, { displayName: data.name });
 
-        // Send password reset email so user can set their own password
-        await sendPasswordResetEmail(auth, email);
+        // Send password reset email
+        try {
+            console.log(`Attempting to send password reset email to ${data.email}...`);
+            await sendPasswordResetEmail(secondaryAuth, data.email);
+            console.log(`Password reset email sent successfully to ${data.email}`);
+        } catch (emailError) {
+            console.error('Failed to send password reset email:', emailError);
+        }
 
-        return user;
+        await signOut(secondaryAuth);
+
+        // Clean up
+        if (secondaryApp) {
+            const { deleteApp } = await import('firebase/app');
+            await deleteApp(secondaryApp);
+        }
+
+        return {
+            user: {
+                uid: user.uid,
+                email: data.email
+            },
+            // Client-side flow sends email directly, so we don't return a link.
+            resetLink: undefined
+        };
+
     } catch (error: any) {
-        console.error('Create user error:', error);
-        throw new Error(error.message || 'Failed to create user account');
+        console.error('Create user by admin error:', error);
+        if (secondaryApp) {
+            const { deleteApp } = await import('firebase/app');
+            await deleteApp(secondaryApp);
+        }
+        throw new Error(error.message || 'Failed to create user via admin function');
     }
+    /* 
+        // ORIGINAL CLOUD FUNCTION CALL (Commented out for Spark Plan)
+        try {
+            const adminCreateUser = httpsCallable<CreateUserData, AdminCreateUserResponse>(functions, 'adminCreateUser');
+            const result = await adminCreateUser(data);
+            
+            console.log('Cloud function response:', result.data);
+    
+            return {
+                user: {
+                    uid: result.data.uid,
+                    email: data.email
+                },
+                resetLink: result.data.resetLink
+            };
+        } catch (error: any) {
+            console.error('Create user by admin error:', error);
+            throw new Error(error.message || 'Failed to create user via admin function');
+        }
+    */
 };
 
 /**
- * Create user and send password reset link (Admin only)
- * This is the recommended way for admins to create users
+ * @deprecated Use createUserByAdmin instead. This function is kept for signature compatibility during refactor but now calls the cloud function.
  */
 export const createUserWithResetLink = async (
     email: string,
-    displayName: string
-): Promise<{ user: FirebaseUser; resetLinkSent: boolean }> => {
+    displayName: string,
+    additionalData?: { faculty?: string; designation?: string; phone_number?: string; role?: string }
+): Promise<{ user: any; resetLinkSent: boolean }> => {
     try {
-        const user = await createUserAccount(email, displayName);
+        const result = await createUserByAdmin({
+            email,
+            name: displayName,
+            role: additionalData?.role || 'user',
+            ...additionalData
+        });
 
+        // Map response to match expected return type as closely as possible
         return {
-            user,
-            resetLinkSent: true,
+            user: result.user,
+            resetLinkSent: !!result.resetLink,
         };
     } catch (error: any) {
         console.error('Create user with reset link error:', error);

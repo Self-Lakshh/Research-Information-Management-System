@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is an admin
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.user_role == 'admin';
+    }
+
+    match /users/{userId} {
+      // Allow reading users if authenticated
+      allow read: if request.auth != null;
+      
+      // Allow creation by admins (Reverted from blocking logic because we are on Spark plan and using client-side creation)
+      allow create: if isAdmin(); 
+
+      // Allow updates if admin or if updating self (specific fields)
+      allow update: if isAdmin() || (request.auth.uid == userId && 
+                    // Prevent users from changing their own role or active status
+                    !request.resource.data.diff(resource.data).affectedKeys().hasAny(['user_role', 'is_active', 'created_by']));
+      
+      // Allow delete only by admin
+      allow delete: if isAdmin();
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -9,30 +9,27 @@ interface SimpleProps extends CommonProps {
 
 const Simple = ({ children, content, ...rest }: SimpleProps) => {
     return (
-        <div className="grid lg:grid-cols-2 min-h-screen bg-white dark:bg-gray-900">
-            <div className="hidden lg:flex flex-col justify-center items-center bg-teal-50 dark:bg-gray-800 p-12 relative overflow-hidden">
-                {/* <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-200/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" /> */}
-
-                <div className="relative z-10 text-center max-w-md">
-                    <img
-                        src={authImg}
-                        alt="Resto Flow"
-                        className="w-full h-auto mb-8 rounded-2xl shadow-2xl"
-                    />
-                </div>
+        <div className="grid lg:grid-cols-2 h-screen overflow-hidden bg-white dark:bg-gray-900">
+            <div className="hidden lg:block relative w-full h-full bg-teal-50 dark:bg-gray-800 overflow-hidden z-10 shadow-[10px_0_30px_-10px_rgba(0,0,0,0.1)]">
+                <img
+                    src={authImg}
+                    alt="SPSU RIMS"
+                    className="w-full h-full object-cover"
+                />
             </div>
-            <div className="flex flex-col justify-center items-center p-8 lg:p-24 relative">
-                <div className="w-full max-w-[400px]">
-                    <div className="mb-8 lg:hidden flex justify-center">
-                        {/* Logo can go here for mobile */}
+            <div className="flex flex-col h-full overflow-y-auto relative">
+                <div className="min-h-full flex flex-col justify-center items-center p-8 lg:p-24">
+                    <div className="w-full max-w-[600px]">
+                        <div className="mb-8 lg:hidden flex justify-center">
+                            {/* Logo can go here for mobile */}
+                        </div>
+                        {content}
+                        {children
+                            ? cloneElement(children as ReactElement, {
+                                ...rest,
+                            })
+                            : null}
                     </div>
-                    {content}
-                    {children
-                        ? cloneElement(children as ReactElement, {
-                              ...rest,
-                          })
-                        : null}
                 </div>
             </div>
         </div>

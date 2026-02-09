@@ -1,13 +1,17 @@
 import { useState } from 'react'
-import { Eye, Download, MoreHorizontal } from 'lucide-react'
+import { Download, Plus, LayoutGrid, List } from 'lucide-react'
 import {
-    DataTable,
     FilterBar,
-    RecordDetailModal,
 } from '@/components/admin'
+import {
+    RecordTable,
+    RecordDetailModal,
+    RecordFormModal,
+    RecordCard
+} from '@/components/common'
 import { recordFilters } from '@/configs/admin.config'
-import type { ResearchRecord, RecordType, ApprovalStatus } from '@/@types/admin'
-import { useAdminUI } from '@/utils/hooks/useAdminUI'
+import { cn } from '@/components/shadcn/utils'
+import type { ResearchRecord } from '@/@types/admin'
 
 // ============================================
 // MOCK DATA
@@ -126,11 +130,12 @@ const mockRecords: ResearchRecord[] = [
 // ============================================
 
 const Records = () => {
-    const [records] = useState<ResearchRecord[]>(mockRecords)
+    const [records, setRecords] = useState<any[]>(mockRecords)
     const [filters, setFilters] = useState<Record<string, unknown>>({})
-    const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null)
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
+    const [selectedRecord, setSelectedRecord] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
-    const { StatusBadge, RecordTypeBadge } = useAdminUI()
+    const [isEditOpen, setIsEditOpen] = useState(false)
 
     const handleFilterChange = (key: string, value: unknown) => {
         setFilters((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))
@@ -140,59 +145,26 @@ const Records = () => {
         setFilters({})
     }
 
-    const handleViewRecord = (record: ResearchRecord) => {
+    const handleViewRecord = (record: any) => {
         setSelectedRecord(record)
         setIsDetailOpen(true)
     }
 
-    const columns = [
-        {
-            key: 'title',
-            label: 'Title',
-            width: '35%',
-            render: (value: unknown, row: ResearchRecord) => (
-                <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground line-clamp-1">
-                        {row.title}
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <RecordTypeBadge type={row.type} />
-                    </div>
-                </div>
-            )
-        },
-        {
-            key: 'author',
-            label: 'Author',
-            render: (value: unknown) => (
-                <span className="text-sm text-foreground">{value as string}</span>
-            )
-        },
-        {
-            key: 'domain',
-            label: 'Domain',
-            render: (value: unknown) => (
-                <span className="text-sm text-muted-foreground">{value as string}</span>
-            )
-        },
-        {
-            key: 'year',
-            label: 'Year',
-            align: 'center' as const,
-            render: (value: unknown) => (
-                <span className="text-sm text-muted-foreground tabular-nums">
-                    {value as number}
-                </span>
-            )
-        },
-        {
-            key: 'status',
-            label: 'Status',
-            render: (value: unknown) => (
-                <StatusBadge status={value as ApprovalStatus} />
-            )
+    const handleEditRecord = (record: any) => {
+        setSelectedRecord(record)
+        setIsEditOpen(true)
+    }
+
+    const handleDeleteRecord = (id: string) => {
+        if (confirm('Are you sure you want to delete this record?')) {
+            setRecords(prev => prev.filter(r => r.id !== id))
         }
-    ]
+    }
+
+    const handleFormSubmit = (data: any) => {
+        setRecords(prev => prev.map(r => r.id === selectedRecord.id ? { ...r, ...data } : r))
+        setIsEditOpen(false)
+    }
 
     return (
         <div className="space-y-6">
@@ -204,10 +176,42 @@ const Records = () => {
                         Browse and manage all research records
                     </p>
                 </div>
-                <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-muted hover:bg-muted/80 text-foreground transition-colors">
-                    <Download className="w-4 h-4" />
-                    Export
-                </button>
+                <div className="flex items-center gap-4">
+                    {/* View Mode Toggle */}
+                    <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-muted/50">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300",
+                                viewMode === 'grid'
+                                    ? "bg-background text-primary shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <LayoutGrid className="w-3.5 h-3.5" />
+                            Grid
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={cn(
+                                "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300",
+                                viewMode === 'table'
+                                    ? "bg-background text-primary shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <List className="w-3.5 h-3.5" />
+                            Table
+                        </button>
+                    </div>
+
+                    <div className="h-8 w-px bg-muted/50" />
+
+                    <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl bg-muted/50 border border-muted/50 hover:bg-muted text-foreground transition-all duration-300">
+                        <Download className="w-4 h-4" />
+                        Export
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -218,24 +222,28 @@ const Records = () => {
                 onClear={handleClearFilters}
             />
 
-            {/* Records Table */}
-            <DataTable
-                columns={columns}
-                data={records}
-                onRowClick={handleViewRecord}
-                rowActions={(row: ResearchRecord) => [
-                    {
-                        label: 'View Details',
-                        onClick: () => handleViewRecord(row),
-                        icon: <Eye className="w-4 h-4" />
-                    },
-                    {
-                        label: 'Download',
-                        onClick: () => console.log('Download:', row.id),
-                        icon: <Download className="w-4 h-4" />
-                    }
-                ]}
-            />
+            {/* Records Content */}
+            {viewMode === 'table' ? (
+                <RecordTable
+                    records={records}
+                    selectedDomain="all"
+                    onView={handleViewRecord}
+                    onEdit={handleEditRecord}
+                    onDelete={handleDeleteRecord}
+                />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {records.map((record) => (
+                        <RecordCard
+                            key={record.id}
+                            record={record}
+                            onView={handleViewRecord}
+                            onEdit={handleEditRecord}
+                            onDelete={(id) => handleDeleteRecord(id)}
+                        />
+                    ))}
+                </div>
+            )}
 
             {/* Record Detail Modal */}
             <RecordDetailModal
@@ -243,6 +251,17 @@ const Records = () => {
                 onClose={() => setIsDetailOpen(false)}
                 record={selectedRecord}
             />
+
+            {/* Record Form Modal */}
+            {selectedRecord && (
+                <RecordFormModal
+                    isOpen={isEditOpen}
+                    onClose={() => setIsEditOpen(false)}
+                    type={selectedRecord.type || selectedRecord.category}
+                    initialData={selectedRecord}
+                    onSubmit={handleFormSubmit}
+                />
+            )}
         </div>
     )
 }

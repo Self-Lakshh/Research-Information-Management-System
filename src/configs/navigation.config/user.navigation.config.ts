@@ -23,16 +23,6 @@ const userNavigationConfig: NavigationTree[] = [
         authority: [USER],
         subMenu: [],
     },
-    {
-        key: 'user.profile',
-        path: '/user/profile',
-        title: 'Profile',
-        translateKey: 'nav.user.profile',
-        icon: 'user',
-        type: NAV_ITEM_TYPE_ITEM,
-        authority: [USER],
-        subMenu: [],
-    },
 ]
 
 export default userNavigationConfig

@@ -1,4 +1,5 @@
-import { RecordType, ApprovalStatus, UserRole, FilterConfig } from '@/@types/admin'
+import { RecordType, ApprovalStatus, UserRole } from '@/@types/rims.types'
+import { FilterConfig } from '@/@types/admin'
 
 export const recordTypeMeta: Record<RecordType, {
     type: RecordType
@@ -56,14 +57,7 @@ export const recordTypeMeta: Record<RecordType, {
         color: 'emerald',
         icon: 'Briefcase'
     },
-    grant: {
-        type: 'grant',
-        label: 'Research Grant',
-        shortLabel: 'GRNT',
-        badgeColor: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400',
-        color: 'violet',
-        icon: 'Activity'
-    },
+
     other: {
         type: 'other',
         label: 'Other',
@@ -71,6 +65,14 @@ export const recordTypeMeta: Record<RecordType, {
         badgeColor: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
         color: 'slate',
         icon: 'MoreHorizontal'
+    },
+    phd_student: {
+        type: 'phd_student',
+        label: 'PhD Student',
+        shortLabel: 'PHD',
+        badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        color: 'emerald',
+        icon: 'GraduationCap'
     }
 }
 

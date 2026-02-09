@@ -22,7 +22,9 @@ export interface UserFormData {
     name: string
     email: string
     role: string
-    department: string
+    faculty: string
+    designation: string
+    phone_number: string
     status: 'active' | 'inactive'
 }
 
@@ -48,7 +50,9 @@ export const UserFormModal = ({
         name: '',
         email: '',
         role: '',
-        department: '',
+        faculty: '',
+        designation: '',
+        phone_number: '',
         status: 'active'
     })
 
@@ -60,7 +64,9 @@ export const UserFormModal = ({
                 name: '',
                 email: '',
                 role: '',
-                department: '',
+                faculty: '',
+                designation: '',
+                phone_number: '',
                 status: 'active'
             })
         }
@@ -111,31 +117,47 @@ export const UserFormModal = ({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="faculty">Faculty</SelectItem>
-                                    <SelectItem value="hod">HOD</SelectItem>
-                                    <SelectItem value="dean">Dean</SelectItem>
-                                    <SelectItem value="viewer">Viewer</SelectItem>
+                                    <SelectItem value="user">User</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Department</Label>
+                            <Label>Faculty</Label>
                             <Select
-                                value={formData.department}
-                                onValueChange={(value) => setFormData({ ...formData, department: value })}
+                                value={formData.faculty}
+                                onValueChange={(value) => setFormData({ ...formData, faculty: value })}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select department" />
+                                    <SelectValue placeholder="Select faculty" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Computer Science">Computer Science</SelectItem>
-                                    <SelectItem value="Electronics">Electronics</SelectItem>
-                                    <SelectItem value="Mechanical">Mechanical</SelectItem>
-                                    <SelectItem value="Civil">Civil</SelectItem>
-                                    <SelectItem value="Biotechnology">Biotechnology</SelectItem>
-                                    <SelectItem value="Management">Management</SelectItem>
+                                    <SelectItem value="FCI">FCI</SelectItem>
+                                    <SelectItem value="FDLS">FDLS</SelectItem>
+                                    <SelectItem value="FOM">FOM</SelectItem>
+                                    <SelectItem value="FIAT">FIAT</SelectItem>
                                 </SelectContent>
                             </Select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="designation">Designation</Label>
+                            <Input
+                                id="designation"
+                                value={formData.designation}
+                                onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                                placeholder="Enter designation"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input
+                                id="phone"
+                                value={formData.phone_number}
+                                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                                placeholder="Enter phone number"
+                            />
                         </div>
                     </div>
                     <div className="space-y-2">

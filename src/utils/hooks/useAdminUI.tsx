@@ -54,18 +54,12 @@ export const useAdminUI = () => {
     const RoleBadge = ({ role, className }: { role: UserRole; className?: string }) => {
         const styles: Record<UserRole, string> = {
             admin: 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-900',
-            faculty: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900',
-            hod: 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-900',
-            dean: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
-            viewer: 'bg-muted text-muted-foreground border-border'
+            user: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900'
         }
 
         const labels: Record<UserRole, string> = {
             admin: 'Admin',
-            faculty: 'Faculty',
-            hod: 'HOD',
-            dean: 'Dean',
-            viewer: 'Viewer'
+            user: 'User'
         }
 
         return (

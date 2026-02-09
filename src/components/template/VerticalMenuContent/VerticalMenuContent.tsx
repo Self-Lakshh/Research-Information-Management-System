@@ -64,55 +64,56 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
         return (
             <>
                 {navTree.map((nav) => (
-                    <Fragment key={nav.key}>
-                        {nav.type === NAV_ITEM_TYPE_ITEM && (
-                            <VerticalSingleMenuItem
-                                key={nav.key}
-                                currentKey={activedRoute?.key}
-                                parentKeys={defaulExpandKey}
-                                nav={nav}
-                                sideCollapsed={collapsed}
-                                direction={direction}
-                                indent={indent}
-                                renderAsIcon={cascade <= 0}
-                                showIcon={cascade <= 0}
-                                userAuthority={userAuthority}
-                                showTitle={
-                                    collapsed ? cascade >= 1 : cascade <= 1
-                                }
-                                t={t as TraslationFn}
-                                onLinkClick={handleLinkClick}
-                            />
-                        )}
-                        {nav.type === NAV_ITEM_TYPE_COLLAPSE && (
-                            <VerticalCollapsedMenuItem
-                                key={nav.key}
-                                currentKey={activedRoute?.key}
-                                parentKeys={defaulExpandKey}
-                                nav={nav}
-                                sideCollapsed={collapsed}
-                                direction={direction}
-                                indent={nextCascade >= 2}
-                                dotIndent={false}
-                                renderAsIcon={nextCascade <= 1}
-                                userAuthority={userAuthority}
-                                t={t as TraslationFn}
-                                onLinkClick={onMenuItemClick}
-                            >
-                                {nav.subMenu &&
-                                    nav.subMenu.length > 0 &&
-                                    renderNavigation(
-                                        nav.subMenu,
-                                        nextCascade,
-                                        true,
-                                    )}
-                            </VerticalCollapsedMenuItem>
-                        )}
-                        {nav.type === NAV_ITEM_TYPE_TITLE && (
-                            <AuthorityCheck
-                                userAuthority={userAuthority}
-                                authority={nav.authority}
-                            >
+                    <AuthorityCheck
+                        key={nav.key}
+                        userAuthority={userAuthority}
+                        authority={nav.authority}
+                    >
+                        <Fragment>
+                            {nav.type === NAV_ITEM_TYPE_ITEM && (
+                                <VerticalSingleMenuItem
+                                    key={nav.key}
+                                    currentKey={activedRoute?.key}
+                                    parentKeys={defaulExpandKey}
+                                    nav={nav}
+                                    sideCollapsed={collapsed}
+                                    direction={direction}
+                                    indent={indent}
+                                    renderAsIcon={cascade <= 0}
+                                    showIcon={cascade <= 0}
+                                    userAuthority={userAuthority}
+                                    showTitle={
+                                        collapsed ? cascade >= 1 : cascade <= 1
+                                    }
+                                    t={t as TraslationFn}
+                                    onLinkClick={handleLinkClick}
+                                />
+                            )}
+                            {nav.type === NAV_ITEM_TYPE_COLLAPSE && (
+                                <VerticalCollapsedMenuItem
+                                    key={nav.key}
+                                    currentKey={activedRoute?.key}
+                                    parentKeys={defaulExpandKey}
+                                    nav={nav}
+                                    sideCollapsed={collapsed}
+                                    direction={direction}
+                                    indent={nextCascade >= 2}
+                                    dotIndent={false}
+                                    renderAsIcon={nextCascade <= 1}
+                                    userAuthority={userAuthority}
+                                    t={t as TraslationFn}
+                                    onLinkClick={onMenuItemClick}
+                                >
+                                    {nav.subMenu &&
+                                        nav.subMenu.length > 0 &&
+                                        renderNavigation(
+                                            nav.subMenu,
+                                            nextCascade,
+                                            true,
+                                        )}
+                                </VerticalCollapsedMenuItem>
+                            )}
+                            {nav.type === NAV_ITEM_TYPE_TITLE && (
                                 <MenuGroup
                                     key={nav.key}
                                     label={t(nav.translateKey) || nav.title}
@@ -125,12 +126,9 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
                                             false,
                                         )}
                                 </MenuGroup>
-                            </AuthorityCheck>
-                        )}
-                        {cascade === 0 && (
-                            <div className="border-b border-gray-100 dark:border-gray-700 my-1 opacity-50" />
-                        )}
-                    </Fragment>
+                            )}
+                        </Fragment>
+                    </AuthorityCheck>
                 ))}
             </>
         )

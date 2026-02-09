@@ -14,7 +14,7 @@ export interface User {
     address?: string;
     user_role: UserRole;
     designation?: string;
-    department?: string;
+    faculty?: string;
     is_active: boolean;
     created_at: Timestamp;
     updated_at: Timestamp;
@@ -30,7 +30,7 @@ export interface CreateUserData {
     phone_number?: string;
     address?: string;
     designation?: string;
-    department?: string;
+    faculty?: string;
 }
 
 export interface UpdateUserData {
@@ -38,7 +38,7 @@ export interface UpdateUserData {
     phone_number?: string;
     address?: string;
     designation?: string;
-    department?: string;
+    faculty?: string;
     profile_picture_url?: string;
     is_active?: boolean;
 }
@@ -69,11 +69,12 @@ export type DocumentType =
     | 'conference'
     | 'patent'
     | 'book'
-    | 'phd_student_data'
+    | 'phd_student'
     | 'ipr'
     | 'consultancy'
     | 'award'
-    | 'workshop';
+    | 'workshop'
+    | 'other';
 
 export type DocumentStatus = 'pending' | 'approved' | 'rejected';
 
@@ -96,16 +97,18 @@ export interface Document {
 // ============================================
 
 export type RecordType =
-    | 'ipr'
     | 'journal'
     | 'conference'
     | 'book'
-    | 'consultancy'
+    | 'ipr'
     | 'award'
+    | 'consultancy'
     | 'phd_student'
     | 'other';
 
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type ResearchCategory = RecordType;
+
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'draft' | 'accepted';
 
 // Base fields for all records
 interface BaseRecordFields {

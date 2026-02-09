@@ -28,7 +28,7 @@ export const SignInBase = ({
                     type="full"
                     mode={mode}
                     imgClass="mx-auto"
-                    logoWidth={140}
+                    logoWidth={320}
                 />
             </div>
             <div className="mb-10">
