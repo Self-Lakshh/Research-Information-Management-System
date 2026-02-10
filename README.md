@@ -140,4 +140,10 @@ For any queries or support, please contact:
 
 ---
 
+## 🌍 Deployment
+
+For detailed instructions on deploying to Netlify and configuring Firebase, please refer to the [Deployment Guide](DEPLOYMENT_GUIDE.md).
+
+---
+
 *Made with ❤️ for Academic Excellence*
