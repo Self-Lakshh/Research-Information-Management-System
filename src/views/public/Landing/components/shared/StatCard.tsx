@@ -8,22 +8,24 @@ interface StatCardProps {
 
 export const StatCard = ({ icon, value, label }: StatCardProps) => {
   return (
-    <Card className="relative bg-white/55 rounded-2xl sm:rounded-[32px] px-4 sm:px-6 lg:px-8 xl:px-10 py-5 sm:py-6 lg:py-8 xl:py-10 shadow-sm border border-gray-100 transition-all duration-500 ease-out hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/10 h-full flex flex-col justify-center">
-      <div className="flex flex-col items-center sm:items-start gap-3 sm:gap-4 lg:gap-5">
+    <Card className="relative bg-white/55 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm border border-gray-100 transition-all duration-500 ease-out hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/10 h-full flex flex-col justify-center w-full">
+      <div className="flex flex-col items-center sm:items-start gap-2.5 sm:gap-3 md:gap-4">
 
         {/* Icon Bubble */}
-        <div className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 xl:h-16 xl:w-16 flex items-center justify-center rounded-2xl sm:rounded-full bg-blue-700 text-white shadow-md transition-transform duration-300 hover:scale-110">
-          {icon}
+        <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 flex items-center justify-center rounded-lg sm:rounded-xl bg-blue-700 text-white shadow-md transition-transform duration-300 hover:scale-110 shrink-0">
+          <div className="scale-75 sm:scale-90 md:scale-100 flex items-center justify-center">
+            {icon}
+          </div>
         </div>
 
-        <div className="text-center sm:text-left space-y-1">
+        <div className="text-center sm:text-left space-y-0.5 sm:space-y-1 w-full">
           {/* Value */}
-          <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-blue-700 leading-none tracking-tight">
+          <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-700 leading-none tracking-tight break-words">
             {value}
           </p>
 
           {/* Label */}
-          <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-teal-600/90 tracking-wide uppercase">
+          <p className="text-[10px] sm:text-xs md:text-sm font-bold text-teal-600/90 tracking-wide uppercase leading-tight">
             {label}
           </p>
         </div>

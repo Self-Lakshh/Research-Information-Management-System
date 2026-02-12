@@ -35,8 +35,6 @@ const PostLoginLayout = ({ layoutType, children }: PostLoginLayoutProps) => {
             <AppLayout>{children}</AppLayout>
         </Suspense>
     )
-
-    return <AppLayout>{children}</AppLayout>
 }
 
 export default PostLoginLayout

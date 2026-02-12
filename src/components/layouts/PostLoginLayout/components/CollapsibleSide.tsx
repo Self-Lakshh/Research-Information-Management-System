@@ -115,7 +115,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
             className="app-layout-collapsible-side flex flex-auto flex-col"
         >
             <Header
-                className="shadow-sm dark:shadow-2xl bg-white dark:bg-gray-900 z-30"
+                className="shadow-sm dark:shadow-2xl bg-card z-30"
                 headerStart={
                     <div className="flex items-center gap-4">
                         {smaller.lg && <MobileNav />}
@@ -124,14 +124,14 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                         <div className="flex items-center gap-3">
                             <div className="flex flex-col">
                                 <span className="text-[10px] text-slate-500 font-semibold leading-none mb-0.5">
-                                    <Logo logoWidth={220} />
+                                    <Logo logoWidth={220} mode={isDark ? 'dark' : 'light'} />
                                 </span>
                             </div>
                         </div>
 
                         <div className="h-7 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
-                        <div className="text-xs text-teal-500 dark:text-teal-400 font-medium hidden md:block">
+                        <div className="text-xs text-secondary dark:text-teal-400 font-medium hidden md:block">
                             {/* Update: 11/12/2025, 12:33 PM */}
                             {time.toLocaleString('en-IN', {
                                 day: '2-digit',
@@ -192,7 +192,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
             />
             <div className="flex flex-auto min-w-0">
                 {larger.lg && <SideNav />}
-                <div className="flex flex-col flex-auto min-h-screen min-w-0 relative w-full">
+                <div className="flex flex-col flex-auto min-h-screen min-w-0 relative w-full bg-emerald-50 dark:bg-zinc-950">
                     <div className="h-full flex flex-auto flex-col">
                         {children}
                     </div>

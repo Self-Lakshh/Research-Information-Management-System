@@ -40,11 +40,11 @@ export const FeatureCardSkeleton = () => (
 )
 
 export const StatCardSkeleton = () => (
-    <div className="relative bg-white/55 rounded-2xl sm:rounded-[32px] px-4 sm:px-5 lg:px-6 py-4 sm:py-5 lg:py-6 shadow-sm border border-gray-100">
-        <div className="flex flex-col items-start gap-2 sm:gap-3 lg:gap-4">
-            <Skeleton className="h-9 w-9 sm:h-10 sm:w-10 lg:h-12 lg:w-12 rounded-full" />
-            <Skeleton className="h-8 sm:h-10 lg:h-12 w-20" />
-            <Skeleton className="h-4 sm:h-5 w-32" />
+    <div className="relative bg-white/55 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 shadow-sm border border-gray-100 h-full w-full">
+        <div className="flex flex-col items-start gap-2.5 sm:gap-3 md:gap-4 w-full">
+            <Skeleton className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 rounded-lg sm:rounded-xl" />
+            <Skeleton className="h-6 sm:h-8 md:h-10 w-20" />
+            <Skeleton className="h-3 sm:h-4 w-32" />
         </div>
     </div>
 )

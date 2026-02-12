@@ -33,7 +33,7 @@ const FooterContent = ({ className }: FooterProps) => {
     return (
         <div
             className={cn(
-                'w-full bg-foreground dark:bg-gray-900 text-background dark:text-foreground px-4 lg:px-8 py-6',
+                'w-full bg-blue-700 dark:bg-gray-900 text-background dark:text-foreground px-4 lg:px-8 py-6',
                 className,
             )}
         >
@@ -42,11 +42,8 @@ const FooterContent = ({ className }: FooterProps) => {
                 {/* Logo & Description */}
                 <div className="flex flex-col items-center lg:items-start text-center lg:text-left space-y-4">
                     <Link to="/" className="inline-block transition-transform duration-300 hover:scale-105">
-                        <Logo logoWidth={200} mode="dark" />
+                        <Logo logoWidth={300} mode="dark" />
                     </Link>
-                    <p className="max-w-xs text-xs sm:text-sm text-background/60 dark:text-foreground/60 leading-relaxed font-medium">
-                        Empowering research innovation at SPSU through centralized data management and scholarly showcasing.
-                    </p>
                 </div>
 
                 {/* Developers Grid */}
@@ -54,16 +51,16 @@ const FooterContent = ({ className }: FooterProps) => {
                     {developers.map((dev, i) => (
                         <div
                             key={i}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-background/5 border border-background/10 transition-all duration-300 hover:bg-background/10 hover:border-background/20 group backdrop-blur-sm"
+                            className="flex items-center gap-3 p-3 rounded-xl bg-background/5 border border-background/20 transition-all duration-300 group backdrop-blur-sm"
                         >
-                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg group-hover:scale-110 transition-transform">
+                            <div className="h-10 w-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-background font-bold text-lg group-hover:scale-110 transition-transform">
                                 {dev.name.charAt(0)}
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-bold tracking-tight">
                                     {dev.name}
                                 </span>
-                                <span className="text-[10px] sm:text-xs font-medium text-background/50 dark:text-foreground/50 uppercase tracking-wider">
+                                <span className="text-[10px] sm:text-xs font-medium text-background/70 dark:text-foreground/50 uppercase tracking-wider">
                                     {dev.role}
                                 </span>
                             </div>
@@ -73,17 +70,17 @@ const FooterContent = ({ className }: FooterProps) => {
                                     href={dev.github}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-1.5 rounded-full hover:bg-background/20 transition-colors text-background/70 hover:text-primary"
+                                    className="p-1.5 rounded-full border border-background/20 hover:bg-background/20 transition-colors text-background"
                                 >
-                                    <Github size={14} />
+                                    <Github size={18} />
                                 </a>
                                 <a
                                     href={dev.linkedin}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-1.5 rounded-full hover:bg-background/20 transition-colors text-background/70 hover:text-blue-500"
+                                    className="p-1.5 rounded-full border border-background/20 hover:bg-background/20 transition-colors text-background"
                                 >
-                                    <Linkedin size={14} />
+                                    <Linkedin size={18} />
                                 </a>
                             </div>
                         </div>
@@ -92,17 +89,14 @@ const FooterContent = ({ className }: FooterProps) => {
             </div>
 
             {/* ================= DIVIDER ================= */}
-            <div className="my-8 h-px bg-gradient-to-r from-transparent via-background/10 to-transparent dark:via-foreground/10" />
+            <div className="my-8 h-px bg-background/20 dark:bg-foreground/20" />
 
             {/* ================= ROW 2 ================= */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm">
                 {/* Rights */}
                 <div className="order-2 md:order-1 text-center md:text-left space-y-1">
-                    <p className="text-background/50 dark:text-foreground/50 font-medium">
+                    <p className="text-background dark:text-background font-medium">
                         © {new Date().getFullYear()} Sir Padampat Singhania University, Udaipur
-                    </p>
-                    <p className="text-[10px] text-background/30 dark:text-foreground/30">
-                        Design & Development with ❤️ by Research Team
                     </p>
                 </div>
 
@@ -118,7 +112,7 @@ const FooterContent = ({ className }: FooterProps) => {
                             key={i}
                             href={social.href}
                             aria-label={social.label}
-                            className="h-10 w-10 flex items-center justify-center rounded-full bg-background/5 border border-background/10 hover:bg-background/10 hover:-translate-y-1 transition-all duration-300 text-background/70 hover:text-primary"
+                            className="h-10 w-10 flex items-center justify-center rounded-full bg-background/5 border border-background/10 hover:bg-background/10 hover:-translate-y-1 transition-all duration-300 text-background/70 "
                         >
                             {social.icon}
                         </a>
