@@ -1,11 +1,17 @@
+
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { OptimizedImage } from './shared/OptimizedImage'
 import { cn } from '@/components/shadcn/utils'
 
+interface ShowcaseItem {
+    src: string
+    title: string
+}
+
 interface ShowcaseProps {
-    images: string[]
+    items: ShowcaseItem[]
     autoPlay?: boolean
     interval?: number
 }
@@ -37,15 +43,14 @@ const swipePower = (offset: number, velocity: number) => {
 }
 
 export const Showcase = ({
-    images,
+    items,
     autoPlay = true,
     interval = 5000,
 }: ShowcaseProps) => {
     const [[page, direction], setPage] = useState([0, 0])
     const [isHovered, setIsHovered] = useState(false)
 
-    // We only have 3 images effectively in the original logic, but here we can handle any number
-    const imageIndex = Math.abs(page % images.length)
+    const itemIndex = Math.abs(page % items.length)
 
     const paginate = useCallback((newDirection: number) => {
         setPage((prev) => [prev[0] + newDirection, newDirection])
@@ -59,16 +64,13 @@ export const Showcase = ({
         return () => clearInterval(timer)
     }, [autoPlay, interval, isHovered, paginate])
 
-    // Preload next image logic could go here if needed, but browsers handle it reasonably well
-    // or OptimizedImage handles it.
-
     return (
         <div
             className="w-full relative group max-w-6xl mx-auto"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-border/50 bg-card aspect-[16/9] sm:aspect-[21/9] md:aspect-[2/1] lg:aspect-[2.4/1]">
+            <div className="relative overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] border border-border/50 bg-card aspect-[16/9] sm:aspect-[21/9] lg:aspect-[2.5/1]">
                 <AnimatePresence
                     initial={false}
                     custom={direction}
@@ -95,10 +97,21 @@ export const Showcase = ({
                         className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent"
                     >
                         <OptimizedImage
-                            src={images[imageIndex]}
-                            alt={`Slide ${imageIndex + 1}`}
+                            src={items[itemIndex].src}
+                            alt={items[itemIndex].title}
                             className="w-full h-full object-cover pointer-events-none"
                         />
+                        <div className="absolute bottom-0 left-0 right-0 
+                p-3 sm:p-4 
+                bg-gradient-to-t from-black/60 to-transparent 
+                pt-10 sm:pt-16 
+                z-10 pointer-events-none">
+                            <h3 className="text-xs sm:text-sm md:text-base 
+                 text-center font-semibold tracking-wide 
+                 text-white drop-shadow-md">
+                                {items[itemIndex].title}
+                            </h3>
+                        </div>
                     </motion.div>
                 </AnimatePresence>
 
@@ -122,23 +135,23 @@ export const Showcase = ({
 
                 {/* Page Counter Badge */}
                 <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full border border-white/20 font-medium z-10 pointer-events-none">
-                    {imageIndex + 1} / {images.length}
+                    {itemIndex + 1} / {items.length}
                 </div>
             </div>
 
             {/* Dots - Below the image, Centered */}
             <div className="flex items-center justify-center mt-4 px-2">
                 <div className="flex items-center gap-2">
-                    {images.map((_, i) => (
+                    {items.map((_, i) => (
                         <button
                             key={i}
                             onClick={() => {
-                                const diff = i - imageIndex
+                                const diff = i - itemIndex
                                 if (diff !== 0) paginate(diff)
                             }}
                             className={cn(
                                 'h-2 w-2 rounded-full transition-colors duration-300',
-                                i === imageIndex
+                                i === itemIndex
                                     ? 'bg-primary'
                                     : 'bg-muted-foreground/30 hover:bg-muted-foreground/50',
                             )}

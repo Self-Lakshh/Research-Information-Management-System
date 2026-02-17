@@ -2,31 +2,31 @@ import { PartnerCard } from '../components/shared/PartnerCard'
 
 const partners = [
     {
-        icon: '/img/others/irins.png',
+        icon: '/img/partners/irins.png',
         name: 'SPSU IRINS',
         description:
             'Faculty Profile a major provider of research resources for libraries, offering databases, e-journals, e-books',
     },
     {
-        icon: '/img/others/ebsco.png',
+        icon: '/img/partners/ebsco.png',
         name: 'SPSU EBSCO',
         description:
             'A major provider of research resources for libraries, offering databases, e-journals, e-books',
     },
     {
-        icon: '/img/others/delnet.png',
+        icon: '/img/partners/delnet.png',
         name: 'DELNET',
         description:
             'Access Millions of Networked Library Resources through DELNET',
     },
     {
-        icon: '/img/others/jstor.png',
+        icon: '/img/partners/jstor.png',
         name: 'JSTOR',
         description:
             'Digital library providing access to academic journals, books, and primary sources',
     },
     {
-        icon: '/img/others/scopus.png',
+        icon: '/img/partners/scopus.png',
         name: 'SCOPUS',
         description:
             'Abstract and citation database of peer-reviewed literature',

@@ -150,10 +150,9 @@ export const Domains = () => {
             }`}
         >
           <Showcase
-            images={[
-              "/img/others/car1.png",
-              "/img/others/car2.png",
-              "/img/others/car3.png",
+            items={[
+              { src: "/img/others/car-1.jpg", title: "IIT Professor delivers Expert Lecture on Human Rights and Human Duties at SPSU" },
+              { src: "/img/others/car-2.jpg", title: "International Conference on Computational Intelligence and Autonomous Systems (ICIAS 2025) on October 9-10, 2025" },
             ]}
           />
         </div>

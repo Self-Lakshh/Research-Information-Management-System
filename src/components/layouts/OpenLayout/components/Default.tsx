@@ -84,6 +84,24 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
         }
     }
 
+    const footerRef = useRef<HTMLDivElement>(null)
+    const [isFooterVisible, setIsFooterVisible] = useState(false)
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                setIsFooterVisible(entry.isIntersecting)
+            },
+            { threshold: 0.1 }
+        )
+
+        if (footerRef.current) {
+            observer.observe(footerRef.current)
+        }
+
+        return () => observer.disconnect()
+    }, [])
+
     return (
         <div className="flex flex-col min-h-screen relative">
             <AnimatedBackdrop />
@@ -172,10 +190,17 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
             )}
 
             <main className="grow pt-4">{children}</main>
-            <Footer className="mt-12 sm:mt-16 lg:mt-20" />
+
+            {/* Footer Wrapper with Ref */}
+            <div ref={footerRef}>
+                <Footer className="mt-12 sm:mt-16 lg:mt-20" />
+            </div>
 
             {/* Scroll Navigation Buttons */}
-            <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-3">
+            <div className={cn(
+                "fixed bottom-8 right-8 z-[100] flex flex-col gap-3 transition-opacity duration-300",
+                isFooterVisible && "opacity-0 pointer-events-none"
+            )}>
                 <button
                     onClick={() => scrollToSection('up')}
                     disabled={activeSection === navLinks[0].id}
