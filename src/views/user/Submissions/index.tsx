@@ -1,29 +1,10 @@
 import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader } from '@/components/shadcn/ui/card'
-import { Badge } from '@/components/shadcn/ui/badge'
+import { Card } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
-import { Input } from '@/components/shadcn/ui/input'
 import {
-    FileText,
-    Search,
-    Filter,
-    ArrowUpDown,
-    CheckCircle2,
-    Clock,
-    XCircle,
     Plus,
-    BookOpen,
-    Users,
-    Lightbulb,
-    Trophy,
-    Briefcase,
-    Banknote,
-    LayoutGrid,
-    List,
-    MoreHorizontal,
-    Eye,
-    Edit2,
-    Trash2
+    Search,
+    FileText
 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -32,20 +13,14 @@ import {
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
 import { cn } from '@/components/shadcn/utils'
-import { SUBMISSION_TYPES, getStatusColor } from '@/configs/submission.config'
+import { SUBMISSION_TYPES } from '@/configs/submission.config'
 import {
     RecordCard,
     RecordFormModal,
     RecordDetailModal,
-    RecordTable
+    RecordTable,
+    CardTilesHeader
 } from '@/components/common'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/shadcn/ui/select'
 
 const Submissions = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
@@ -55,8 +30,9 @@ const Submissions = () => {
     const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedDomain, setSelectedDomain] = useState<string>('all')
+    const [selectedYear, setSelectedYear] = useState<string>('all')
 
-    // Mock Data
+    // Mock Data (matches original)
     const [submissions, setSubmissions] = useState([
         { id: '1', title: 'Improving AI Efficiency in Healthcare', category: 'journal', date: 'Oct 12, 2023', status: 'Approved', journalName: 'IEEE Health Informatics', authors: 'John Doe, Jane Smith', publicationDate: '2023-10-12', indexing: 'scopus' },
         { id: '2', title: 'Blockchain for Academic Veracity', category: 'conference', date: 'Oct 10, 2023', status: 'Pending', conferenceName: 'International Conference on Blockchain', location: 'Dubai, UAE', startDate: '2023-10-10' },
@@ -65,15 +41,45 @@ const Submissions = () => {
         { id: '5', title: 'Smart Cities using IoT', category: 'grant', date: 'Aug 30, 2023', status: 'Pending', agency: 'DST', amount: 500000, pi: 'John Doe', startDate: '2023-08-30' },
     ])
 
-    const filteredSubmissions = submissions.filter(s => {
-        const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.status.toLowerCase().includes(searchQuery.toLowerCase())
+    const availableYears = useMemo(() => {
+        const years = new Set<string>();
+        submissions.forEach(s => {
+            const date = s.date ? new Date(s.date) : null;
+            if (date && !isNaN(date.getTime())) {
+                years.add(date.getFullYear().toString());
+            }
+            // Check specific year fields if date parsing fails or as fallback
+            const anyRecord = s as any;
+            if (anyRecord.publicationYear) years.add(anyRecord.publicationYear.toString());
+            if (anyRecord.publicationDate) {
+                const pubDate = new Date(anyRecord.publicationDate);
+                if (!isNaN(pubDate.getTime())) years.add(pubDate.getFullYear().toString());
+            }
+        });
+        return Array.from(years).sort((a, b) => b.localeCompare(a));
+    }, [submissions]);
 
-        const matchesDomain = selectedDomain === 'all' || s.category.toLowerCase() === selectedDomain.toLowerCase()
+    const filteredSubmissions = useMemo(() => {
+        return submissions.filter(s => {
+            const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.status.toLowerCase().includes(searchQuery.toLowerCase())
 
-        return matchesSearch && matchesDomain
-    })
+            const matchesDomain = selectedDomain === 'all' || s.category.toLowerCase() === selectedDomain.toLowerCase()
+
+            // Extract year logic
+            const recordYear = new Date(s.date).getFullYear().toString();
+            const pubYear = (s as any).publicationYear?.toString();
+            const pubDateYear = (s as any).publicationDate ? new Date((s as any).publicationDate).getFullYear().toString() : undefined;
+
+            const matchesYear = selectedYear === 'all' ||
+                recordYear === selectedYear ||
+                (pubYear && pubYear === selectedYear) ||
+                (pubDateYear && pubDateYear === selectedYear);
+
+            return matchesSearch && matchesDomain && matchesYear
+        })
+    }, [submissions, searchQuery, selectedDomain, selectedYear])
 
     const handleAddClick = (type: string) => {
         setSelectedType(type)
@@ -114,6 +120,12 @@ const Submissions = () => {
         setIsAddModalOpen(false)
     }
 
+    const handleExport = (format: 'pdf' | 'excel') => {
+        console.log(`Exporting as ${format}...`)
+        // Implement export logic here
+        alert(`Exporting as ${format}...`)
+    }
+
     return (
         <div className="p-4 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
             {/* Page Header */}
@@ -123,88 +135,43 @@ const Submissions = () => {
                     <p className="text-muted-foreground font-medium">Manage and track your research portfolio across all domains.</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    {/* View Mode Switcher */}
-                    <div className="flex items-center gap-1 p-1 bg-muted rounded-2xl border border-muted-foreground/10 h-11">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={cn(
-                                'px-3 h-full flex items-center justify-center rounded-xl transition-all duration-300',
-                                viewMode === 'grid' ? 'bg-background shadow-premium text-primary' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            <LayoutGrid className="w-4 h-4 mr-2" />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('table')}
-                            className={cn(
-                                'px-3 h-full flex items-center justify-center rounded-xl transition-all duration-300',
-                                viewMode === 'table' ? 'bg-background shadow-premium text-primary' : 'text-muted-foreground hover:text-foreground'
-                            )}
-                        >
-                            <List className="w-4 h-4 mr-2" />
-                        </button>
-                    </div>
-
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button className="rounded-2xl h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-soft transition-all duration-300 gap-2">
-                                <Plus className="h-4 w-4" /> Add Submission
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-primary/10 shadow-premium">
-                            <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Domain Type</div>
-                            {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
-                                <DropdownMenuItem
-                                    key={key}
-                                    onClick={() => handleAddClick(key)}
-                                    className="cursor-pointer rounded-xl py-2.5 gap-3 group transition-colors"
-                                >
-                                    <div className={cn("p-2 rounded-lg bg-background border border-muted group-hover:bg-primary/5 transition-colors", config.color.replace('text-', 'bg-').replace('500', '50'))}>
-                                        <FileText className={cn("h-4 w-4", config.color)} />
-                                    </div>
-                                    <span className="font-semibold text-sm">{config.label}</span>
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button className="rounded-2xl h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-soft transition-all duration-300 gap-2">
+                            <Plus className="h-4 w-4" /> Add Submission
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-primary/10 shadow-premium">
+                        <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Domain Type</div>
+                        {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
+                            <DropdownMenuItem
+                                key={key}
+                                onClick={() => handleAddClick(key)}
+                                className="cursor-pointer rounded-xl py-2.5 gap-3 group transition-colors"
+                            >
+                                <div className={cn("p-2 rounded-lg bg-background border border-muted group-hover:bg-primary/5 transition-colors", config.color.replace('text-', 'bg-').replace('500', '50'))}>
+                                    <FileText className={cn("h-4 w-4", config.color)} />
+                                </div>
+                                <span className="font-semibold text-sm">{config.label}</span>
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
-            {/* Filter & Search Bar */}
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
-                <Card className="flex-1 border-none shadow-soft rounded-[1.5rem] overflow-hidden bg-muted/20">
-                    <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <Input
-                            placeholder="Search by title..."
-                            className="bg-transparent border-none h-12 pl-12 rounded-none focus-visible:ring-0 text-sm font-medium"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </Card>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <Select value={selectedDomain} onValueChange={setSelectedDomain}>
-                        <SelectTrigger className="w-[180px] h-12 rounded-[1.5rem] border-muted-foreground/10 bg-muted/20 font-bold px-5 focus:ring-primary/20">
-                            <SelectValue placeholder="All Domains" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
-                            <SelectItem value="all" className="rounded-lg">All Domains</SelectItem>
-                            {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
-                                <SelectItem key={key} value={key} className="rounded-lg capitalize">
-                                    {config.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Button variant="outline" className="rounded-[1.5rem] h-12 border-muted-foreground/10 bg-muted/20 gap-2 font-bold px-6 hover:bg-muted/30">
-                        <ArrowUpDown className="h-4 w-4" /> Export
-                    </Button>
-                </div>
-            </div>
+            {/* Controls Header */}
+            <CardTilesHeader
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedDomain={selectedDomain}
+                setSelectedDomain={setSelectedDomain}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+                years={availableYears}
+                onExport={handleExport}
+            />
 
             {/* Content View */}
             {viewMode === 'grid' ? (
@@ -257,6 +224,5 @@ const Submissions = () => {
         </div>
     )
 }
-
 
 export default Submissions

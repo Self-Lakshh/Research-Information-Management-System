@@ -20,6 +20,6 @@
 
   /* Main sidebar background */
   .side-nav-bg {
-    @apply border-r bg-primary/5 border-primary/20 dark:bg-card dark:border-border/40;
+    @apply border-r bg-indigo-50 border-primary/20 dark:bg-card dark:border-border/40;
   }
 }

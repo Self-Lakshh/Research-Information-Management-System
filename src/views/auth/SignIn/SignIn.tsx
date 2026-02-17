@@ -5,6 +5,7 @@ import SignInForm from './components/SignInForm'
 import ActionLink from '@/components/shared/ActionLink'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
+import { DoorOpen } from 'lucide-react'
 
 type SignInProps = {
     signUpUrl?: string
@@ -27,8 +28,9 @@ export const SignInBase = ({
                 <Logo
                     type="full"
                     mode={mode}
-                    imgClass="mx-auto"
-                    logoWidth={320}
+                    className="mx-auto max-w-[280px] sm:max-w-[320px]"
+                    imgClass="mx-auto w-full h-auto"
+                    logoWidth="100%"
                 />
             </div>
             <div className="mb-10">
@@ -58,6 +60,15 @@ export const SignInBase = ({
                     </div>
                 }
             />
+            <div className="mt-5 text-center">
+                <ActionLink
+                    to="/"
+                    className="text-md font-medium text-foreground hover:text-primary transition-colors flex items-center justify-center gap-2 hover:no-underline"
+                    themeColor={false}
+                >
+                    <DoorOpen /> Go Back to Home
+                </ActionLink>
+            </div>
             {/* 
             <div className="mt-8">
                 <div className="flex items-center gap-2 mb-6">
