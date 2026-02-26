@@ -1,195 +1,238 @@
 {
-    "user": {
-        "name": "",
-        "email": "",
-        "phone_number": "",
-        "address": "",
-        "user_role": "user",
-        "designation": "",
-        "department": "",
-        "is_active": true,
-        "created_at": "",
-        "updated_at": "",
-        "profile_picture_url": "",
-        "profile_picture_media": "ref"
-    },
+  "user": {
+    "user_id": {
+      "name": "",
+      "email": "",
+      "phone_number": "",
+      "address": "",
+      "user_role": "admin/faculty/student/reviewer",
+      "designation": "",
+      "faculty": "FCI/FOM/FIAT/FDLS",
+      "is_active": true,
 
-    "media": {
-        "media_name": "",
-        "media_type": "", //event, partners-logo
-        "media_url": "",
-        "uploaded_by" : "",
-        "uploaded_at" : "",
-        "status" : "active/inactive",
-    },
+      "created_at": "",
+      "updated_at": "",
 
-    "document":{
-        "document_name":"",
-        "document_type":"", //journal/conference/patent/book/phd_student_data/ipr
-        "file_url":"",
-        "description":"",
-        "status":"pending/approved/rejected",
-        "reviewed_by":"",
-        "review_date":"",
-        "uploaded_by":"",
-        "upload_date":"",
-        "created_at": "",
-    },
-    // =================
-    
-    "IPR": {
-        "faculty_ref": "",
-        "application_no": "",
-        "title": "",
-        "inventors": [""],
-        "applicants": [""],
-        "country": "",
-        "published_date": "",
-        "patent_type": "", //design/patent/copyright/trademark
-        "status": "", 
-        "sources" : ["doc-ref1","doc-ref2","",""],
-        "approval_status": "", //approved/rejected/pending
-        "approval_action_by": "",
-        "action_at": "",
-        "created_at": "",
-        "updated_at": "",
-        "created_by" : "ref",
-        "updated_by" : "ref", 
-    },
+      "profile_picture_url": "",
+      "profile_picture_media": "media/{media_id}"
+    }
+  },
 
-    "PHD_Student_Data": [
-        {       
-            "name": "",
-            "faculty_ref": "",
-            "supervisor_type": "",
-            "name_of_student": "",
-            "enrollment_number": "",
-            "phd_stream": "",
-            "created_at": "",
-            "updated_at": "",
-            "created_by" : "ref",
-            "updated_by" : "ref", 
-        },
-    ],
+  "media": {
+    "media_id": {
+      "media_name": "",
+      "media_type": "profile/event/document/logo/award/ipr-proof",
+      "media_description": "",
+      "media_url": "",
+      "uploaded_by": "users/{user_id}",
+      "uploaded_at": "",
+      "status": "active/inactive"
+    }
+  },
 
-    "Journal": [
-        {
-            "title_of_paper": "",
-            "aurthors": ["ref1","ref2"],
-            "journal_name": "",
-            "journal_type": "",
-            "date_of_publication": "",
-            "ISSN_number": "",
-            "web_link": "", // proof-doi
-            "source" : ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",
-            "created_by" : "ref",
-            "updated_by" : "ref", 
-        }
-    ],
+  "document": {
+    "document_id": {
+      "document_name": "",
+      "document_type": "journal/conference/patent/book/phd_student_data/ipr/consultancy/award/event",
+      "file_url": "",
+      "description": "",
+      "status": "pending/approved/rejected",
+      "reviewed_by": "users/{user_id}",
+      "review_date": "",
+      "uploaded_by": "users/{user_id}",
+      "upload_date": "",
+      "created_at": ""
+    }
+  },
 
-    "Conference": [
-        {
-            "authors": ["ref1","ref2"],
-            "title_of_paper": "",
-            "title_of_proceedings_of_conference": "",
-            "name_of_conference": "",
-            "origin": "", //nationality
-            "year_of_publication": "",
-            "ISBN/ISSN number of the proceeding": "",
-            "name_of_publisher": "",
-            "source": ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",  
-            "created_by" : "ref",
-            "updated_by" : "ref", 
-        }
-    ],
+  "IPR": {
+    "ipr_id": {
+      "faculty_ref": "users/{user_id}",
+      "application_no": "",
+      "title": "",
+      "inventors": ["users/{user_id}"],
+      "applicants": [""],
+      "country": "",
+      "published_date": "",
+      "patent_type": "design/patent/copyright/trademark",
+      "status": "",
 
-    "Book": [
-        {
-            "author": "",
-            "title_of_book": "",
-            "date_of_publication": "",
-            "ISBN_number": "",
-            "publisher_name": "",
-            "sources": ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",  
-            "created_by" : "ref",
-            "updated_by" : "ref",            
-        }
-    ],
+      "sources": [
+        "media/{media_id}",
+        "media/{media_id}"
+      ],
 
-    "Consultancy_Project_Grants": [
-        {
-            "project_title": "",
-            "amount": "",
-            "organization": "",
-            "organization_url": "",
-            "principal_investigator_ref": "",
-            "co_investigators_refs": [""],
-            "institution": "",
-            "duration": "",
-            "grant_date": "",
-            "status": "", //ongoing/completed
-            "sources": ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",  
-            "created_by" : "ref",
-            "updated_by" : "ref",            
-        }
-    ],
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
 
-    "Awards": [
-        {
-            "award_name": "",
-            "title": "",
-            "recipient_ref": "",
-            "institution_body": "",
-            "country": "",
-            "month_year": "",
-            "sources": ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",  
-            "created_by" : "ref",
-            "updated_by" : "ref",            
-        }
-    ],
-    
-    //  Workshops, seminaars, fdp, keynotespeakers
-    "Others": [
-        {
-            "type": "", //FDP/Seminar/Workshop/Keynote Speaker
-            "topic_title": "",
-            "organization": "",
-            "date": "",
-            "role": "",
-            "involved_faculty_refs": [""],
-            "sources": ["doc-ref1", "doc-ref2"],
-            "approval_status": "", //approved/rejected/pending
-            "approval_action_by": "",
-            "action_at": "",
-            "created_at": "",
-            "updated_at": "",  
-            "created_by" : "ref",
-            "updated_by" : "ref",            
-        }
-    ]
+  "PHD_Student_Data": {
+    "phd_id": {
+      "name": "",
+      "faculty_ref": "users/{user_id}",
+      "supervisor_type": "",
+      "name_of_student": "",
+      "enrollment_number": "",
+      "phd_stream": "",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Journal": {
+    "journal_id": {
+      "title_of_paper": "",
+      "aurthors": ["users/{user_id}"],
+      "journal_name": "",
+      "journal_type": "",
+      "date_of_publication": "",
+      "ISSN_number": "",
+      "web_link": "",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Conference": {
+    "conference_id": {
+      "authors": ["users/{user_id}"],
+      "title_of_paper": "",
+      "title_of_proceedings_of_conference": "",
+      "name_of_conference": "",
+      "origin": "",
+      "year_of_publication": "",
+      "ISBN/ISSN number of the proceeding": "",
+      "name_of_publisher": "",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Book": {
+    "book_id": {
+      "author": "users/{user_id}",
+      "title_of_book": "",
+      "date_of_publication": "",
+      "ISBN_number": "",
+      "publisher_name": "",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Consultancy_Project_Grants": {
+    "project_id": {
+      "project_title": "",
+      "amount": "",
+      "organization": "",
+      "organization_url": "",
+      "principal_investigator_ref": "users/{user_id}",
+      "co_investigators_refs": ["users/{user_id}"],
+      "institution": "",
+      "duration": "",
+      "grant_date": "",
+      "status": "ongoing/completed",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Awards": {
+    "award_id": {
+      "award_name": "",
+      "title": "",
+      "recipient_ref": "users/{user_id}",
+      "institution_body": "",
+      "country": "",
+      "month_year": "",
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "Others": {
+    "others_id": {
+      "type": "FDP/Seminar/Workshop/Keynote Speaker",
+      "topic_title": "",
+      "organization": "",
+      "date": "",
+      "role": "",
+      "involved_faculty_refs": ["users/{user_id}"],
+
+      "sources": [
+        "media/{media_id}"
+      ],
+
+      "approval_status": "approved/rejected/pending",
+      "approval_action_by": "users/{user_id}",
+      "action_at": "",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  }
 }

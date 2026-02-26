@@ -96,7 +96,7 @@ const UserManagement = () => {
                     designation: data.designation
                 })
 
-                // 2. Create firestore user record (Required for client-side fallback)
+                // 2. Create firestore user record (searchable manually or via client flow)
                 const userData: CreateUserData = {
                     email: data.email,
                     name: data.name,
@@ -109,7 +109,7 @@ const UserManagement = () => {
                 }
 
                 await createFirestoreUser(authUser.uid, userData)
-                console.log('User created via Client-Side Logic (Spark Plan)')
+                console.log('User created via Client-Side Logic')
 
                 if (resetLink) {
                     // In dev/without SMTP, we might want to show this link
@@ -152,6 +152,19 @@ const UserManagement = () => {
         } catch (error) {
             console.error('Error deactivating user:', error)
             alert('Failed to deactivate user.')
+        }
+    }
+
+    const handleSendEmail = async (user: User) => {
+        if (!confirm(`Send password reset email to ${user.email}?`)) return
+
+        try {
+            const { resetPassword } = await import('@/services/firebase/auth.service')
+            await resetPassword(user.email)
+            alert(`Password reset email sent to ${user.email}`)
+        } catch (error) {
+            console.error(error)
+            alert('Failed to send email.')
         }
     }
 
@@ -236,7 +249,7 @@ const UserManagement = () => {
                     },
                     {
                         label: 'Send Email',
-                        onClick: () => console.log('Email:', (row as User).email),
+                        onClick: () => handleSendEmail(row as User),
                         icon: <Mail className="w-4 h-4" />
                     },
                     {

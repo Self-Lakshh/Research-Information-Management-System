@@ -132,25 +132,25 @@ export const createUserByAdmin = async (
         }
         throw new Error(error.message || 'Failed to create user via admin function');
     }
-    /* 
-        // ORIGINAL CLOUD FUNCTION CALL (Commented out for Spark Plan)
-        try {
-            const adminCreateUser = httpsCallable<CreateUserData, AdminCreateUserResponse>(functions, 'adminCreateUser');
-            const result = await adminCreateUser(data);
-            
-            console.log('Cloud function response:', result.data);
-    
-            return {
-                user: {
-                    uid: result.data.uid,
-                    email: data.email
-                },
-                resetLink: result.data.resetLink
-            };
-        } catch (error: any) {
-            console.error('Create user by admin error:', error);
-            throw new Error(error.message || 'Failed to create user via admin function');
-        }
+    /*
+    // ORIGINAL CLOUD FUNCTION CALL (Commented out for Spark Plan)
+    try {
+        const adminCreateUser = httpsCallable<CreateUserData, AdminCreateUserResponse>(functions, 'adminCreateUser');
+        const result = await adminCreateUser(data);
+
+        console.log('Cloud function response:', result.data);
+
+        return {
+            user: {
+                uid: result.data.uid,
+                email: data.email
+            },
+            resetLink: result.data.resetLink
+        };
+    } catch (error: any) {
+        console.error('Create user by admin error:', error);
+        throw new Error(error.message || 'Failed to create user via admin function');
+    }
     */
 };
 
