@@ -9,7 +9,7 @@ import {
     RecordDetailModal,
     RecordCard
 } from '@/components/common'
-import { approvalFilters } from '@/configs/admin.config'
+import { COMMON_FILTERS } from '@/configs/rims.config'
 import { cn } from '@/components/shadcn/utils'
 import type { ApprovalRequest, ResearchRecord, User } from '@/@types/admin'
 
@@ -254,7 +254,7 @@ const RecentRequests = () => {
 
             {/* Filters */}
             <FilterBar
-                filters={approvalFilters}
+                filters={COMMON_FILTERS.approval}
                 values={filters}
                 onChange={handleFilterChange}
                 onClear={handleClearFilters}

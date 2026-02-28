@@ -8,7 +8,8 @@ import {
 } from "@/components/shadcn/ui/dialog"
 import { Button } from "@/components/shadcn/ui/button"
 import { Calendar, User, FileText, ExternalLink, Download, Clock, CheckCircle2, XCircle } from 'lucide-react'
-import { SUBMISSION_TYPES, getStatusColor } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
+import { RecordType } from '@/@types/rims.types'
 import { cn } from "@/components/shadcn/utils"
 import { Badge } from '@/components/shadcn/ui/badge'
 
@@ -25,8 +26,8 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
 }) => {
     if (!record) return null
 
-    const category = (record.category || record.type || 'journal').toLowerCase()
-    const typeConfig = SUBMISSION_TYPES[category] || SUBMISSION_TYPES.journal
+    const category = (record.category || record.type || 'journal').toLowerCase() as RecordType
+    const typeConfig = RECORD_TYPE_CONFIG[category] || RECORD_TYPE_CONFIG.journal
 
     const getStatusIcon = (status: string) => {
         switch (status?.toLowerCase()) {

@@ -11,7 +11,7 @@ import {
 } from '@/components/admin'
 import { DataTable } from '@/components/common'
 import { UserFormModal, UserFormData } from './components'
-import { userFilters } from '@/configs/admin.config'
+import { COMMON_FILTERS } from '@/configs/rims.config'
 import type { User as AdminUser, UserRole as AdminUserRole } from '@/@types/admin'
 import type { User, UserRole, CreateUserData, UpdateUserData } from '@/@types/rims.types'
 import { useAdminUI } from '@/utils/hooks/useAdminUI'
@@ -231,7 +231,7 @@ const UserManagement = () => {
 
             {/* Filters */}
             <FilterBar
-                filters={userFilters}
+                filters={COMMON_FILTERS.user}
                 values={filters}
                 onChange={handleFilterChange}
                 onClear={handleClearFilters}

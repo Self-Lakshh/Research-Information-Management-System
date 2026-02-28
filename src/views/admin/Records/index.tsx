@@ -9,7 +9,7 @@ import {
     RecordFormModal,
     RecordCard
 } from '@/components/common'
-import { recordFilters } from '@/configs/admin.config'
+import { COMMON_FILTERS } from '@/configs/rims.config'
 import { cn } from '@/components/shadcn/utils'
 import type { ResearchRecord } from '@/@types/admin'
 
@@ -216,7 +216,7 @@ const Records = () => {
 
             {/* Filters */}
             <FilterBar
-                filters={recordFilters}
+                filters={COMMON_FILTERS.record}
                 values={filters}
                 onChange={handleFilterChange}
                 onClear={handleClearFilters}

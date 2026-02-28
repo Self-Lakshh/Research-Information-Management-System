@@ -15,7 +15,8 @@ import {
 import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
 import { DataTable } from '@/components/common/DataTable'
-import { SUBMISSION_TYPES, getStatusColor } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
+import { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
 import { ColumnDef } from '@tanstack/react-table'
 
@@ -57,7 +58,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 ),
                 cell: ({ row }) => {
                     const category = row.original.category || row.original.type || 'journal';
-                    const config = SUBMISSION_TYPES[category.toLowerCase()] || SUBMISSION_TYPES.journal;
+                    const config = RECORD_TYPE_CONFIG[category.toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal;
                     return (
                         <div className="flex items-center gap-4 py-2">
                             <div className={cn(
@@ -102,7 +103,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                     header: () => <div className="text-center font-bold">Domain</div>,
                     cell: ({ row }) => {
                         const category = row.original.category || row.original.type || 'journal';
-                        const config = SUBMISSION_TYPES[category.toLowerCase()]
+                        const config = RECORD_TYPE_CONFIG[category.toLowerCase() as RecordType]
                         return (
                             <div className="flex justify-center px-4">
                                 <Badge variant="secondary" className="rounded-[10px] h-7 text-[10px] uppercase font-bold tracking-wider bg-background shadow-soft border border-muted/50 px-3">
@@ -114,12 +115,12 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 }
             ];
         } else {
-            const config = SUBMISSION_TYPES[selectedDomain.toLowerCase()];
+            const config = RECORD_TYPE_CONFIG[selectedDomain.toLowerCase() as RecordType];
             if (config) {
                 middleColumns = config.fields
-                    .filter(f => f.key !== 'title' && f.type !== 'textarea')
+                    .filter((f: any) => f.key !== 'title' && f.type !== 'textarea')
                     .slice(0, 3)
-                    .map(field => ({
+                    .map((field: any) => ({
                         accessorKey: field.key,
                         header: () => <div className="text-center font-bold">{field.label}</div>,
                         cell: ({ row }: any) => (

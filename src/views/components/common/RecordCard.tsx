@@ -18,7 +18,8 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
-import { SUBMISSION_TYPES, getStatusColor } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
+import { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
 
 interface RecordAction {
@@ -45,7 +46,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
     showActions = true,
     actions
 }) => {
-    const config = SUBMISSION_TYPES[record.category?.toLowerCase() || record.type?.toLowerCase() || 'journal'] || SUBMISSION_TYPES.journal
+    const config = RECORD_TYPE_CONFIG[(record.category || record.type || 'journal').toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal
 
     const getStatusIcon = (status: string) => {
         switch (status?.toLowerCase()) {

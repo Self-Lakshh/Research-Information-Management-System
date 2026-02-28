@@ -27,7 +27,7 @@ import {
 } from '@/components/shadcn/ui/dropdown-menu'
 import { Card } from '@/components/shadcn/ui/card'
 import { cn } from '@/components/shadcn/utils'
-import { SUBMISSION_TYPES } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 
 interface CardTilesHeaderProps {
     viewMode: 'grid' | 'table'
@@ -81,7 +81,7 @@ export const CardTilesHeader: React.FC<CardTilesHeaderProps> = ({
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-primary/5 shadow-premium">
                             <SelectItem value="all" className="rounded-lg">All Domains</SelectItem>
-                            {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
+                            {Object.entries(RECORD_TYPE_CONFIG).map(([key, config]) => (
                                 <SelectItem key={key} value={key} className="rounded-lg capitalize">
                                     {config.label}
                                 </SelectItem>

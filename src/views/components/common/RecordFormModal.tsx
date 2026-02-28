@@ -9,7 +9,8 @@ import {
 } from '@/components/shadcn/ui/dialog'
 import { Button } from '@/components/shadcn/ui/button'
 import { DynamicForm } from '@/components/common/DynamicForm'
-import { SUBMISSION_TYPES } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
+import { RecordType } from '@/@types/rims.types'
 
 interface RecordFormModalProps {
     isOpen: boolean
@@ -29,8 +30,8 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
     loading
 }) => {
     const [formData, setFormData] = React.useState<any>(initialData || {})
-    const typeKey = (type || 'journal').toLowerCase()
-    const config = SUBMISSION_TYPES[typeKey] || SUBMISSION_TYPES.journal
+    const typeKey = (type || 'journal').toLowerCase() as RecordType
+    const config = RECORD_TYPE_CONFIG[typeKey] || RECORD_TYPE_CONFIG.journal
 
     React.useEffect(() => {
         setFormData(initialData || {})

@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
 import { cn } from '@/components/shadcn/utils'
-import { SUBMISSION_TYPES } from '@/configs/submission.config'
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import {
     RecordCard,
     RecordFormModal,
@@ -143,7 +143,7 @@ const Submissions = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-primary/10 shadow-premium">
                         <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Domain Type</div>
-                        {Object.entries(SUBMISSION_TYPES).map(([key, config]) => (
+                        {Object.entries(RECORD_TYPE_CONFIG).map(([key, config]) => (
                             <DropdownMenuItem
                                 key={key}
                                 onClick={() => handleAddClick(key)}

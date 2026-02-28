@@ -15,8 +15,8 @@ import {
     DashboardChartContainer,
     RecordsSummaryTable
 } from './components'
-import { recordTypeMeta } from '@/configs/admin.config'
-import type { RecordType, UserRole } from '@/@types/admin'
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
+import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
 import {
     Select,
@@ -88,7 +88,7 @@ const AdminDashboard = () => {
         grants: 112
     }
 
-    const summaryData = Object.values(recordTypeMeta).map((meta) => ({
+    const summaryData = Object.values(RECORD_TYPE_CONFIG).map((meta) => ({
         type: meta.label,
         total: Math.floor(Math.random() * 300) + 50,
         pending: Math.floor(Math.random() * 10)
@@ -224,7 +224,7 @@ const AdminDashboard = () => {
             {/* Comprehensive Integrated Chart Section */}
             <DashboardChartContainer
                 title="Performance Analytics"
-                subtitle={`${chartDomain === 'all' ? 'Overall' : recordTypeMeta[chartDomain as keyof typeof recordTypeMeta].label} trend for ${chartYear}`}
+                subtitle={`${chartDomain === 'all' ? 'Overall' : RECORD_TYPE_CONFIG[chartDomain as RecordType].label} trend for ${chartYear}`}
                 className="lg:col-span-3 min-h-[500px]"
                 action={
                     <div className="flex flex-wrap items-center gap-2">
@@ -267,7 +267,7 @@ const AdminDashboard = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Domains</SelectItem>
-                                {Object.values(recordTypeMeta).map(meta => (
+                                {Object.values(RECORD_TYPE_CONFIG).map(meta => (
                                     <SelectItem key={meta.type} value={meta.type}>{meta.label}</SelectItem>
                                 ))}
                             </SelectContent>

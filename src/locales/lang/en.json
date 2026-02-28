@@ -1,6 +1,5 @@
 {
     "nav": {
-        "home": "Home",
         "dashboard": "Dashboard",
         "menu": "Menu",
         "tableManagement": "Table Management",
@@ -18,7 +17,7 @@
             "dashboard": "Admin Dashboard"
         },
         "user": {
-            "home": "User Home"
+            "dashboard": "Dashboard"
         },
         "singleMenuItem": "Single menu item",
         "collapseMenu": {
