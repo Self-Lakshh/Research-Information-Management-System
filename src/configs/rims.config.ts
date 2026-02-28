@@ -1,5 +1,37 @@
 import { RecordType, ApprovalStatus, UserRole } from '@/@types/rims.types'
-import { FieldConfig, FilterConfig } from '@/@types/admin'
+
+
+// ============================================
+// FIELD CONFIGURATION TYPES
+// ============================================
+
+export type FieldType =
+    | 'text'
+    | 'textarea'
+    | 'number'
+    | 'date'
+    | 'select'
+    | 'multiselect'
+    | 'file'
+    | 'url'
+
+export interface FieldConfig {
+    key: string
+    label: string
+    type: FieldType
+    required?: boolean
+    placeholder?: string
+    options?: { label: string; value: string }[]
+    gridSpan?: 1 | 2 // For form layout
+}
+
+export interface FilterConfig {
+    key: string
+    label: string
+    type: 'select' | 'multiselect' | 'date' | 'daterange' | 'text'
+    options?: { label: string; value: string }[]
+    placeholder?: string
+}
 
 // ============================================
 // DOMAIN CONFIGURATION INTERFACE

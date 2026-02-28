@@ -8,8 +8,8 @@ import {
 import {
     FilterBar,
     ConfirmDialog,
-} from '@/components/admin'
-import { DataTable } from '@/components/common'
+} from '@/components/custom'
+import { DataTable } from '@/components/custom'
 import { UserFormModal, UserFormData } from './components'
 import { COMMON_FILTERS } from '@/configs/rims.config'
 import type { User as AdminUser, UserRole as AdminUserRole } from '@/@types/admin'

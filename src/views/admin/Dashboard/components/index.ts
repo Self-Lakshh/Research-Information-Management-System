@@ -1,4 +1,3 @@
-export { StatCard } from './StatCard'
 export {
     ChartContainer as DashboardChartContainer,
     BarChartPlaceholder,

@@ -38,6 +38,7 @@ export type AuthResult = Promise<{
 }>
 
 import { User } from './rims.types'
+export type { User }
 
 export type Token = {
     accessToken: string

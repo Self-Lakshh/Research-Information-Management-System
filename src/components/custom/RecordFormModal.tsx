@@ -8,7 +8,7 @@ import {
     DialogFooter,
 } from '@/components/shadcn/ui/dialog'
 import { Button } from '@/components/shadcn/ui/button'
-import { DynamicForm } from '@/components/common/DynamicForm'
+import { DynamicForm } from './DynamicForm'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import { RecordType } from '@/@types/rims.types'
 

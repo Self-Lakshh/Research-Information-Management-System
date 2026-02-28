@@ -2,143 +2,35 @@ import { useState } from 'react'
 import { Download, Plus, LayoutGrid, List } from 'lucide-react'
 import {
     FilterBar,
-} from '@/components/admin'
+} from '@/components/custom'
 import {
     RecordTable,
     RecordDetailModal,
     RecordFormModal,
     RecordCard
-} from '@/components/common'
+} from '@/components/custom'
 import { COMMON_FILTERS } from '@/configs/rims.config'
 import { cn } from '@/components/shadcn/utils'
-import type { ResearchRecord } from '@/@types/admin'
-
-// ============================================
-// MOCK DATA
-// ============================================
-
-const mockRecords: ResearchRecord[] = [
-    {
-        id: '1',
-        title: 'Machine Learning Approaches for Predictive Analytics in Healthcare',
-        type: 'journal',
-        author: 'Dr. Rajesh Kumar',
-        authorId: '1',
-        domain: 'Computer Science',
-        date: '2024-01-15',
-        year: 2024,
-        status: 'approved',
-        description: 'This paper presents novel machine learning approaches for predictive analytics in healthcare systems.',
-        submittedAt: '2024-01-10',
-        updatedAt: '2024-01-15',
-        data: {
-            journalName: 'IEEE Transactions on Medical Imaging',
-            issn: '0278-0062',
-            volume: '43',
-            issue: '2',
-            pages: '245-258',
-            impactFactor: 10.6,
-            doi: 'https://doi.org/10.1109/TMI.2024.001'
-        }
-    },
-    {
-        id: '2',
-        title: 'Patent for IoT-based Smart Agriculture System',
-        type: 'ipr',
-        author: 'Dr. Priya Sharma',
-        authorId: '2',
-        domain: 'Electronics',
-        date: '2024-02-20',
-        year: 2024,
-        status: 'pending',
-        description: 'An innovative IoT-based system for monitoring and automating agricultural processes.',
-        submittedAt: '2024-02-18',
-        updatedAt: '2024-02-20',
-        data: {
-            patentNumber: 'IN202411001234',
-            filingDate: '2024-02-01',
-            status: 'filed',
-            inventors: 'Dr. Priya Sharma, Mr. Anil Kumar'
-        }
-    },
-    {
-        id: '3',
-        title: 'Deep Learning for Autonomous Vehicle Navigation',
-        type: 'conference',
-        author: 'Dr. Amit Patel',
-        authorId: '3',
-        domain: 'Computer Science',
-        date: '2023-11-10',
-        year: 2023,
-        status: 'approved',
-        description: 'Conference paper on advanced deep learning techniques for self-driving cars.',
-        submittedAt: '2023-10-20',
-        updatedAt: '2023-11-10',
-        data: {
-            conferenceName: 'IEEE International Conference on Autonomous Systems',
-            location: 'Tokyo, Japan',
-            conferenceDate: '2023-11-08',
-            conferenceType: 'international',
-            pages: '120-128'
-        }
-    },
-    {
-        id: '4',
-        title: 'Fundamentals of Renewable Energy Systems',
-        type: 'book',
-        author: 'Dr. Sunita Verma',
-        authorId: '4',
-        domain: 'Mechanical',
-        date: '2023-06-01',
-        year: 2023,
-        status: 'approved',
-        description: 'A comprehensive textbook covering all aspects of renewable energy technologies.',
-        submittedAt: '2023-05-15',
-        updatedAt: '2023-06-01',
-        data: {
-            publisher: 'McGraw-Hill Education',
-            isbn: '978-0-07-123456-7',
-            edition: '1st',
-            pages: 450,
-            bookType: 'authored'
-        }
-    },
-    {
-        id: '5',
-        title: 'Best Research Paper Award - National Conference',
-        type: 'award',
-        author: 'Dr. Rajesh Kumar',
-        authorId: '1',
-        domain: 'Computer Science',
-        date: '2024-03-05',
-        year: 2024,
-        status: 'pending',
-        description: 'Received best paper award for research on AI in education.',
-        submittedAt: '2024-03-06',
-        updatedAt: '2024-03-06',
-        data: {
-            awardName: 'Best Research Paper Award',
-            awardingBody: 'Computer Society of India',
-            awardDate: '2024-03-05',
-            awardLevel: 'national'
-        }
-    }
-]
+import type { Record as ResearchRecord, RecordFilters } from '@/@types/rims.types'
+import { useAllRecords, useDeleteRecord, useUpdateRecord } from '@/hooks/useRecords'
+import { Spinner } from '@/components/shadcn/ui/spinner'
 
 // ============================================
 // RECORDS PAGE
 // ============================================
 
 const Records = () => {
-    const [records, setRecords] = useState<any[]>(mockRecords)
-    const [filters, setFilters] = useState<Record<string, unknown>>({})
+    const [filters, setFilters] = useState<RecordFilters>({})
+    const { data: records = [], isLoading } = useAllRecords(filters)
+    const updateRecord = useUpdateRecord()
+    const deleteRecord = useDeleteRecord()
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
     const [selectedRecord, setSelectedRecord] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
 
     const handleFilterChange = (key: string, value: unknown) => {
-        setFilters((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))
+        setFilters((prev) => ({ ...prev, [key]: value }))
     }
 
     const handleClearFilters = () => {
@@ -155,15 +47,27 @@ const Records = () => {
         setIsEditOpen(true)
     }
 
-    const handleDeleteRecord = (id: string) => {
+    const handleDeleteRecord = async (id: string) => {
         if (confirm('Are you sure you want to delete this record?')) {
-            setRecords(prev => prev.filter(r => r.id !== id))
+            try {
+                await deleteRecord.mutateAsync(id)
+            } catch (error) {
+                console.error(error)
+                alert('Failed to delete')
+            }
         }
     }
 
-    const handleFormSubmit = (data: any) => {
-        setRecords(prev => prev.map(r => r.id === selectedRecord.id ? { ...r, ...data } : r))
-        setIsEditOpen(false)
+    const handleFormSubmit = async (data: any) => {
+        if (selectedRecord) {
+            try {
+                await updateRecord.mutateAsync({ recordId: selectedRecord.id, data })
+                setIsEditOpen(false)
+            } catch (error) {
+                console.error(error)
+                alert('Failed to update')
+            }
+        }
     }
 
     return (
@@ -223,7 +127,11 @@ const Records = () => {
             />
 
             {/* Records Content */}
-            {viewMode === 'table' ? (
+            {isLoading ? (
+                <div className="py-20 flex justify-center">
+                    <Spinner className="w-8 h-8" />
+                </div>
+            ) : viewMode === 'table' ? (
                 <RecordTable
                     records={records}
                     selectedDomain="all"
@@ -239,7 +147,7 @@ const Records = () => {
                             record={record}
                             onView={handleViewRecord}
                             onEdit={handleEditRecord}
-                            onDelete={(id) => handleDeleteRecord(id)}
+                            onDelete={(id: string) => handleDeleteRecord(id)}
                         />
                     ))}
                 </div>

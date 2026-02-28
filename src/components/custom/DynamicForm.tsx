@@ -1,6 +1,6 @@
 import React from 'react'
 import { cn } from '@/components/shadcn/utils'
-import { FieldConfig } from '@/@types/admin'
+import { FieldConfig } from '@/configs/rims.config'
 import { Label } from '@/components/shadcn/ui/label'
 import { Input } from '@/components/shadcn/ui/input'
 import { Textarea } from '@/components/shadcn/ui/textarea'

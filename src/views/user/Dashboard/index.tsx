@@ -23,24 +23,9 @@ import {
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
 import { ResearchCategory } from '@/@types/rims.types'
-import { RecordFormModal } from '@/components/common'
-
+import { RecordFormModal } from '@/components/custom'
+import { StatCard } from '@/components/custom'
 import { useNavigate } from 'react-router-dom'
-
-const StatsCard = ({ title, value, icon: Icon, description, colorClass }: any) => (
-    <Card className="overflow-hidden border-none shadow-premium transition-all hover:shadow-premium-hover">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-            <div className={`p-2 rounded-xl ${colorClass}`}>
-                <Icon className="h-4 w-4" />
-            </div>
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
-        </CardContent>
-    </Card>
-)
 
 const categories: { label: string; value: ResearchCategory; icon: any }[] = [
     { label: 'IPR', value: 'ipr', icon: Globe },
@@ -91,7 +76,7 @@ const UserDashboard = () => {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatsCard
+                    <StatCard
                         title="Total Submissions"
                         value="12"
                         icon={FileText}
@@ -100,7 +85,7 @@ const UserDashboard = () => {
                     />
                 </div>
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatsCard
+                    <StatCard
                         title="Approved"
                         value="8"
                         icon={CheckCircle2}
@@ -109,7 +94,7 @@ const UserDashboard = () => {
                     />
                 </div>
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatsCard
+                    <StatCard
                         title="Pending"
                         value="3"
                         icon={Clock}
@@ -118,7 +103,7 @@ const UserDashboard = () => {
                     />
                 </div>
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatsCard
+                    <StatCard
                         title="Rejected"
                         value="1"
                         icon={XCircle}

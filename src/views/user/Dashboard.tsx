@@ -1,5 +1,5 @@
 import { useAuth } from '@/auth';
-import { useUserStats, useApprovedUserRecords } from '@/hooks/useRIMSRecords';
+import { useUserStats, useApprovedRecords as useApprovedUserRecords } from '@/hooks/useRecords';
 import { Card } from '@/components/shadcn/ui/card';
 import { Button } from '@/components/shadcn/ui/button';
 import { Plus, FileText, Award, BookOpen, Briefcase, GraduationCap, Lightbulb, Users } from 'lucide-react';

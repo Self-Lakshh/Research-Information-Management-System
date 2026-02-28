@@ -3,144 +3,25 @@ import { CheckCircle, XCircle, LayoutGrid, List } from 'lucide-react'
 import {
     FilterBar,
     ConfirmDialog,
-} from '@/components/admin'
+} from '@/components/custom'
 import {
     RecordTable,
     RecordDetailModal,
     RecordCard
-} from '@/components/common'
+} from '@/components/custom'
 import { COMMON_FILTERS } from '@/configs/rims.config'
 import { cn } from '@/components/shadcn/utils'
-import type { ApprovalRequest, ResearchRecord, User } from '@/@types/admin'
+import type { Record as ResearchRecord, User } from '@/@types/rims.types'
+import { usePendingRecords, useApproveRecord, useRejectRecord } from '@/hooks/useRecords'
+import { Spinner } from '@/components/shadcn/ui/spinner'
 
-// ============================================
-// MOCK DATA
-// ============================================
-
-const mockUser: User = {
-    id: '1',
-    name: 'Dr. Priya Sharma',
-    email: 'priya.sharma@university.edu',
-    user_role: 'user',
-    faculty: 'Electronics',
-    created_at: '2021-08-20',
-    status: 'active'
-}
-
-const mockRequests: ApprovalRequest[] = [
-    {
-        id: '1',
-        recordId: '101',
-        record: {
-            id: '101',
-            title: 'Novel Approach to Quantum Computing Using Superconducting Qubits',
-            type: 'journal',
-            author: 'Dr. Priya Sharma',
-            authorId: '1',
-            domain: 'Computer Science',
-            date: '2024-01-20',
-            year: 2024,
-            status: 'pending',
-            description: 'This research presents a breakthrough in quantum computing architecture using superconducting qubit arrays.',
-            submittedAt: '2024-01-18',
-            updatedAt: '2024-01-20',
-            data: {
-                journalName: 'Nature Physics',
-                issn: '1745-2473',
-                impactFactor: 19.6
-            }
-        },
-        submittedBy: mockUser,
-        submittedAt: '2024-01-18T10:30:00',
-        status: 'pending'
-    },
-    {
-        id: '2',
-        recordId: '102',
-        record: {
-            id: '102',
-            title: 'Patent Application: AI-Powered Medical Diagnostic Tool',
-            type: 'ipr',
-            author: 'Dr. Amit Patel',
-            authorId: '3',
-            domain: 'Biotechnology',
-            date: '2024-01-22',
-            year: 2024,
-            status: 'pending',
-            description: 'An artificial intelligence system for rapid diagnosis of infectious diseases from blood samples.',
-            submittedAt: '2024-01-21',
-            updatedAt: '2024-01-22',
-            data: {
-                patentNumber: 'IN202411002345',
-                filingDate: '2024-01-15',
-                status: 'filed'
-            }
-        },
-        submittedBy: { ...mockUser, id: '3', name: 'Dr. Amit Patel' },
-        submittedAt: '2024-01-21T14:15:00',
-        status: 'pending'
-    },
-    {
-        id: '3',
-        recordId: '103',
-        record: {
-            id: '103',
-            title: 'DST-SERB Research Grant for Climate Change Study',
-            type: 'grant',
-            author: 'Dr. Sunita Verma',
-            authorId: '4',
-            domain: 'Civil',
-            date: '2024-01-25',
-            year: 2024,
-            status: 'pending',
-            description: 'Funded research project studying the impact of climate change on coastal infrastructure.',
-            submittedAt: '2024-01-24',
-            updatedAt: '2024-01-25',
-            data: {
-                fundingAgency: 'DST-SERB',
-                amount: 4500000,
-                duration: 36
-            }
-        },
-        submittedBy: { ...mockUser, id: '4', name: 'Dr. Sunita Verma' },
-        submittedAt: '2024-01-24T09:00:00',
-        status: 'pending'
-    },
-    {
-        id: '4',
-        recordId: '104',
-        record: {
-            id: '104',
-            title: 'Best Paper Award at IEEE Conference 2024',
-            type: 'award',
-            author: 'Dr. Rajesh Kumar',
-            authorId: '1',
-            domain: 'Computer Science',
-            date: '2024-01-28',
-            year: 2024,
-            status: 'pending',
-            description: 'Recognition for outstanding research contribution in artificial intelligence.',
-            submittedAt: '2024-01-27',
-            updatedAt: '2024-01-28',
-            data: {
-                awardName: 'Best Paper Award',
-                awardingBody: 'IEEE Computer Society',
-                awardLevel: 'international'
-            }
-        },
-        submittedBy: { ...mockUser, id: '1', name: 'Dr. Rajesh Kumar' },
-        submittedAt: '2024-01-27T16:45:00',
-        status: 'pending'
-    }
-]
-
-// ============================================
-// RECENT REQUESTS PAGE
 // ============================================
 
 const RecentRequests = () => {
-    const [requests] = useState<ApprovalRequest[]>(mockRequests)
     const [filters, setFilters] = useState<Record<string, unknown>>({})
+    const { data: records = [], isLoading } = usePendingRecords()
+    const approveRecord = useApproveRecord()
+    const rejectRecord = useRejectRecord()
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
     const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -175,36 +56,35 @@ const RecentRequests = () => {
         setIsDetailOpen(true)
     }
 
-    const handleConfirmAction = () => {
-        console.log(
-            `${actionDialog.type} request:`,
-            actionDialog.requestId
-        )
-        setActionDialog({ isOpen: false, type: 'approve', requestId: null })
-        // TODO: API call to approve/reject
+    const handleConfirmAction = async () => {
+        if (!actionDialog.requestId) return;
+        try {
+            if (actionDialog.type === 'approve') {
+                await approveRecord.mutateAsync(actionDialog.requestId);
+            } else {
+                await rejectRecord.mutateAsync(actionDialog.requestId);
+            }
+            setActionDialog({ isOpen: false, type: 'approve', requestId: null })
+        } catch (error) {
+            console.error(error)
+            alert(`Failed to ${actionDialog.type} record`)
+        }
     }
 
-    const pendingCount = requests.filter((r) => r.status === 'pending').length
+    const pendingCount = records.length
 
-    // Records formatted for table/card view
-    const records = requests.map(req => ({
-        ...req.record,
-        id: req.record.id,
-        requestId: req.id,
-        submittedBy: req.submittedBy,
-        requestedAt: req.submittedAt
-    }))
+
 
     const approvalActions = [
         {
             label: 'Approve Request',
-            onClick: (record: any) => handleApprove(record.requestId),
+            onClick: (record: any) => handleApprove(record.id),
             icon: <CheckCircle className="w-4 h-4" />,
             variant: 'success' as const
         },
         {
             label: 'Reject Request',
-            onClick: (record: any) => handleReject(record.requestId),
+            onClick: (record: any) => handleReject(record.id),
             icon: <XCircle className="w-4 h-4" />,
             variant: 'danger' as const
         }
@@ -261,7 +141,11 @@ const RecentRequests = () => {
             />
 
             {/* Requests Content */}
-            {records.length === 0 ? (
+            {isLoading ? (
+                <div className="py-20 flex justify-center">
+                    <Spinner className="w-8 h-8" />
+                </div>
+            ) : records.length === 0 ? (
                 <div className="bg-card/50 backdrop-blur-sm rounded-[2rem] border border-border/50 p-16 text-center shadow-premium">
                     <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                         <CheckCircle className="w-10 h-10 text-emerald-500" />

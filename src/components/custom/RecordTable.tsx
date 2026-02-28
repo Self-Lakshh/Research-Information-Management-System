@@ -14,7 +14,7 @@ import {
 } from '@/components/shadcn/ui/dropdown-menu'
 import { Button } from '@/components/shadcn/ui/button'
 import { Badge } from '@/components/shadcn/ui/badge'
-import { DataTable } from '@/components/common/DataTable'
+import { DataTable } from './DataTable'
 import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
 import { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'

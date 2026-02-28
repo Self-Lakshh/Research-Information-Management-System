@@ -8,7 +8,7 @@ import {
     SelectValue,
 } from "@/components/shadcn/ui/select"
 import { Button } from "@/components/shadcn/ui/button"
-import { FilterConfig } from '@/@types/admin'
+import { FilterConfig } from '@/configs/rims.config'
 
 interface FilterBarProps {
     filters: FilterConfig[]

@@ -225,3 +225,24 @@ export const useUpdateRecordFiles = () => {
         },
     });
 };
+
+/**
+ * Calculate user statistics from approved records
+ */
+export const useUserStats = (userId?: string) => {
+    const { data: records, isLoading } = useApprovedRecords(userId);
+
+    const stats = {
+        totalRecords: records?.length || 0,
+        iprCount: records?.filter((r) => r.type === 'ipr').length || 0,
+        journalCount: records?.filter((r) => r.type === 'journal').length || 0,
+        conferenceCount: records?.filter((r) => r.type === 'conference').length || 0,
+        bookCount: records?.filter((r) => r.type === 'book').length || 0,
+        consultancyCount: records?.filter((r) => r.type === 'consultancy').length || 0,
+        awardCount: records?.filter((r) => r.type === 'award').length || 0,
+        phdStudentCount: records?.filter((r) => r.type === 'phd_student').length || 0,
+        otherEventCount: records?.filter((r) => r.type === 'other').length || 0,
+    };
+
+    return { stats, isLoading };
+};

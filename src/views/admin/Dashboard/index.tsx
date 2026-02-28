@@ -10,11 +10,8 @@ import {
     AreaChart as AreaIcon,
     BarChart as BarIcon
 } from 'lucide-react'
-import {
-    StatCard,
-    DashboardChartContainer,
-    RecordsSummaryTable
-} from './components'
+import { StatCard } from '@/components/custom'
+import { DashboardChartContainer, RecordsSummaryTable } from './components'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'

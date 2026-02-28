@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { Card } from '@/components/shadcn/ui/card'
+import { useUserRecords, useCreateRecord, useUpdateRecord, useDeleteRecord } from '@/hooks/useRecords'
+import { Spinner } from '@/components/shadcn/ui/spinner'
 import { Button } from '@/components/shadcn/ui/button'
 import {
     Plus,
@@ -20,7 +22,7 @@ import {
     RecordDetailModal,
     RecordTable,
     CardTilesHeader
-} from '@/components/common'
+} from '@/components/custom'
 
 const Submissions = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
@@ -32,19 +34,18 @@ const Submissions = () => {
     const [selectedDomain, setSelectedDomain] = useState<string>('all')
     const [selectedYear, setSelectedYear] = useState<string>('all')
 
-    // Mock Data (matches original)
-    const [submissions, setSubmissions] = useState([
-        { id: '1', title: 'Improving AI Efficiency in Healthcare', category: 'journal', date: 'Oct 12, 2023', status: 'Approved', journalName: 'IEEE Health Informatics', authors: 'John Doe, Jane Smith', publicationDate: '2023-10-12', indexing: 'scopus' },
-        { id: '2', title: 'Blockchain for Academic Veracity', category: 'conference', date: 'Oct 10, 2023', status: 'Pending', conferenceName: 'International Conference on Blockchain', location: 'Dubai, UAE', startDate: '2023-10-10' },
-        { id: '3', title: 'AI-based Healthcare Diagnostic System', category: 'ipr', date: 'Sep 25, 2023', status: 'Approved', inventors: 'John Doe', applicationNo: '2023/APP/1234', filingDate: '2023-09-25', patentStatus: 'published' },
-        { id: '4', title: 'Deep Learning for Everyone', category: 'book', date: 'Sep 15, 2023', status: 'Rejected', publisher: 'Springer', isbn: '978-3-16-148410-0', publicationYear: 2023 },
-        { id: '5', title: 'Smart Cities using IoT', category: 'grant', date: 'Aug 30, 2023', status: 'Pending', agency: 'DST', amount: 500000, pi: 'John Doe', startDate: '2023-08-30' },
-    ])
+    const { data: submissions = [], isLoading } = useUserRecords()
+    const createRecord = useCreateRecord()
+    const updateRecord = useUpdateRecord()
+    const deleteRecord = useDeleteRecord()
 
     const availableYears = useMemo(() => {
         const years = new Set<string>();
-        submissions.forEach(s => {
-            const date = s.date ? new Date(s.date) : null;
+        submissions.forEach((s: any) => {
+            let date = null;
+            if (s.created_at) {
+                date = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at);
+            }
             if (date && !isNaN(date.getTime())) {
                 years.add(date.getFullYear().toString());
             }
@@ -60,15 +61,19 @@ const Submissions = () => {
     }, [submissions]);
 
     const filteredSubmissions = useMemo(() => {
-        return submissions.filter(s => {
-            const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.status.toLowerCase().includes(searchQuery.toLowerCase())
+        return submissions.filter((s: any) => {
+            const matchesSearch = s.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                s.approval_status?.toLowerCase().includes(searchQuery.toLowerCase())
 
-            const matchesDomain = selectedDomain === 'all' || s.category.toLowerCase() === selectedDomain.toLowerCase()
+            const matchesDomain = selectedDomain === 'all' || s.type?.toLowerCase() === selectedDomain.toLowerCase()
 
             // Extract year logic
-            const recordYear = new Date(s.date).getFullYear().toString();
+            let recordYear = '';
+            if (s.created_at) {
+                const date = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at);
+                recordYear = date.getFullYear().toString();
+            }
             const pubYear = (s as any).publicationYear?.toString();
             const pubDateYear = (s as any).publicationDate ? new Date((s as any).publicationDate).getFullYear().toString() : undefined;
 
@@ -93,31 +98,34 @@ const Submissions = () => {
     }
 
     const handleEditSubmission = (submission: any) => {
-        setSelectedType(submission.category.toLowerCase())
+        setSelectedType(submission.type?.toLowerCase() || 'journal')
         setSelectedSubmission(submission)
         setIsAddModalOpen(true)
     }
 
-    const handleDeleteSubmission = (id: string) => {
+    const handleDeleteSubmission = async (id: string) => {
         if (confirm('Are you sure you want to delete this submission?')) {
-            setSubmissions(prev => prev.filter(s => s.id !== id))
+            try {
+                await deleteRecord.mutateAsync(id)
+            } catch (error) {
+                console.error(error)
+                alert('Failed to delete record')
+            }
         }
     }
 
-    const handleFormSubmit = (data: any) => {
-        if (selectedSubmission) {
-            setSubmissions(prev => prev.map(s => s.id === selectedSubmission.id ? { ...s, ...data } : s))
-        } else {
-            const newSubmission = {
-                ...data,
-                id: Math.random().toString(36).substr(2, 9),
-                category: selectedType,
-                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                status: 'Pending'
+    const handleFormSubmit = async (data: any) => {
+        try {
+            if (selectedSubmission) {
+                await updateRecord.mutateAsync({ recordId: selectedSubmission.id, data })
+            } else {
+                await createRecord.mutateAsync({ ...data, type: selectedType })
             }
-            setSubmissions(prev => [newSubmission, ...prev])
+            setIsAddModalOpen(false)
+        } catch (error) {
+            console.error(error)
+            alert('Failed to save record')
         }
-        setIsAddModalOpen(false)
     }
 
     const handleExport = (format: 'pdf' | 'excel') => {
@@ -174,7 +182,11 @@ const Submissions = () => {
             />
 
             {/* Content View */}
-            {viewMode === 'grid' ? (
+            {isLoading ? (
+                <div className="py-20 flex justify-center">
+                    <Spinner className="w-8 h-8" />
+                </div>
+            ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                     {filteredSubmissions.length > 0 ? (
                         filteredSubmissions.map((item) => (

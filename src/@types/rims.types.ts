@@ -113,6 +113,7 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'draft' | 'ac
 // Base fields for all records
 interface BaseRecordFields {
     id: string;
+    type: RecordType;
     approval_status: ApprovalStatus;
     approval_action_by?: DocumentReference; // Reference to admin
     action_at?: Timestamp;
@@ -240,7 +241,7 @@ export interface Award extends BaseRecordFields {
 export type OtherEventType = 'FDP' | 'Seminar' | 'Workshop' | 'Keynote Speaker';
 
 export interface OtherEvent extends BaseRecordFields {
-    type: OtherEventType;
+    event_type: OtherEventType;
     topic_title: string;
     organization?: string;
     date?: string;
@@ -345,7 +346,7 @@ export interface CreateAwardData {
 }
 
 export interface CreateOtherEventData {
-    type: OtherEventType;
+    event_type: OtherEventType;
     topic_title: string;
     organization?: string;
     date?: string;
