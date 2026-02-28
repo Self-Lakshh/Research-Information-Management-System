@@ -39,8 +39,8 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-premium">
-                <DialogHeader className="p-6 bg-gradient-to-r from-primary/5 to-transparent border-b">
+            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-card border border-muted/50 rounded-3xl shadow-premium">
+                <DialogHeader className="p-6 bg-linear-to-r from-primary/5 to-transparent border-b border-muted/50">
                     <div className="flex items-center gap-3 mb-2">
                         <Badge variant="outline" className="bg-background/50 backdrop-blur-sm rounded-lg border-primary/20">
                             {typeConfig?.label || category || 'Research'}
@@ -59,15 +59,15 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <div className="p-4 rounded-2xl bg-muted/30 border border-muted flex flex-col gap-1">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Date</span>
-                                <span className="text-sm font-semibold">{record.date || record.year || 'N/A'}</span>
+                                <span className="text-sm font-semibold">{record.data?.date || record.date || record.data?.year || record.year || 'N/A'}</span>
                             </div>
                             <div className="p-4 rounded-2xl bg-muted/30 border border-muted flex flex-col gap-1">
                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Author/Faculty</span>
-                                <span className="text-sm font-semibold">{record.faculty || record.author || 'Unspecified'}</span>
+                                <span className="text-sm font-semibold">{record.data?.faculty || record.faculty || record.data?.author || record.author || 'Unspecified'}</span>
                             </div>
                             <div className="col-span-2 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col gap-1">
                                 <span className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Last Updated</span>
-                                <span className="text-sm font-semibold text-primary/80">{record.updatedAt || 'Recently'}</span>
+                                <span className="text-sm font-semibold text-primary/80">{record.updatedAt?.toDate ? record.updatedAt.toDate().toLocaleDateString() : (record.updatedAt ? new Date(record.updatedAt).toLocaleDateString() : 'Recently')}</span>
                             </div>
                         </div>
 

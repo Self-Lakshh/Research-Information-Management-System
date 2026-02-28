@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { StatCard } from '@/components/custom'
 import { DashboardChartContainer, RecordsSummaryTable } from './components'
+import { useAllRecords } from '@/hooks/useRecords'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
@@ -57,33 +58,49 @@ const AdminDashboard = () => {
 
     const chartYears = availableYears.filter(y => y !== 'All')
 
+    const { data: records = [] } = useAllRecords()
+
     // Mock data generation logic
     const monthlyData = useMemo(() => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-        return months.map(month => {
-            const seed = chartDomain === 'all' ? 50 : 10
-            const currentVal = Math.floor(Math.random() * (seed * 2)) + seed
-            const compareVal = compareWith !== 'none' ? Math.floor(Math.random() * (seed * 1.5)) + (seed * 0.8) : undefined
+        return months.map((month, idx) => {
+            const currentYearRecords = records.filter(r => {
+                if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
+                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
+                return date.getFullYear().toString() === chartYear && date.getMonth() === idx;
+            }).length;
+
+            const compareRecords = compareWith !== 'none' ? records.filter(r => {
+                if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
+                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
+                return date.getFullYear().toString() === compareWith && date.getMonth() === idx;
+            }).length : undefined;
 
             return {
                 name: month,
-                current: currentVal,
-                comparison: compareVal
+                current: currentYearRecords,
+                comparison: compareRecords
             }
         })
-    }, [chartYear, chartDomain, compareWith])
+    }, [chartYear, chartDomain, compareWith, records])
 
-    const stats = {
-        totalRecords: 1247,
-        pendingApprovals: 23,
-        totalUsers: 156,
-        monthlySubmissions: 48,
-        iprs: 156,
-        journals: 342,
-        conferences: 287,
-        grants: 112
-    }
+    // Generate accurate stats from actual records
+    const stats = useMemo(() => {
+        return {
+            totalRecords: records.length,
+            pendingApprovals: records.filter(r => (r as any).status === 'pending').length,
+            totalUsers: new Set(records.map(r => (r as any).userId)).size, // Appox unique submitters
+            monthlySubmissions: records.filter(r => {
+                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
+                return date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear();
+            }).length,
+            iprs: records.filter(r => ((r as any).category || (r as any).type) === 'ipr').length,
+            journals: records.filter(r => ((r as any).category || (r as any).type) === 'journal').length,
+            conferences: records.filter(r => ((r as any).category || (r as any).type) === 'conference').length,
+            grants: records.filter(r => ((r as any).category || (r as any).type) === 'consultancy').length
+        }
+    }, [records])
 
     const summaryData = Object.values(RECORD_TYPE_CONFIG).map((meta) => ({
         type: meta.label,

@@ -93,7 +93,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                     cell: ({ row }) => (
                         <div className="text-center px-4">
                             <span className="text-xs font-bold text-foreground/80">
-                                {row.original.author || row.original.submittedBy?.name || '-'}
+                                {row.original.data?.author || row.original.author || row.original.submittedBy?.name || '-'}
                             </span>
                         </div>
                     )
@@ -148,7 +148,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 cell: ({ row }) => (
                     <div className="text-center px-4 flex flex-col items-center gap-1">
                         <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground tabular-nums">
-                            {row.original.date || row.original.startDate || row.original.filingDate || row.original.year || '-'}
+                            {row.original.data?.date || row.original.date || row.original.data?.startDate || row.original.startDate || row.original.data?.filingDate || row.original.filingDate || row.original.data?.year || row.original.year || '-'}
                         </div>
                     </div>
                 )

@@ -123,8 +123,8 @@ export const DonutChartPlaceholder = ({
     return (
         <div className={cn('flex items-center gap-6', className)}>
             {/* Donut visualization placeholder */}
-            <div className="relative w-28 h-28 flex-shrink-0">
-                <div className="absolute inset-0 rounded-full border-[12px] border-muted" />
+            <div className="relative w-28 h-28 shrink-0">
+                <div className="absolute inset-0 rounded-full border-12 border-muted" />
                 <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center">
                     <span className="text-lg font-semibold text-foreground">{total}</span>
                 </div>

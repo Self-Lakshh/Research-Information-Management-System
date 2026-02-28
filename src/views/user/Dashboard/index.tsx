@@ -26,6 +26,8 @@ import { ResearchCategory } from '@/@types/rims.types'
 import { RecordFormModal } from '@/components/custom'
 import { StatCard } from '@/components/custom'
 import { useNavigate } from 'react-router-dom'
+import { useUserRecords } from '@/hooks/useRecords'
+import { formatDistanceToNow } from 'date-fns'
 
 const categories: { label: string; value: ResearchCategory; icon: any }[] = [
     { label: 'IPR', value: 'ipr', icon: Globe },
@@ -41,12 +43,19 @@ const categories: { label: string; value: ResearchCategory; icon: any }[] = [
 const UserDashboard = () => {
     const [selectedCategory, setSelectedCategory] = React.useState<ResearchCategory | null>(null)
     const navigate = useNavigate()
+    const { data: records = [], isLoading } = useUserRecords()
+
+    const totalSubmissions = records.length
+    const approved = records.filter(r => (r as any).status === 'approved').length
+    const pending = records.filter(r => (r as any).status === 'pending').length
+    const rejected = records.filter(r => (r as any).status === 'rejected').length
+    const recentRecords = records.slice(0, 3)
 
     return (
         <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                         My Research Dashboard
                     </h1>
                     <p className="text-muted-foreground">Manage and track your research activity and submissions.</p>
@@ -78,25 +87,25 @@ const UserDashboard = () => {
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
                     <StatCard
                         title="Total Submissions"
-                        value="12"
+                        value={totalSubmissions.toString()}
                         icon={FileText}
-                        description="+2 from last month"
+                        description={isLoading ? "Loading..." : "All time records"}
                         colorClass="bg-blue-500/10 text-blue-600 dark:bg-blue-500/20"
                     />
                 </div>
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
                     <StatCard
                         title="Approved"
-                        value="8"
+                        value={approved.toString()}
                         icon={CheckCircle2}
-                        description="66% approval rate"
+                        description={totalSubmissions > 0 ? `${Math.round((approved / totalSubmissions) * 100)}% approval rate` : "No records"}
                         colorClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20"
                     />
                 </div>
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
                     <StatCard
                         title="Pending"
-                        value="3"
+                        value={pending.toString()}
                         icon={Clock}
                         description="Awaiting review"
                         colorClass="bg-amber-500/10 text-amber-600 dark:bg-amber-500/20"
@@ -105,7 +114,7 @@ const UserDashboard = () => {
                 <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
                     <StatCard
                         title="Rejected"
-                        value="1"
+                        value={rejected.toString()}
                         icon={XCircle}
                         description="Needs revision"
                         colorClass="bg-rose-500/10 text-rose-600 dark:bg-rose-500/20"
@@ -124,26 +133,35 @@ const UserDashboard = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                            <FileText className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium group-hover:text-primary transition-colors">Improving AI Efficiency in Healthcare</p>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                <span>Journal</span>
-                                                <span>•</span>
-                                                <span>2 hours ago</span>
+                            {isLoading ? (
+                                <div className="p-4 text-center text-muted-foreground text-sm flex items-center justify-center h-20">Loading submissions...</div>
+                            ) : recentRecords.length === 0 ? (
+                                <div className="p-4 text-center text-muted-foreground text-sm flex items-center justify-center h-20">No recent submissions found.</div>
+                            ) : recentRecords.map((record) => {
+                                const categoryMeta = categories.find(c => c.value === ((record as any).category || (record as any).type)) || categories[7];
+                                const RecordIcon = categoryMeta.icon;
+                                const timestampStr = (record as any).createdAt?.toDate ? formatDistanceToNow((record as any).createdAt.toDate(), { addSuffix: true }) : ((record as any).createdAt ? formatDistanceToNow(new Date((record as any).createdAt), { addSuffix: true }) : 'Recently');
+                                return (
+                                    <div key={record.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group cursor-pointer" onClick={() => navigate('/user/submissions')}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <RecordIcon className="h-5 w-5 text-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium group-hover:text-primary transition-colors line-clamp-1">{(record as any).title}</p>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <span>{categoryMeta.label}</span>
+                                                    <span>•</span>
+                                                    <span>{timestampStr}</span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <Badge variant={(record as any).status === 'approved' ? "default" : (record as any).status === 'pending' ? "secondary" : "outline"} className="capitalize">
+                                            {(record as any).status}
+                                        </Badge>
                                     </div>
-                                    <Badge variant={i === 1 ? "default" : i === 2 ? "secondary" : "outline"} className="capitalize">
-                                        {i === 1 ? "Approved" : i === 2 ? "Pending" : "Rejected"}
-                                    </Badge>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </CardContent>
                 </Card>

@@ -33,7 +33,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
     return (
         <AlertDialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
-            <AlertDialogContent>
+            <AlertDialogContent className="bg-card border border-muted/50 rounded-3xl shadow-premium">
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>{message}</AlertDialogDescription>

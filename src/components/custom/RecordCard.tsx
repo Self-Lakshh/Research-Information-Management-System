@@ -58,11 +58,11 @@ export const RecordCard: React.FC<RecordCardProps> = ({
 
     return (
         <Card
-            className="group relative overflow-hidden border-none bg-background/40 backdrop-blur-md shadow-premium hover:shadow-hover transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] hover:scale-[1.02] hover:-translate-y-2 rounded-[2rem] cursor-pointer h-full min-h-[280px] flex flex-col"
+            className="group relative overflow-hidden bg-card border border-muted/50 shadow-soft hover:shadow-premium transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1.5 rounded-3xl cursor-pointer h-full min-h-[280px] flex flex-col"
             onClick={() => onView(record)}
         >
             {/* Animated Gradient Background on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             <CardContent className="p-0 relative z-10 flex flex-col h-full">
                 {/* Visual Status Indicator (Left side glow) */}
@@ -139,7 +139,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                             {record.title}
                         </h3>
                         <p className="text-sm text-muted-foreground/80 leading-relaxed line-clamp-2 font-medium">
-                            {record.journalName || record.conferenceName || record.client || record.agency || record.author || record.publisher || 'Detailed record for research evaluation.'}
+                            {record.data?.journalName || record.data?.conferenceName || record.data?.client || record.data?.agency || record.data?.author || record.data?.publisher || record.journalName || record.conferenceName || record.client || record.agency || record.author || record.publisher || 'Detailed record for research evaluation.'}
                         </p>
                     </div>
 
@@ -148,7 +148,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                                 <Calendar className="h-3.5 w-3.5" />
-                                <span className="text-[11px] font-bold uppercase tracking-wider">{record.date || record.year || 'N/A'}</span>
+                                <span className="text-[11px] font-bold uppercase tracking-wider">{record.date || record.year || record.data?.date || record.data?.year || 'N/A'}</span>
                             </div>
                         </div>
 

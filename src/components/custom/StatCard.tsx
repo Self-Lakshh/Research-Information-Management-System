@@ -16,16 +16,16 @@ export interface StatCardProps {
 }
 
 const variantStyles = {
-    default: 'bg-card border-border/50 hover:border-border',
-    primary: 'bg-primary/5 border-primary/20 hover:border-primary/40',
-    success: 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40',
-    warning: 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40',
-    error: 'bg-destructive/5 border-destructive/20 hover:border-destructive/40',
-    indigo: 'bg-indigo-500/5 border-indigo-500/20 hover:border-indigo-500/40',
-    rose: 'bg-rose-500/5 border-rose-500/20 hover:border-rose-500/40',
-    amber: 'bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40',
-    emerald: 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40',
-    azure: 'bg-sky-500/5 border-sky-500/20 hover:border-sky-500/40',
+    default: 'bg-card border-muted/50 hover:border-muted/80',
+    primary: 'bg-card border-primary/20 hover:border-primary/40',
+    success: 'bg-card border-emerald-500/20 hover:border-emerald-500/40',
+    warning: 'bg-card border-amber-500/20 hover:border-amber-500/40',
+    error: 'bg-card border-destructive/20 hover:border-destructive/40',
+    indigo: 'bg-card border-indigo-500/20 hover:border-indigo-500/40',
+    rose: 'bg-card border-rose-500/20 hover:border-rose-500/40',
+    amber: 'bg-card border-amber-500/20 hover:border-amber-500/40',
+    emerald: 'bg-card border-emerald-500/20 hover:border-emerald-500/40',
+    azure: 'bg-card border-sky-500/20 hover:border-sky-500/40',
 }
 
 const iconStyles = {

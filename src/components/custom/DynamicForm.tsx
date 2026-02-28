@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useRef } from 'react'
+import { UploadCloud } from 'lucide-react'
 import { cn } from '@/components/shadcn/utils'
 import { FieldConfig } from '@/configs/rims.config'
 import { Label } from '@/components/shadcn/ui/label'
@@ -20,7 +21,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
         const { key, label, placeholder, required, options } = field
         const value = data[key] || ''
 
-        const baseInputStyles = "rounded-xl border-muted-foreground/20 bg-background/50 focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+        const baseInputStyles = "rounded-xl border border-muted/50 bg-card shadow-soft focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
 
         switch (field.type) {
             case 'textarea':
@@ -71,12 +72,26 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
                 )
             case 'file':
                 return (
-                    <Input
-                        disabled={readOnly}
-                        type="file"
-                        onChange={(e) => onChange(key, e.target.files?.[0])}
-                        className={cn(baseInputStyles, "h-11 py-2 text-xs cursor-pointer")}
-                    />
+                    <div className="relative group/file">
+                        <Input
+                            disabled={readOnly}
+                            type="file"
+                            onChange={(e) => onChange(key, e.target.files?.[0])}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                        />
+                        <div className={cn(
+                            "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl transition-all duration-300 gap-2 shadow-soft",
+                            value ? "border-primary/50 bg-primary/5" : "border-muted/50 bg-card group-hover/file:border-primary/30 group-hover/file:bg-muted/30"
+                        )}>
+                            <UploadCloud className={cn("w-8 h-8", value ? "text-primary" : "text-muted-foreground")} />
+                            <div className="text-center">
+                                <p className="text-sm font-medium text-foreground">
+                                    {value ? (value.name || 'File selected') : "Click or drag to upload"}
+                                </p>
+                                {!value && <p className="text-xs text-muted-foreground mt-1">PDF, DOCX up to 10MB</p>}
+                            </div>
+                        </div>
+                    </div>
                 )
             default:
                 return (

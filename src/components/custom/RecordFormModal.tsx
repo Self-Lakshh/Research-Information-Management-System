@@ -34,7 +34,15 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
     const config = RECORD_TYPE_CONFIG[typeKey] || RECORD_TYPE_CONFIG.journal
 
     React.useEffect(() => {
-        setFormData(initialData || {})
+        if (initialData) {
+            // Flatten the 'data' object so DynamicForm can read the keys directly
+            setFormData({
+                ...initialData,
+                ...(initialData.data || {})
+            })
+        } else {
+            setFormData({})
+        }
     }, [initialData, isOpen])
 
     if (!config) return null
@@ -44,13 +52,32 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
     }
 
     const handleSubmit = () => {
-        onSubmit(formData)
+        const submitData: any = {
+            title: formData.title || '',
+            year: formData.year || formData.publicationYear || new Date().getFullYear().toString(),
+            description: formData.description || '',
+            data: {}
+        }
+
+        // Put all config-defined fields (except root ones) into 'data'
+        config.fields.forEach(field => {
+            if (!['title', 'description'].includes(field.key)) {
+                submitData.data[field.key] = formData[field.key]
+            }
+        })
+
+        // Capture files if added
+        if (formData.file) {
+            submitData.files = [formData.file]
+        }
+
+        onSubmit(submitData)
     }
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
-                <DialogHeader className="p-6 bg-primary/5 border-b">
+            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-card border border-muted/50 rounded-3xl shadow-premium">
+                <DialogHeader className="p-6 bg-primary/5 border-b border-muted/50">
                     <DialogTitle className="text-2xl font-bold flex items-center gap-2">
                         {initialData ? 'Edit' : 'Add'} {config.label}
                     </DialogTitle>
@@ -61,7 +88,7 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
 
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     <DynamicForm
-                        fields={config.fields}
+                        fields={[...config.fields, { key: 'file', label: 'Supporting Document', type: 'file', gridSpan: 2 } as any]}
                         data={formData}
                         onChange={handleFieldChange}
                     />

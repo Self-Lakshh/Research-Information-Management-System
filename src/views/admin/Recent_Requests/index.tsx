@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { CheckCircle, XCircle, LayoutGrid, List } from 'lucide-react'
 import {
-    FilterBar,
+    Searchbar,
+    DomainFilter,
+    YearFilter,
     ConfirmDialog,
 } from '@/components/custom'
 import {
@@ -14,7 +16,7 @@ import { cn } from '@/components/shadcn/utils'
 import type { Record as ResearchRecord, User } from '@/@types/rims.types'
 import { usePendingRecords, useApproveRecord, useRejectRecord } from '@/hooks/useRecords'
 import { Spinner } from '@/components/shadcn/ui/spinner'
-
+import ViewSlider from '@/components/custom/ViewSlider'
 // ============================================
 
 const RecentRequests = () => {
@@ -104,41 +106,37 @@ const RecentRequests = () => {
                 </div>
 
                 {/* View Mode Toggle */}
-                <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-muted/50">
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={cn(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300',
-                            viewMode === 'grid'
-                                ? 'bg-background text-primary shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground'
-                        )}
-                    >
-                        <LayoutGrid className="w-3.5 h-3.5" />
-                        Cards
-                    </button>
-                    <button
-                        onClick={() => setViewMode('table')}
-                        className={cn(
-                            'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300',
-                            viewMode === 'table'
-                                ? 'bg-background text-primary shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground'
-                        )}
-                    >
-                        <List className="w-3.5 h-3.5" />
-                        Table
-                    </button>
-                </div>
+                <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
             </div>
 
             {/* Filters */}
-            <FilterBar
-                filters={COMMON_FILTERS.approval}
-                values={filters}
-                onChange={handleFilterChange}
-                onClear={handleClearFilters}
-            />
+            <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-2xl border border-muted/50 shadow-soft">
+                <Searchbar
+                    value={(filters.search as string) || ''}
+                    onChange={(val) => handleFilterChange('search', val)}
+                    className="flex-1 min-w-[200px]"
+                />
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <DomainFilter
+                        value={(filters.type as string) || 'all'}
+                        onChange={(val) => handleFilterChange('type', val)}
+                    />
+                    <YearFilter
+                        value={(filters.year as string) || 'all'}
+                        onChange={(val) => handleFilterChange('year', val)}
+                    />
+
+                    {Object.keys(filters).length > 0 && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-xl hover:bg-muted"
+                        >
+                            Reset
+                        </button>
+                    )}
+                </div>
+            </div>
 
             {/* Requests Content */}
             {isLoading ? (

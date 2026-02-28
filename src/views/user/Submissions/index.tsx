@@ -21,7 +21,10 @@ import {
     RecordFormModal,
     RecordDetailModal,
     RecordTable,
-    CardTilesHeader
+    Searchbar,
+    DomainFilter,
+    YearFilter,
+    ViewSlider
 } from '@/components/custom'
 
 const Submissions = () => {
@@ -168,18 +171,33 @@ const Submissions = () => {
             </div>
 
             {/* Controls Header */}
-            <CardTilesHeader
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                selectedDomain={selectedDomain}
-                setSelectedDomain={setSelectedDomain}
-                selectedYear={selectedYear}
-                setSelectedYear={setSelectedYear}
-                years={availableYears}
-                onExport={handleExport}
-            />
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6 bg-card p-4 rounded-3xl border border-muted/50 shadow-soft">
+                <div className="flex flex-col sm:flex-row flex-1 items-center gap-4 w-full">
+                    <Searchbar
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        className="w-full max-w-none sm:max-w-md"
+                    />
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <DomainFilter
+                            value={selectedDomain}
+                            onChange={setSelectedDomain}
+                        />
+                        <YearFilter
+                            value={selectedYear}
+                            onChange={setSelectedYear}
+                            years={availableYears}
+                            className="w-[120px]"
+                        />
+                    </div>
+                </div>
+                <div className="flex flex-row items-center gap-4 justify-end">
+                    <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
+                    <Button variant="outline" onClick={() => handleExport('pdf')} className="rounded-xl h-10 lg:h-12 shadow-sm border-muted font-semibold px-5">
+                        Export
+                    </Button>
+                </div>
+            </div>
 
             {/* Content View */}
             {isLoading ? (

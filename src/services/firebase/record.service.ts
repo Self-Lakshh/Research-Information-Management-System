@@ -21,9 +21,8 @@ import { db } from '@/configs/firebase.config';
 import {
     Record,
     RecordType,
-    RecordStatus,
+    ApprovalStatus,
     CreateRecordData,
-    UpdateRecordData,
     RecordFilters,
     PaginatedResponse,
 } from '@/@types/rims.types';
@@ -42,12 +41,12 @@ export const createRecord = async (
 
         const recordData = {
             userId,
-            type: data.type,
-            status: 'pending' as RecordStatus,
-            title: data.title,
-            year: data.year,
-            description: data.description || '',
-            data: data.data,
+            type: (data as any).type,
+            status: 'pending' as ApprovalStatus,
+            title: (data as any).title,
+            year: (data as any).year,
+            description: (data as any).description || '',
+            data: (data as any).data,
             files: [], // Files will be added separately after upload
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
@@ -85,7 +84,7 @@ export const getRecordById = async (recordId: string): Promise<Record | null> =>
  */
 export const getUserRecords = async (
     userId: string,
-    statusFilter?: RecordStatus
+    statusFilter?: ApprovalStatus
 ): Promise<Record[]> => {
     try {
         const recordsRef = collection(db, RECORDS_COLLECTION);
@@ -123,8 +122,8 @@ export const getAllRecords = async (filters?: RecordFilters): Promise<Record[]> 
             constraints.push(where('type', '==', filters.type));
         }
 
-        if (filters?.status) {
-            constraints.push(where('status', '==', filters.status));
+        if (filters?.approval_status) {
+            constraints.push(where('status', '==', filters.approval_status));
         }
 
         if (filters?.year) {
@@ -152,7 +151,7 @@ export const getAllRecords = async (filters?: RecordFilters): Promise<Record[]> 
  * Get pending records (Admin only)
  */
 export const getPendingRecords = async (): Promise<Record[]> => {
-    return getAllRecords({ status: 'pending' });
+    return getAllRecords({ approval_status: 'pending' });
 };
 
 /**
@@ -167,7 +166,7 @@ export const getApprovedUserRecords = async (userId: string): Promise<Record[]> 
  */
 export const updateRecord = async (
     recordId: string,
-    data: UpdateRecordData
+    data: any
 ): Promise<void> => {
     try {
         const recordRef = doc(db, RECORDS_COLLECTION, recordId);
@@ -303,8 +302,8 @@ export const subscribeToRecords = (
             constraints.push(where('type', '==', filters.type));
         }
 
-        if (filters.status) {
-            constraints.push(where('status', '==', filters.status));
+        if (filters.approval_status) {
+            constraints.push(where('status', '==', filters.approval_status));
         }
 
         if (filters.userId) {
@@ -353,8 +352,10 @@ export const getRecordsCountByStatus = async (
         };
 
         querySnapshot.docs.forEach(doc => {
-            const status = doc.data().status as RecordStatus;
-            counts[status]++;
+            const status = doc.data().status as ApprovalStatus;
+            if (status === 'pending' || status === 'approved' || status === 'rejected') {
+                counts[status]++;
+            }
         });
 
         return counts;
