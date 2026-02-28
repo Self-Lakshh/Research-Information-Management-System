@@ -31,6 +31,7 @@ export default tseslint.config(
                 '**/tailwind.config.cjs',
             ],
         },
+        // @ts-ignore
         ...fixupConfigRules(
             compat.extends(
                 'eslint:recommended',

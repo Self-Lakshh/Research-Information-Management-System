@@ -75,7 +75,7 @@ export const StatCard = ({
                 </CardTitle>
                 {IconOrElement && (
                     <div className={cn(
-                        "flex-shrink-0 p-2.5 rounded-xl transition-transform duration-300 group-hover:scale-110",
+                        "shrink-0 p-2.5 rounded-xl transition-transform duration-300 group-hover:scale-110",
                         colorClass ? "bg-background/50" : iconStyles[variant]
                     )}>
                         {React.isValidElement(IconOrElement) ? (
