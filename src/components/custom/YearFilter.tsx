@@ -12,9 +12,10 @@ interface YearFilterProps {
     onChange: (value: string) => void
     years?: string[]
     className?: string
+    variant?: 'select' | 'list'
 }
 
-const YearFilter = ({ value, onChange, years, className }: YearFilterProps) => {
+const YearFilter = ({ value, onChange, years, className, variant = 'select' }: YearFilterProps) => {
     const defaultYears = ['all']
     if (!years) {
         const currentYear = new Date().getFullYear()
@@ -24,14 +25,34 @@ const YearFilter = ({ value, onChange, years, className }: YearFilterProps) => {
     }
 
     const displayYears = years ? ['all', ...years.filter(y => y !== 'all')] : defaultYears
-
     const isSelected = value && value !== 'all'
+
+    if (variant === 'list') {
+        return (
+            <div className={cn("flex flex-wrap items-center gap-2", className)}>
+                {displayYears.map(year => (
+                    <button
+                        key={year}
+                        onClick={() => onChange(year)}
+                        className={cn(
+                            "px-4 py-2 rounded-xl text-xs font-bold transition-all border",
+                            (value || 'all') === year
+                                ? "bg-primary text-white border-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]"
+                                : "bg-card border-border/60 text-muted-foreground hover:border-border shadow-sm"
+                        )}
+                    >
+                        {year === 'all' ? 'All Time' : year}
+                    </button>
+                ))}
+            </div>
+        )
+    }
 
     return (
         <Select value={value || 'all'} onValueChange={onChange}>
             <SelectTrigger
                 className={cn(
-                    "w-[130px] h-10 text-foreground",
+                    "w-[130px] h-10 text-foreground font-bold",
                     "border rounded-lg transition-all duration-300 ease-out",
                     isSelected
                         ? "bg-primary/10 border-primary/50 shadow-sm"
@@ -40,12 +61,12 @@ const YearFilter = ({ value, onChange, years, className }: YearFilterProps) => {
                     className
                 )}
             >
-                <SelectValue placeholder="All Years" />
+                <SelectValue placeholder="All Time" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
-                <SelectItem value="all">All Years</SelectItem>
+            <SelectContent className="rounded-xl shadow-premium border-border/60">
+                <SelectItem value="all" className="font-medium">All Time</SelectItem>
                 {displayYears.filter(y => y !== 'all').map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                    <SelectItem key={year} value={year} className="font-medium">{year}</SelectItem>
                 ))}
             </SelectContent>
         </Select>

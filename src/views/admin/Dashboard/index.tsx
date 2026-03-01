@@ -6,12 +6,13 @@ import {
     Briefcase,
     Search,
     ChevronDown,
+    ChevronUp,
     LineChart as LineIcon,
-    AreaChart as AreaIcon,
+    AreaChart as AreaCircleIcon,
     BarChart as BarIcon
 } from 'lucide-react'
-import { StatCard } from '@/components/custom'
-import { DashboardChartContainer, RecordsSummaryTable } from './components'
+import { StatCard, ChartHeader, ComparisionFilter, YearFilter, DomainFilter } from '@/components/custom'
+import { RecordsSummaryTable } from './components'
 import { useAllRecords } from '@/hooks/useRecords'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import type { RecordType } from '@/@types/rims.types'
@@ -43,20 +44,20 @@ import {
 // ============================================
 
 const AdminDashboard = () => {
-    const [selectedYear, setSelectedYear] = useState('All')
+    const [selectedYear, setSelectedYear] = useState('all')
 
     const [chartYear, setChartYear] = useState('2026')
     const [chartDomain, setChartDomain] = useState('all')
-    const [compareWith, setCompareWith] = useState('none')
+    const [compareYears, setCompareYears] = useState<string[]>([])
     const [chartType, setChartType] = useState<'line' | 'area' | 'bar'>('area')
 
     const currentYear = new Date().getFullYear()
-    const availableYears = ['All']
+    const availableYears = ['all']
     for (let year = currentYear; year >= 2024; year--) {
         availableYears.push(year.toString())
     }
 
-    const chartYears = availableYears.filter(y => y !== 'All')
+    const chartYears = availableYears.filter(y => y !== 'all')
 
     const { data: records = [] } = useAllRecords()
 
@@ -65,48 +66,59 @@ const AdminDashboard = () => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
         return months.map((month, idx) => {
-            const currentYearRecords = records.filter(r => {
+            const dataPoint: any = { name: month, current: 0 };
+
+            // Primary year data
+            dataPoint.current = records.filter(r => {
                 if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
                 const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
                 return date.getFullYear().toString() === chartYear && date.getMonth() === idx;
             }).length;
 
-            const compareRecords = compareWith !== 'none' ? records.filter(r => {
-                if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
-                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
-                return date.getFullYear().toString() === compareWith && date.getMonth() === idx;
-            }).length : undefined;
+            // Comparison years data
+            compareYears.forEach(year => {
+                dataPoint[`year_${year}`] = records.filter(r => {
+                    if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
+                    const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
+                    return date.getFullYear().toString() === year && date.getMonth() === idx;
+                }).length;
+            });
 
-            return {
-                name: month,
-                current: currentYearRecords,
-                comparison: compareRecords
-            }
+            return dataPoint;
         })
-    }, [chartYear, chartDomain, compareWith, records])
+    }, [chartYear, chartDomain, compareYears, records])
 
     // Generate accurate stats from actual records
     const stats = useMemo(() => {
+        const filteredRecords = selectedYear === 'all'
+            ? records
+            : records.filter(r => {
+                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
+                return date.getFullYear().toString() === selectedYear;
+            });
+
         return {
-            totalRecords: records.length,
-            pendingApprovals: records.filter(r => (r as any).status === 'pending').length,
-            totalUsers: new Set(records.map(r => (r as any).userId)).size, // Appox unique submitters
-            monthlySubmissions: records.filter(r => {
+            totalRecords: filteredRecords.length,
+            pendingApprovals: filteredRecords.filter(r => (r as any).status === 'pending').length,
+            totalUsers: new Set(filteredRecords.map(r => (r as any).userId)).size,
+            monthlySubmissions: filteredRecords.filter(r => {
                 const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
                 return date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear();
             }).length,
-            iprs: records.filter(r => ((r as any).category || (r as any).type) === 'ipr').length,
-            journals: records.filter(r => ((r as any).category || (r as any).type) === 'journal').length,
-            conferences: records.filter(r => ((r as any).category || (r as any).type) === 'conference').length,
-            grants: records.filter(r => ((r as any).category || (r as any).type) === 'consultancy').length
+            iprs: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'ipr').length,
+            journals: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'journal').length,
+            conferences: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'conference').length,
+            grants: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'consultancy').length
         }
-    }, [records])
+    }, [records, selectedYear])
 
     const summaryData = Object.values(RECORD_TYPE_CONFIG).map((meta) => ({
         type: meta.label,
         total: Math.floor(Math.random() * 300) + 50,
         pending: Math.floor(Math.random() * 10)
     }))
+
+    const COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#0ea5e9']
 
     const renderChart = () => {
         const sharedProps = {
@@ -118,18 +130,18 @@ const AdminDashboard = () => {
             case 'line':
                 return (
                     <LineChart {...sharedProps}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <Tooltip
-                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                             itemStyle={{ fontWeight: 'bold' }}
                         />
                         <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
                         <Line type="monotone" dataKey="current" name={`Year ${chartYear}`} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }} />
-                        {compareWith !== 'none' && (
-                            <Line type="monotone" dataKey="comparison" name={`Year ${compareWith}`} stroke="hsl(var(--muted-foreground))" strokeDasharray="5 5" strokeWidth={2} dot={{ r: 3 }} />
-                        )}
+                        {compareYears.map((year, i) => (
+                            <Line key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={COLORS[i % COLORS.length]} strokeDasharray="5 5" strokeWidth={2} dot={{ r: 3 }} />
+                        ))}
                     </LineChart>
                 )
             case 'area':
@@ -137,206 +149,163 @@ const AdminDashboard = () => {
                     <AreaChart {...sharedProps}>
                         <defs>
                             <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
                                 <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                             </linearGradient>
-                            <linearGradient id="colorCompare" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.2} />
-                                <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
-                            </linearGradient>
+                            {compareYears.map((year, i) => (
+                                <linearGradient key={year} id={`color_${year}`} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0} />
+                                </linearGradient>
+                            ))}
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <Tooltip
-                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
                         <Area type="monotone" dataKey="current" name={`Year ${chartYear}`} stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorCurrent)" strokeWidth={2} />
-                        {compareWith !== 'none' && (
-                            <Area type="monotone" dataKey="comparison" name={`Year ${compareWith}`} stroke="hsl(var(--muted-foreground))" fillOpacity={1} fill="url(#colorCompare)" strokeWidth={2} strokeDasharray="4 4" />
-                        )}
+                        {compareYears.map((year, i) => (
+                            <Area key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={COLORS[i % COLORS.length]} fillOpacity={1} fill={`url(#color_${year})`} strokeWidth={2} strokeDasharray="4 4" />
+                        ))}
                     </AreaChart>
                 )
             case 'bar':
                 return (
                     <BarChart {...sharedProps}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <Tooltip
-                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }}
+                            contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Bar dataKey="current" name={`Year ${chartYear}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={20} />
-                        {compareWith !== 'none' && (
-                            <Bar dataKey="comparison" name={`Year ${compareWith}`} fill="hsl(var(--muted-foreground))" opacity={0.4} radius={[4, 4, 0, 0]} barSize={20} />
-                        )}
+                        <Bar dataKey="current" name={`Year ${chartYear}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={16} />
+                        {compareYears.map((year, i) => (
+                            <Bar key={year} dataKey={`year_${year}`} name={`Year ${year}`} fill={COLORS[i % COLORS.length]} opacity={0.6} radius={[4, 4, 0, 0]} barSize={16} />
+                        ))}
                     </BarChart>
                 )
         }
     }
 
     return (
-        <div className="space-y-6">
-            {/* Page Header & Filters */}
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-bold text-foreground tracking-tight">
-                            Research Insights
-                        </h1>
-                    </div>
-                </div>
+        <div className="flex flex-col h-full min-w-0 overflow-hidden">
+            <div className="flex-auto overflow-y-auto no-scrollbar space-y-6 pb-12 pr-1">
 
-                <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 pb-1 border-t border-muted">
-                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mr-2">Analysis Period:</span>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-[140px] h-10 rounded-xl bg-background border-border/60 hover:border-primary/50 transition-colors capitalize">
-                                <SelectValue placeholder="All Years" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl border-border/60">
-                                {availableYears.map(year => (
-                                    <SelectItem key={year} value={year}>{year === 'All' ? 'All Time' : year}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Unified Stats Section */}
-            <div className="bg-card rounded-3xl border border-border/60 shadow-sm overflow-hidden">
-                {/* Section Header */}
-                <div className="p-6 border-b border-border/40 flex items-center justify-between bg-muted/20">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-6 bg-primary rounded-full" />
-                        <h2 className="text-lg font-bold text-foreground">Statistical Overview</h2>
-                    </div>
-                </div>
-
-                {/* High Density Stats Grid - 10 Cards with Enhanced Separation */}
-                <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 bg-muted/30">
-                    {[
-                        { label: "Researchers", value: stats.totalUsers, icon: <Users className="w-4 h-4" />, variant: 'indigo' },
-                        { label: "Publications", value: stats.totalRecords.toLocaleString(), icon: <FileText className="w-4 h-4" />, variant: 'primary' },
-                        { label: "Journals", value: stats.journals, icon: <BookOpen className="w-4 h-4" />, variant: 'azure' },
-                        { label: "IPR / Patents", value: stats.iprs, icon: <Shield className="w-4 h-4" />, variant: 'rose' },
-                        { label: "Conf. Papers", value: stats.conferences, icon: <Activity className="w-4 h-4" />, variant: 'amber' },
-                        { label: "Research Grants", value: stats.grants, icon: <Briefcase className="w-4 h-4" />, variant: 'emerald' },
-                        { label: "Avg. Citations", value: "42.8", icon: <TrendingUp className="w-4 h-4" />, variant: 'indigo' },
-                        { label: "H-Index", value: "24", icon: <BarChart3 className="w-4 h-4" />, variant: 'azure' },
-                        { label: "Review Pending", value: stats.pendingApprovals, icon: <Clock className="w-4 h-4" />, variant: 'warning' },
-                        { label: "Monthly Goal", value: "84%", icon: <PieChart className="w-4 h-4" />, variant: 'primary' }
-                    ].map((stat, idx) => (
-                        <StatCard
-                            key={idx}
-                            label={stat.label}
-                            value={stat.value}
-                            variant={stat.variant as any}
-                            icon={stat.icon}
-                            className="bg-background border border-border/50 shadow-sm hover:border-primary/30"
+                {/* 1st Container: Statistical Overview */}
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 shadow-premium flex flex-col gap-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <h2 className="text-xl font-bold text-foreground tracking-tight uppercase">Statistical Overview</h2>
+                        <YearFilter
+                            value={selectedYear}
+                            onChange={setSelectedYear}
                         />
-                    ))}
-                </div>
-            </div>
+                    </div>
 
-            {/* Comprehensive Integrated Chart Section */}
-            <DashboardChartContainer
-                title="Performance Analytics"
-                subtitle={`${chartDomain === 'all' ? 'Overall' : RECORD_TYPE_CONFIG[chartDomain as RecordType].label} trend for ${chartYear}`}
-                className="lg:col-span-3 min-h-[500px]"
-                action={
-                    <div className="flex flex-wrap items-center gap-2">
-                        {/* Chart Type Switcher */}
-                        <div className="flex items-center bg-muted/50 p-1 rounded-lg border border-border/40 mr-2">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                        {[
+                            { label: "Researchers", value: stats.totalUsers, icon: <Users className="w-4 h-4" />, variant: 'indigo' },
+                            { label: "Publications", value: stats.totalRecords, icon: <FileText className="w-4 h-4" />, variant: 'primary' },
+                            { label: "Journals", value: stats.journals, icon: <BookOpen className="w-4 h-4" />, variant: 'azure' },
+                            { label: "IPR / Patents", value: stats.iprs, icon: <Shield className="w-4 h-4" />, variant: 'rose' },
+                            { label: "Conf. Papers", value: stats.conferences, icon: <Activity className="w-4 h-4" />, variant: 'amber' },
+                            { label: "Research Grants", value: stats.grants, icon: <Briefcase className="w-4 h-4" />, variant: 'emerald' },
+                            { label: "Avg. Citations", value: "42.8", icon: <TrendingUp className="w-4 h-4" />, variant: 'indigo' },
+                            { label: "H-Index", value: "24", icon: <BarChart3 className="w-4 h-4" />, variant: 'azure' },
+                            { label: "Review Pending", value: stats.pendingApprovals, icon: <Clock className="w-4 h-4" />, variant: 'warning' },
+                            { label: "Monthly Goal", value: "84%", icon: <PieChart className="w-4 h-4" />, variant: 'primary' }
+                        ].map((stat, idx) => (
+                            <StatCard
+                                key={idx}
+                                label={stat.label}
+                                value={stat.value.toLocaleString()}
+                                variant={stat.variant as any}
+                                icon={stat.icon}
+                                className="bg-card border-border/60 hover:border-primary/40 transition-all duration-300 shadow-sm"
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* 2nd Container: Graphical Representation */}
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 shadow-premium flex flex-col gap-6">
+
+                    {/* Unified Header & Filter Row */}
+                    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-border/30">
+                        <div className="flex flex-wrap items-center gap-6">
+                            <h2 className="text-xl font-bold text-foreground tracking-tight uppercase whitespace-nowrap">Analytics</h2>
+
+                            <div className="h-8 w-px bg-border/50 hidden xl:block" />
+
+                            <div className="flex items-center gap-4">
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Domain</span>
+                                    <DomainFilter
+                                        value={chartDomain}
+                                        onChange={setChartDomain}
+                                        className="w-[160px] h-9"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest ml-1">Target</span>
+                                    <YearFilter
+                                        value={chartYear}
+                                        onChange={setChartYear}
+                                        years={chartYears}
+                                        className="w-[120px] h-9"
+                                    />
+                                </div>
+                                <ComparisionFilter
+                                    availableYears={chartYears.filter(y => y !== chartYear)}
+                                    selectedYears={compareYears}
+                                    onChange={setCompareYears}
+                                    className="w-auto"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Chart Type Toggles (Extracted from ChartHeader logic) */}
+                        <div className="flex items-center bg-muted/20 p-1 rounded-xl border border-border/50 self-end xl:self-center">
                             <button
                                 onClick={() => setChartType('area')}
-                                className={cn("p-1.5 rounded-md transition-all", chartType === 'area' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
+                                className={cn(
+                                    "p-2 rounded-lg transition-all",
+                                    chartType === 'area' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
                             >
-                                <AreaIcon className="w-4 h-4" />
+                                <AreaCircleIcon className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setChartType('line')}
-                                className={cn("p-1.5 rounded-md transition-all", chartType === 'line' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
+                                className={cn(
+                                    "p-2 rounded-lg transition-all",
+                                    chartType === 'line' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
                             >
                                 <LineIcon className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setChartType('bar')}
-                                className={cn("p-1.5 rounded-md transition-all", chartType === 'bar' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground")}
+                                className={cn(
+                                    "p-2 rounded-lg transition-all",
+                                    chartType === 'bar' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
                             >
                                 <BarIcon className="w-4 h-4" />
                             </button>
                         </div>
-
-                        <Select value={chartYear} onValueChange={setChartYear}>
-                            <SelectTrigger className="w-[90px] h-8 text-[11px] font-medium">
-                                <SelectValue placeholder="Year" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {chartYears.map(year => (
-                                    <SelectItem key={year} value={year}>{year}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        <Select value={chartDomain} onValueChange={setChartDomain}>
-                            <SelectTrigger className="w-[120px] h-8 text-[11px] font-medium">
-                                <SelectValue placeholder="Domain" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Domains</SelectItem>
-                                {Object.values(RECORD_TYPE_CONFIG).map(meta => (
-                                    <SelectItem key={meta.type} value={meta.type}>{meta.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        <Select value={compareWith} onValueChange={setCompareWith}>
-                            <SelectTrigger className="w-[130px] h-8 text-[11px] font-medium bg-muted/40 border-dashed">
-                                <SelectValue placeholder="Comparison" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="none">No Comparison</SelectItem>
-                                {chartYears.filter(y => y !== chartYear).map(year => (
-                                    <SelectItem key={year} value={year}>Vs Year {year}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                }
-            >
-                <div className="mt-8 h-[380px] w-full flex flex-col">
-                    {/* Visualizing dynamic metric based on selection */}
-                    <div className="flex items-center justify-between mb-8 px-2">
-                        <div className="flex gap-10">
-                            <div className="relative pl-4">
-                                <div className="absolute left-0 top-1 bottom-1 w-1 bg-primary rounded-full" />
-                                <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Current Volume</p>
-                                <div className="flex items-baseline gap-2">
-                                    <p className="text-2xl font-black text-foreground">{monthlyData.reduce((acc, curr) => acc + curr.current, 0)}</p>
-                                    <span className="text-xs font-bold text-emerald-500 flex items-center gap-0.5">
-                                        <TrendingUp className="w-3 h-3" /> 12%
-                                    </span>
-                                </div>
-                            </div>
-                            {compareWith !== 'none' && (
-                                <div className="relative pl-4">
-                                    <div className="absolute left-0 top-1 bottom-1 w-1 bg-muted rounded-full" />
-                                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Benchmark ({compareWith})</p>
-                                    <p className="text-2xl font-black text-muted-foreground/60">{monthlyData.reduce((acc, curr) => acc + (curr.comparison || 0), 0)}</p>
-                                </div>
-                            )}
-                        </div>
                     </div>
 
-                    <div className="flex-1 w-full">
+                    {/* Chart Area */}
+                    <div className="h-[320px] w-full -ml-4">
                         <ResponsiveContainer width="100%" height="100%">
                             {renderChart()}
                         </ResponsiveContainer>
                     </div>
                 </div>
-            </DashboardChartContainer>
+            </div>
         </div>
     )
 }
