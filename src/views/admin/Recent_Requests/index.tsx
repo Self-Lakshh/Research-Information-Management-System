@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, LayoutGrid, List } from 'lucide-react'
+import { CheckCircle, X } from 'lucide-react'
 import {
     Searchbar,
     DomainFilter,
@@ -87,7 +87,7 @@ const RecentRequests = () => {
         {
             label: 'Reject Request',
             onClick: (record: any) => handleReject(record.id),
-            icon: <XCircle className="w-4 h-4" />,
+            icon: <X className="w-4 h-4" />,
             variant: 'danger' as const
         }
     ]
@@ -95,46 +95,40 @@ const RecentRequests = () => {
     return (
         <div className="space-y-6">
             {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-foreground">
-                        Recent Requests
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        {pendingCount} pending approval{pendingCount !== 1 ? 's' : ''} require your attention
-                    </p>
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl font-bold text-foreground tracking-tight">
+                            Recent Requests
+                        </h1>
+                    </div>
+                    <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
 
-                {/* View Mode Toggle */}
-                <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-2xl border border-muted/50 shadow-soft">
-                <Searchbar
-                    value={(filters.search as string) || ''}
-                    onChange={(val) => handleFilterChange('search', val)}
-                    className="flex-1 min-w-[200px]"
-                />
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <DomainFilter
-                        value={(filters.type as string) || 'all'}
-                        onChange={(val) => handleFilterChange('type', val)}
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 pb-1 border-t border-muted">
+                    <Searchbar
+                        value={(filters.search as string) || ''}
+                        onChange={(val) => handleFilterChange('search', val)}
+                        className="w-full sm:max-w-xs"
                     />
-                    <YearFilter
-                        value={(filters.year as string) || 'all'}
-                        onChange={(val) => handleFilterChange('year', val)}
-                    />
-
-                    {Object.keys(filters).length > 0 && (
-                        <button
-                            onClick={handleClearFilters}
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-xl hover:bg-muted"
-                        >
-                            Reset
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
+                        <DomainFilter
+                            value={(filters.type as string) || 'all'}
+                            onChange={(val) => handleFilterChange('type', val)}
+                        />
+                        <YearFilter
+                            value={(filters.year as string) || 'all'}
+                            onChange={(val) => handleFilterChange('year', val)}
+                        />
+                        {Object.keys(filters).length > 0 && (
+                            <button
+                                onClick={handleClearFilters}
+                                className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -144,11 +138,11 @@ const RecentRequests = () => {
                     <Spinner className="w-8 h-8" />
                 </div>
             ) : records.length === 0 ? (
-                <div className="bg-card/50 backdrop-blur-sm rounded-[2rem] border border-border/50 p-16 text-center shadow-premium">
-                    <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
+                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <CheckCircle className="w-8 h-8 text-emerald-500" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2">
+                    <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
                         All caught up!
                     </h3>
                     <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">

@@ -115,7 +115,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
             className="app-layout-collapsible-side flex flex-auto flex-col"
         >
             <Header
-                className="shadow-sm dark:shadow-2xl bg-card z-30"
+                className="shadow-sm dark:shadow-2xl bg-card z-30 shrink-0"
                 headerStart={
                     <div className="flex items-center gap-4">
                         {smaller.lg && <MobileNav />}
@@ -190,12 +190,12 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                     </div>
                 }
             />
-            <div className="flex flex-auto min-w-0">
-                {larger.lg && <SideNav />}
-                <div className="flex flex-col flex-auto min-h-screen min-w-0 relative w-full bg-emerald-50 dark:bg-zinc-950">
-                    <div className="h-full flex flex-auto flex-col">
+            <div className="flex flex-auto min-w-0 overflow-hidden h-[calc(100vh-64px)]">
+                {larger.lg && <SideNav className="shrink-0" />}
+                <div className="flex flex-col flex-auto min-w-0 relative w-full bg-emerald-50 dark:bg-zinc-950 overflow-hidden">
+                    <main className="h-full flex flex-auto flex-col overflow-y-auto custom-scrollbar p-6">
                         {children}
-                    </div>
+                    </main>
                 </div>
             </div>
         </LayoutBase>

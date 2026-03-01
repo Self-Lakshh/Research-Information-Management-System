@@ -25,9 +25,21 @@ const YearFilter = ({ value, onChange, years, className }: YearFilterProps) => {
 
     const displayYears = years ? ['all', ...years.filter(y => y !== 'all')] : defaultYears
 
+    const isSelected = value && value !== 'all'
+
     return (
         <Select value={value || 'all'} onValueChange={onChange}>
-            <SelectTrigger className={cn("w-[130px] h-10 lg:h-12 bg-card border border-muted/50 rounded-xl lg:rounded-2xl shadow-soft", className)}>
+            <SelectTrigger
+                className={cn(
+                    "w-[130px] h-10 text-foreground",
+                    "border rounded-lg transition-all duration-300 ease-out",
+                    isSelected
+                        ? "bg-primary/10 border-primary/50 shadow-sm"
+                        : "bg-card border-border/60 hover:bg-muted/50 hover:border-border/80 shadow-sm",
+                    "focus:outline-none focus:ring-0 focus:border-border/80",
+                    className
+                )}
+            >
                 <SelectValue placeholder="All Years" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">

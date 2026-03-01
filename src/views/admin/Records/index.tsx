@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, Plus, LayoutGrid, List } from 'lucide-react'
+import { Download, X, CheckCircle, Search } from 'lucide-react'
 import {
     Searchbar,
     DomainFilter,
@@ -25,7 +25,7 @@ const Records = () => {
     const { data: records = [], isLoading } = useAllRecords(filters)
     const updateRecord = useUpdateRecord()
     const deleteRecord = useDeleteRecord()
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table')
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
     const [selectedRecord, setSelectedRecord] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
@@ -73,52 +73,51 @@ const Records = () => {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-semibold text-foreground">Records</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Browse and manage all research records
-                    </p>
-                </div>
-                <div className="flex items-center gap-4">
-                    <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
-
-                    <div className="h-8 w-px bg-muted/50" />
-
-                    <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl bg-muted/50 border border-muted/50 hover:bg-muted text-foreground transition-all duration-300">
-                        <Download className="w-4 h-4" />
-                        Export
-                    </button>
-                </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4 bg-card p-4 rounded-2xl border border-muted/50 shadow-soft">
-                <Searchbar
-                    value={(filters.searchQuery as string) || ''}
-                    onChange={(val) => handleFilterChange('searchQuery', val)}
-                    className="flex-1 min-w-[200px]"
-                />
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <DomainFilter
-                        value={(filters.type as string) || 'all'}
-                        onChange={(val) => handleFilterChange('type', val)}
-                    />
-                    <YearFilter
-                        value={(filters.year as unknown as string) || 'all'}
-                        onChange={(val) => handleFilterChange('year', val)}
-                    />
-
-                    {Object.keys(filters).length > 0 && (
-                        <button
-                            onClick={handleClearFilters}
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-xl hover:bg-muted"
-                        >
-                            Reset
+            {/* Page Header & Filters */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-xl font-bold text-foreground tracking-tight">
+                            Records
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
+                        <div className="h-6 w-px bg-muted/50 hidden sm:block" />
+                        <button className="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-xl border border-blue-500/20 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all duration-300">
+                            <Download className="w-4 h-4" />
+                            Export
                         </button>
-                    )}
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 pb-1 border-t border-muted">
+                    <Searchbar
+                        value={(filters.searchQuery as string) || ''}
+                        onChange={(val) => handleFilterChange('searchQuery', val)}
+                        className="w-full sm:max-w-xs"
+                    />
+                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
+                        <DomainFilter
+                            value={(filters.type as string) || 'all'}
+                            onChange={(val) => handleFilterChange('type', val)}
+                        />
+                        <YearFilter
+                            value={(filters.year as unknown as string) || 'all'}
+                            onChange={(val) => handleFilterChange('year', val)}
+                        />
+                        {Object.keys(filters).length > 0 && (
+                            <button
+                                onClick={handleClearFilters}
+                                className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        )}
+                        <button className="sm:hidden w-10 h-10 flex items-center justify-center rounded-lg border border-blue-500/20 bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all">
+                            <Download className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -127,16 +126,28 @@ const Records = () => {
                 <div className="py-20 flex justify-center">
                     <Spinner className="w-8 h-8" />
                 </div>
-            ) : viewMode === 'table' ? (
-                <RecordTable
-                    records={records}
-                    selectedDomain="all"
-                    onView={handleViewRecord}
-                    onEdit={handleEditRecord}
-                    onDelete={handleDeleteRecord}
-                />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ) : records.length === 0 ? (
+                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
+                    <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Search className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                        No records found
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
+                        We couldn't find any records matching your current filters. Try adjusting your search or filters.
+                    </p>
+                    {Object.keys(filters).length > 0 && (
+                        <button
+                            onClick={handleClearFilters}
+                            className="mt-6 text-sm font-bold text-primary hover:underline"
+                        >
+                            Clear all filters
+                        </button>
+                    )}
+                </div>
+            ) : viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {records.map((record) => (
                         <RecordCard
                             key={record.id}
@@ -147,6 +158,14 @@ const Records = () => {
                         />
                     ))}
                 </div>
+            ) : (
+                <RecordTable
+                    records={records}
+                    selectedDomain="all"
+                    onView={handleViewRecord}
+                    onEdit={handleEditRecord}
+                    onDelete={handleDeleteRecord}
+                />
             )}
 
             {/* Record Detail Modal */}

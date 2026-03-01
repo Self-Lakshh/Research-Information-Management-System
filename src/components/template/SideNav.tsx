@@ -46,12 +46,11 @@ const SideNav = ({
         <div
             style={{
                 ...sideNavStyle,
-                top: HEADER_HEIGHT,
-                height: `calc(100vh - ${HEADER_HEIGHT}px)`,
+                height: `100%`,
             }}
             className={classNames(
-                'side-nav sticky',
-                background && 'side-nav-bg',
+                'side-nav h-full',
+                background && 'side-nav-bg border-r border-border/40',
                 className,
             )}
         >

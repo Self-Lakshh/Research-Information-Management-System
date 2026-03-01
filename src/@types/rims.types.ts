@@ -7,19 +7,24 @@ import { Timestamp, DocumentReference } from 'firebase/firestore';
 export type UserRole = 'user' | 'admin';
 
 export interface User {
-    uid: string;
-    name: string;
-    email: string;
+    uid?: string;
+    name?: string;
+    email?: string;
     phone_number?: string;
     address?: string;
-    user_role: UserRole;
+    user_role?: UserRole;
     designation?: string;
     faculty?: string;
-    is_active: boolean;
-    created_at: Timestamp;
-    updated_at: Timestamp;
+    department?: string;
+    is_active?: boolean;
+    created_at?: Timestamp;
+    updated_at?: Timestamp;
     profile_picture_url?: string;
     profile_picture_media?: DocumentReference; // Reference to media collection
+    authority?: string[];
+    userId?: string;
+    userName?: string;
+    avatar?: string;
 }
 
 export interface CreateUserData {
