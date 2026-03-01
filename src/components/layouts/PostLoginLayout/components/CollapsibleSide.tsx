@@ -193,7 +193,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
             <div className="flex flex-auto min-w-0 overflow-hidden h-[calc(100vh-64px)]">
                 {larger.lg && <SideNav className="shrink-0" />}
                 <div className="flex flex-col flex-auto min-w-0 relative w-full bg-emerald-50 dark:bg-zinc-950 overflow-hidden">
-                    <main className="h-full flex flex-auto flex-col overflow-y-auto custom-scrollbar p-6">
+                    <main className="h-full flex flex-auto flex-col overflow-hidden p-4 gap-4">
                         {children}
                     </main>
                 </div>

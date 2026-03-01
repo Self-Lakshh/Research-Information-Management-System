@@ -72,9 +72,9 @@ const Records = () => {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6">
             {/* Page Header & Filters */}
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4 shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl font-bold text-foreground tracking-tight">
@@ -121,52 +121,58 @@ const Records = () => {
                 </div>
             </div>
 
-            {/* Records Content */}
-            {isLoading ? (
-                <div className="py-20 flex justify-center">
-                    <Spinner className="w-8 h-8" />
-                </div>
-            ) : records.length === 0 ? (
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
-                    <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <Search className="w-8 h-8 text-muted-foreground" />
+            {/* Records Content - Scrollable area */}
+            <div className="flex-auto flex flex-col min-h-0">
+                {isLoading ? (
+                    <div className="py-20 flex flex-auto items-center justify-center">
+                        <Spinner className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
-                        No records found
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
-                        We couldn't find any records matching your current filters. Try adjusting your search or filters.
-                    </p>
-                    {Object.keys(filters).length > 0 && (
-                        <button
-                            onClick={handleClearFilters}
-                            className="mt-6 text-sm font-bold text-primary hover:underline"
-                        >
-                            Clear all filters
-                        </button>
-                    )}
-                </div>
-            ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {records.map((record) => (
-                        <RecordCard
-                            key={record.id}
-                            record={record}
+                ) : records.length === 0 ? (
+                    <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
+                        <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <Search className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                            No records found
+                        </h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
+                            We couldn't find any records matching your current filters. Try adjusting your search or filters.
+                        </p>
+                        {Object.keys(filters).length > 0 && (
+                            <button
+                                onClick={handleClearFilters}
+                                className="mt-6 text-sm font-bold text-primary hover:underline"
+                            >
+                                Clear all filters
+                            </button>
+                        )}
+                    </div>
+                ) : viewMode === 'grid' ? (
+                    <div className="flex-auto overflow-y-auto custom-scrollbar min-h-0">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
+                            {records.map((record) => (
+                                <RecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onView={handleViewRecord}
+                                    onEdit={handleEditRecord}
+                                    onDelete={(id: string) => handleDeleteRecord(id)}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-auto flex flex-col min-h-0">
+                        <RecordTable
+                            records={records}
+                            selectedDomain="all"
                             onView={handleViewRecord}
                             onEdit={handleEditRecord}
-                            onDelete={(id: string) => handleDeleteRecord(id)}
+                            onDelete={handleDeleteRecord}
                         />
-                    ))}
-                </div>
-            ) : (
-                <RecordTable
-                    records={records}
-                    selectedDomain="all"
-                    onView={handleViewRecord}
-                    onEdit={handleEditRecord}
-                    onDelete={handleDeleteRecord}
-                />
-            )}
+                    </div>
+                )}
+            </div>
 
             {/* Record Detail Modal */}
             <RecordDetailModal

@@ -93,9 +93,9 @@ const RecentRequests = () => {
     ]
 
     return (
-        <div className="space-y-6">
+        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6">
             {/* Page Header */}
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4 shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <h1 className="text-xl font-bold text-foreground tracking-tight">
@@ -132,42 +132,48 @@ const RecentRequests = () => {
                 </div>
             </div>
 
-            {/* Requests Content */}
-            {isLoading ? (
-                <div className="py-20 flex justify-center">
-                    <Spinner className="w-8 h-8" />
-                </div>
-            ) : records.length === 0 ? (
-                <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
-                    <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <CheckCircle className="w-8 h-8 text-emerald-500" />
+            {/* Requests Content - Scrollable area */}
+            <div className="flex-auto flex flex-col min-h-0">
+                {isLoading ? (
+                    <div className="py-20 flex-auto flex items-center justify-center">
+                        <Spinner className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
-                        All caught up!
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
-                        There are no pending requests at the moment. You've processed all recent submissions.
-                    </p>
-                </div>
-            ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {records.map((record) => (
-                        <RecordCard
-                            key={record.id}
-                            record={record}
+                ) : records.length === 0 ? (
+                    <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <CheckCircle className="w-8 h-8 text-emerald-500" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
+                            All caught up!
+                        </h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
+                            There are no pending requests at the moment. You've processed all recent submissions.
+                        </p>
+                    </div>
+                ) : viewMode === 'grid' ? (
+                    <div className="flex-auto overflow-y-auto custom-scrollbar min-h-0">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
+                            {records.map((record) => (
+                                <RecordCard
+                                    key={record.id}
+                                    record={record}
+                                    onView={handleView}
+                                    actions={approvalActions}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-auto flex flex-col min-h-0">
+                        <RecordTable
+                            records={records}
+                            selectedDomain="all"
                             onView={handleView}
                             actions={approvalActions}
                         />
-                    ))}
-                </div>
-            ) : (
-                <RecordTable
-                    records={records}
-                    selectedDomain="all"
-                    onView={handleView}
-                    actions={approvalActions}
-                />
-            )}
+                    </div>
+                )}
+            </div>
 
             {/* Record Detail Modal */}
             <RecordDetailModal

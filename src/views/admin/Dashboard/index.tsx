@@ -177,27 +177,21 @@ const AdminDashboard = () => {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="pb-2 border-b border-border/40">
-                <h1 className="text-2xl font-bold text-foreground tracking-tight">Research Insights</h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Monitor institutional research performance and growth
-                </p>
-            </div>
-
-            {/* Unified Stats Section */}
-            <div className="bg-card rounded-3xl border border-border/60 shadow-sm overflow-hidden">
-                {/* Section Header with Filter */}
-                <div className="p-6 border-b border-border/40 flex items-center justify-between bg-muted/20">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-6 bg-primary rounded-full" />
-                        <h2 className="text-lg font-bold text-foreground">Statistical Overview</h2>
-                    </div>
-
+            {/* Page Header & Filters */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select Period:</span>
+                        <h1 className="text-xl font-bold text-foreground tracking-tight">
+                            Research Insights
+                        </h1>
+                    </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 pb-1 border-t border-muted">
+                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mr-2">Analysis Period:</span>
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-[120px] h-9 rounded-xl bg-background border-border/60 hover:border-primary/50 transition-colors">
+                            <SelectTrigger className="w-[140px] h-10 rounded-xl bg-background border-border/60 hover:border-primary/50 transition-colors capitalize">
                                 <SelectValue placeholder="All Years" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-border/60">
@@ -206,6 +200,17 @@ const AdminDashboard = () => {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Unified Stats Section */}
+            <div className="bg-card rounded-3xl border border-border/60 shadow-sm overflow-hidden">
+                {/* Section Header */}
+                <div className="p-6 border-b border-border/40 flex items-center justify-between bg-muted/20">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-6 bg-primary rounded-full" />
+                        <h2 className="text-lg font-bold text-foreground">Statistical Overview</h2>
                     </div>
                 </div>
 
