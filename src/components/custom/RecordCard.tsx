@@ -48,37 +48,32 @@ export const RecordCard: React.FC<RecordCardProps> = ({
 }) => {
     const config = RECORD_TYPE_CONFIG[(record.category || record.type || 'journal').toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal
 
-    const getStatusIcon = (status: string) => {
-        switch (status?.toLowerCase()) {
-            case 'approved': return <CheckCircle2 className="h-3 w-3" />
-            case 'rejected': return <XCircle className="h-3 w-3" />
-            default: return <Clock className="h-3 w-3" />
+    const safeString = (val: any): string => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'object') {
+            if (val.seconds !== undefined) return new Date(val.seconds * 1000).toLocaleDateString();
+            return ''; // Hide complex Firestore objects/references
         }
+        return String(val);
     }
+
+    const status = safeString(record.approval_status || record.status || 'pending').toLowerCase()
+    const displayStatus = safeString(record.approval_status || record.status || 'Pending')
+    const displayDate = safeString(record.date || record.year || record.data?.date || record.data?.year || record.date_of_publication || record.published_date || record.grant_date || record.month_year || record.year_of_publication || record.publicationYear) || 'N/A'
+    const displayTitle = safeString(record.title || record.title_of_paper || record.title_of_book || record.award_name || record.project_title || record.topic_title || record.name_of_student || 'Untitled Record')
+    const displayDescription = safeString(record.data?.journalName || record.data?.conferenceName || record.data?.client || record.data?.agency || record.data?.author || record.data?.publisher || record.journal_name || record.name_of_conference || record.client || record.agency || record.author || record.publisher || record.institution_body || 'Detailed record for research evaluation.')
 
     return (
         <Card
-            className="group relative overflow-hidden bg-card border border-muted/50 shadow-soft hover:shadow-premium transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1.5 rounded-3xl cursor-pointer h-full min-h-[280px] flex flex-col"
+            className="group relative overflow-hidden bg-card border border-muted/30 shadow-xs hover:border-primary/30 transition-all duration-300 rounded-2xl cursor-pointer h-full min-h-[220px] flex flex-col"
             onClick={() => onView(record)}
         >
-            {/* Animated Gradient Background on Hover */}
-            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
             <CardContent className="p-0 relative z-10 flex flex-col h-full">
-                {/* Visual Status Indicator (Left side glow) */}
-                <div className={cn(
-                    "absolute left-0 top-6 bottom-6 w-1 rounded-r-full transition-all duration-500 group-hover:w-1.5",
-                    getStatusColor(record.status).split(' ')[0].replace('bg-', 'bg-opacity-50 bg-')
-                )} />
-
-                <div className="p-7 space-y-5 flex-1 flex flex-col">
+                <div className="p-5 space-y-4 flex-1 flex flex-col">
                     {/* Header: Category & Status */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <div className={cn("p-2 rounded-xl bg-background shadow-soft border border-muted/50 transition-transform duration-500 group-hover:scale-110", config.color)}>
-                                <FileText className="h-4 w-4" />
-                            </div>
-                            <Badge variant="secondary" className="rounded-lg text-[10px] font-bold uppercase tracking-widest bg-muted/50 border-none px-2.5 h-6 pointer-events-none">
+                            <Badge variant="outline" className="rounded-lg text-[9px] font-bold uppercase tracking-widest bg-muted/5 border-muted/50 px-2 h-5 pointer-events-none text-muted-foreground">
                                 {config?.label || record.category || record.type}
                             </Badge>
                         </div>
@@ -87,44 +82,37 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                             <div onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 bg-background/50 backdrop-blur-sm border transition-all duration-300">
-                                            <MoreHorizontal className="h-4 w-4" />
+                                        <Button variant="ghost" size="icon" className="rounded-lg h-7 w-7 hover:bg-muted transition-all duration-300">
+                                            <MoreHorizontal className="h-4 w-4 text-muted-foreground/50" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-2xl w-52 p-2 shadow-premium border-primary/5">
-                                        {/* Standard Actions */}
+                                    <DropdownMenuContent align="end" className="rounded-xl w-48 p-1 shadow-premium border-muted/20">
                                         {onEdit && (
-                                            <DropdownMenuItem onClick={() => onEdit(record)} className="cursor-pointer gap-3 rounded-xl py-2.5">
-                                                <Edit2 className="h-4 w-4 text-amber-500" />
-                                                <span className="font-semibold text-sm">Edit Content</span>
+                                            <DropdownMenuItem onClick={() => onEdit(record)} className="cursor-pointer gap-2 rounded-lg py-2">
+                                                <Edit2 className="h-3.5 w-3.5 text-amber-500" />
+                                                <span className="font-semibold text-xs text-foreground/80">Edit</span>
                                             </DropdownMenuItem>
                                         )}
                                         {onDelete && (
-                                            <DropdownMenuItem onClick={() => onDelete(record.id)} className="cursor-pointer gap-3 rounded-xl py-2.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
-                                                <Trash2 className="h-4 w-4" />
-                                                <span className="font-semibold text-sm">Remove Record</span>
+                                            <DropdownMenuItem onClick={() => onDelete(record.id)} className="cursor-pointer gap-2 rounded-lg py-2 text-rose-500">
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                <span className="font-semibold text-xs">Remove</span>
                                             </DropdownMenuItem>
                                         )}
 
-                                        {/* Custom Actions Divider */}
-                                        {(onEdit || onDelete) && actions && actions.length > 0 && (
-                                            <div className="h-px bg-muted my-1 mx-2" />
-                                        )}
-
-                                        {/* Custom Actions */}
                                         {actions?.map((action, idx) => (
                                             <DropdownMenuItem
                                                 key={idx}
                                                 onClick={() => action.onClick(record)}
                                                 className={cn(
-                                                    "cursor-pointer gap-3 rounded-xl py-2.5",
-                                                    action.variant === 'danger' && "text-rose-500 hover:text-rose-600 hover:bg-rose-50",
-                                                    action.variant === 'success' && "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50",
-                                                    action.variant === 'warning' && "text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                                                    "cursor-pointer gap-2 rounded-lg py-2",
+                                                    action.variant === 'danger' && "text-rose-500",
+                                                    action.variant === 'success' && "text-emerald-500",
+                                                    action.variant === 'warning' && "text-amber-500"
                                                 )}
                                             >
-                                                {action.icon && <span className="h-4 w-4">{action.icon}</span>}
-                                                <span className="font-semibold text-sm">{action.label}</span>
+                                                {action.icon && <span className="h-3.5 w-3.5">{action.icon}</span>}
+                                                <span className="font-semibold text-xs">{action.label}</span>
                                             </DropdownMenuItem>
                                         ))}
                                     </DropdownMenuContent>
@@ -134,33 +122,31 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                     </div>
 
                     {/* Title & Description */}
-                    <div className="space-y-3 flex-1">
-                        <h3 className="text-xl font-bold leading-tight line-clamp-2 transition-colors duration-300 group-hover:text-primary">
-                            {record.title}
+                    <div className="space-y-2 flex-1">
+                        <h3 className="text-sm font-bold leading-snug line-clamp-2 transition-colors duration-300 group-hover:text-primary">
+                            {displayTitle}
                         </h3>
-                        <p className="text-sm text-muted-foreground/80 leading-relaxed line-clamp-2 font-medium">
-                            {record.data?.journalName || record.data?.conferenceName || record.data?.client || record.data?.agency || record.data?.author || record.data?.publisher || record.journalName || record.conferenceName || record.client || record.agency || record.author || record.publisher || 'Detailed record for research evaluation.'}
+                        <p className="text-[11px] text-muted-foreground/70 leading-relaxed line-clamp-2 font-medium">
+                            {displayDescription}
                         </p>
                     </div>
 
                     {/* Metadata Footer */}
-                    <div className="flex items-center justify-between pt-5 border-t border-muted/30">
-                        <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5 text-muted-foreground">
-                                <Calendar className="h-3.5 w-3.5" />
-                                <span className="text-[11px] font-bold uppercase tracking-wider">{record.date || record.year || record.data?.date || record.data?.year || 'N/A'}</span>
-                            </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-muted/20">
+                        <div className="flex items-center gap-1.5 text-muted-foreground/60">
+                            <Calendar className="h-3 w-3" />
+                            <span className="text-[9px] font-bold uppercase tracking-wider">{displayDate}</span>
                         </div>
 
                         <Badge className={cn(
-                            "rounded-full gap-1.5 px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest shadow-soft pointer-events-none",
-                            getStatusColor(record.status)
+                            "rounded-full gap-1.5 px-3 py-0.5 font-bold text-[9px] uppercase tracking-widest border-none shadow-none pointer-events-none",
+                            getStatusColor(status)
                         )}>
-                            <span className="relative flex h-2 w-2">
-                                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", record.status.toLowerCase() === 'pending' ? 'bg-amber-400' : (record.status.toLowerCase() === 'approved' ? 'bg-emerald-400' : 'bg-rose-400'))}></span>
-                                <span className={cn("relative inline-flex rounded-full h-2 w-2", record.status.toLowerCase() === 'pending' ? 'bg-amber-500' : (record.status.toLowerCase() === 'approved' ? 'bg-emerald-500' : 'bg-rose-500'))}></span>
-                            </span>
-                            {record.status}
+                            <span className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
+                            )} />
+                            {displayStatus}
                         </Badge>
                     </div>
                 </div>

@@ -37,12 +37,19 @@ export type AuthResult = Promise<{
     message: string
 }>
 
-import { User } from './rims.types'
-export type { User }
-
 export type Token = {
     accessToken: string
     refereshToken?: string
+}
+import type { User as FirebaseUser } from "@/services/firebase/users/types"
+
+export interface User extends Partial<FirebaseUser> {
+    userId?: string
+    userName?: string
+    authority?: string[]
+    avatar?: string
+    id?: string
+    email?: string
 }
 
 export type OauthSignInCallbackPayload = {

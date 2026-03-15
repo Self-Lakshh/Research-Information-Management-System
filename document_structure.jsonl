@@ -56,7 +56,6 @@
       "published_date": "",
       "patent_type": "design/patent/copyright/trademark",
       "status": "",
-
       "sources": [
         "media/{media_id}",
         "media/{media_id}"
@@ -80,7 +79,6 @@
       "name_of_student": "",
       "enrollment_number": "",
       "phd_stream": "",
-
       "sources": [
         "media/{media_id}"
       ],

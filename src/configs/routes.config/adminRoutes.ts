@@ -27,6 +27,12 @@ const adminRoutes: Routes = [
         component: lazy(() => import('@/views/admin/User_Management')),
         authority: [ADMIN],
     },
+    {
+        key: 'admin.user-profile',
+        path: '/admin/user-profile/:id',
+        component: lazy(() => import('@/views/admin/User_Management/components/UserProfile')),
+        authority: [ADMIN],
+    },
 ]
 
 export default adminRoutes

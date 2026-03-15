@@ -3,7 +3,7 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getAnalytics, Analytics } from 'firebase/analytics';
-import { getFunctions, Functions } from 'firebase/functions'; // Add thisimport
+import { getFunctions, Functions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -29,7 +29,12 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
-    functions = getFunctions(app);
+    functions = getFunctions(app); // Defaults to us-central1
+
+    // Connect to emulators in development
+    if (import.meta.env.VITE_APP_ENV === 'development' || window.location.hostname === 'localhost') {
+        connectFunctionsEmulator(functions, 'localhost', 5001);
+    }
 
     // Analytics only in production
     if (typeof window !== 'undefined' && import.meta.env.PROD) {

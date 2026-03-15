@@ -12,7 +12,7 @@ import {
     searchUsers,
 } from '@/services/firebase';
 import { createUserWithResetLink } from '@/services/firebase';
-import { CreateUserData, UpdateUserData } from '@/@types/rims.types';
+import { CreateUserData, UpdateUserData } from '@/services/firebase/users/types';
 import { useAuth } from '@/auth';
 
 /**

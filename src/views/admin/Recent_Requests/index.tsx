@@ -1,204 +1,262 @@
-import { useState } from 'react'
-import { CheckCircle, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { CheckCircle, X, Clock, XCircle } from 'lucide-react'
 import {
     Searchbar,
     DomainFilter,
     YearFilter,
     ConfirmDialog,
-} from '@/components/custom'
-import {
+    RecordCard,
     RecordTable,
     RecordDetailModal,
-    RecordCard
 } from '@/components/custom'
-import { COMMON_FILTERS } from '@/configs/rims.config'
-import { cn } from '@/components/shadcn/utils'
-import type { Record as ResearchRecord, User } from '@/@types/rims.types'
-import { usePendingRecords, useApproveRecord, useRejectRecord } from '@/hooks/useRecords'
-import { Spinner } from '@/components/shadcn/ui/spinner'
 import ViewSlider from '@/components/custom/ViewSlider'
-// ============================================
+import { Spinner } from '@/components/shadcn/ui/spinner'
+import { usePendingRecords, useSetRecordStatus } from '@/hooks/useRecords'
+import { cn } from '@/components/shadcn/utils'
+import type { Record as ResearchRecord, RecordType } from '@/@types/rims.types'
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Recent Requests
+// ─ "Pending" tab  → records with approval_status = 'pending'
+// ─ "Rejected" tab → records with approval_status = 'rejected'
+// Both tabs share the same Approve / Reject actions.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STATUS_TABS = [
+    { key: 'pending', label: 'Pending', icon: Clock },
+    { key: 'rejected', label: 'Rejected', icon: XCircle },
+] as const
+
+type StatusTab = typeof STATUS_TABS[number]['key']
 
 const RecentRequests = () => {
-    const [filters, setFilters] = useState<Record<string, unknown>>({})
-    const { data: records = [], isLoading } = usePendingRecords()
-    const approveRecord = useApproveRecord()
-    const rejectRecord = useRejectRecord()
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
+    // ── State ──────────────────────────────────────────────────────────────
+    const [domainFilter, setDomainFilter] = useState<string>('all')
+    const [yearFilter, setYearFilter] = useState<string>('all')
+    const [search, setSearch] = useState('')
+    const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
     const [selectedRecord, setSelectedRecord] = useState<ResearchRecord | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
-    const [actionDialog, setActionDialog] = useState<{
-        isOpen: boolean
-        type: 'approve' | 'reject'
-        requestId: string | null
-    }>({
-        isOpen: false,
-        type: 'approve',
-        requestId: null
-    })
+    const [confirmDialog, setConfirmDialog] = useState<{
+        open: boolean
+        action: 'approve' | 'reject'
+        record: ResearchRecord | null
+    }>({ open: false, action: 'approve', record: null })
 
-    const handleFilterChange = (key: string, value: unknown) => {
-        setFilters((prev: Record<string, unknown>) => ({ ...prev, [key]: value }))
-    }
+    // ── Data ──────────────────────────────────────────────────────────────
+    const [activeTab, setActiveTab] = useState<StatusTab>('pending')
+    const selectedType = domainFilter === 'all' ? undefined : (domainFilter as RecordType)
+    const {
+        data: rawData = [],
+        isLoading,
+        error,
+        refetch,
+    } = usePendingRecords(selectedType, activeTab)
 
-    const handleClearFilters = () => {
-        setFilters({})
-    }
+    const setStatus = useSetRecordStatus()
 
-    const handleApprove = (id: string) => {
-        setActionDialog({ isOpen: true, type: 'approve', requestId: id })
-    }
+    // ── Client-side search + year filter ──────────────────────────────────
+    const displayed = useMemo(() => {
+        return rawData.filter((r: any) => {
+            const title = (
+                r.title ||
+                r.title_of_paper ||
+                r.title_of_book ||
+                r.award_name ||
+                r.project_title ||
+                r.topic_title ||
+                r.name_of_student ||
+                ''
+            ).toLowerCase()
 
-    const handleReject = (id: string) => {
-        setActionDialog({ isOpen: true, type: 'reject', requestId: id })
-    }
+            const matchesSearch = !search || (() => {
+                const q = search.toLowerCase()
+                const hay = [
+                    title,
+                    r.journal_name,
+                    r.name_of_conference,
+                    r.organization,
+                    r.institution_body,
+                    r.publisher_name,
+                    r.patent_type,
+                    r._domain
+                ].join(' ').toLowerCase()
+                return hay.includes(q)
+            })()
 
-    const handleView = (record: any) => {
-        setSelectedRecord(record)
-        setIsDetailOpen(true)
-    }
+            const matchesYear = yearFilter === 'all' || (() => {
+                const dateVal = r.date || r.date_of_publication || r.published_date || r.grant_date || r.month_year || r.year_of_publication || r.publicationYear || ''
+                if (String(dateVal).includes(yearFilter)) return true
+                const ca = r.created_at
+                if (ca?.toDate) return ca.toDate().getFullYear().toString() === yearFilter
+                return false
+            })()
 
-    const handleConfirmAction = async () => {
-        if (!actionDialog.requestId) return;
+            return matchesSearch && matchesYear
+        })
+    }, [rawData, search, yearFilter])
+
+    const hasFilters = !!search || yearFilter !== 'all'
+
+    // ── Handlers ──────────────────────────────────────────────────────────
+    const openApprove = (record: any) =>
+        setConfirmDialog({ open: true, action: 'approve', record })
+    const openReject = (record: any) =>
+        setConfirmDialog({ open: true, action: 'reject', record })
+
+    const handleConfirm = async () => {
+        const { record, action } = confirmDialog
+        if (!record) return
+        const type = (record._domain || record.type || domainFilter) as RecordType
         try {
-            if (actionDialog.type === 'approve') {
-                await approveRecord.mutateAsync(actionDialog.requestId);
-            } else {
-                await rejectRecord.mutateAsync(actionDialog.requestId);
-            }
-            setActionDialog({ isOpen: false, type: 'approve', requestId: null })
-        } catch (error) {
-            console.error(error)
-            alert(`Failed to ${actionDialog.type} record`)
+            await setStatus.mutateAsync({
+                type,
+                recordId: (record as any).id!,
+                status: action === 'approve' ? 'approved' : 'rejected',
+            })
+            setConfirmDialog({ open: false, action: 'approve', record: null })
+            refetch()
+        } catch (err) {
+            console.error('Status update failed:', err)
+            alert(`Failed to ${action} record.`)
         }
     }
 
-    const pendingCount = records.length
-
-
-
-    const approvalActions = [
-        {
-            label: 'Approve Request',
-            onClick: (record: any) => handleApprove(record.id),
-            icon: <CheckCircle className="w-4 h-4" />,
-            variant: 'success' as const
-        },
-        {
-            label: 'Reject Request',
-            onClick: (record: any) => handleReject(record.id),
-            icon: <X className="w-4 h-4" />,
-            variant: 'danger' as const
-        }
+    const approvalActions = activeTab === 'pending' ? [
+        { label: 'Approve Submission', onClick: openApprove, icon: <CheckCircle className="w-4 h-4" />, variant: 'success' as const },
+        { label: 'Reject Submission', onClick: openReject, icon: <X className="w-4 h-4" />, variant: 'danger' as const },
+    ] : [
+        { label: 'Re-Approve', onClick: openApprove, icon: <CheckCircle className="w-4 h-4" />, variant: 'success' as const },
     ]
 
     return (
-        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6">
-            {/* Page Header */}
-            <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-5 shadow-premium flex flex-col gap-4 shrink-0">
+        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-4">
+
+            {/* ── Header ── */}
+            <div className="bg-card border border-muted/40 rounded-2xl p-4 shadow-sm flex flex-col gap-4 shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-xl font-bold text-foreground tracking-tight">
-                            Recent Requests
-                        </h1>
+                    <div className="flex items-center gap-6">
+                        <div>
+                            <h1 className="text-xl font-bold text-foreground leading-none">Review Desk</h1>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1.5 opacity-60">
+                                Institutional Verification Hub
+                            </p>
+                        </div>
+
+                        <div className="h-10 w-px bg-muted/30 hidden md:block" />
+
+                        {/* Status Tabs */}
+                        <div className="flex items-center bg-muted/20 p-1 rounded-xl border border-muted/40">
+                            {STATUS_TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.key;
+                                return (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setActiveTab(tab.key)}
+                                        className={cn(
+                                            "flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-bold transition-all",
+                                            isActive
+                                                ? "bg-background shadow-sm text-primary"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                                        )}
+                                    >
+                                        <Icon className={cn("w-3.5 h-3.5", isActive ? "text-primary" : "text-muted-foreground/60")} />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                     <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-3 pt-5 pb-1 border-t border-muted">
-                    <Searchbar
-                        value={(filters.search as string) || ''}
-                        onChange={(val) => handleFilterChange('search', val)}
-                        className="w-full sm:max-w-xs"
-                    />
-                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
-                        <DomainFilter
-                            value={(filters.type as string) || 'all'}
-                            onChange={(val) => handleFilterChange('type', val)}
-                        />
-                        <YearFilter
-                            value={(filters.year as string) || 'all'}
-                            onChange={(val) => handleFilterChange('year', val)}
-                        />
-                        {Object.keys(filters).length > 0 && (
+                <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-muted/30">
+                    <Searchbar value={search} onChange={setSearch} className="w-full sm:max-w-xs" />
+                    <div className="flex items-center gap-2 sm:ml-auto">
+                        <DomainFilter value={domainFilter} onChange={setDomainFilter} />
+                        <YearFilter value={yearFilter} onChange={setYearFilter} />
+                        {hasFilters && (
                             <button
-                                onClick={handleClearFilters}
-                                className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                onClick={() => { setSearch(''); setYearFilter('all') }}
+                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                             </button>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Requests Content - Scrollable area */}
-            <div className="flex-auto flex flex-col min-h-0">
-                {isLoading ? (
-                    <div className="py-20 flex-auto flex items-center justify-center">
-                        <Spinner className="w-8 h-8" />
+            {/* ── Content ── */}
+            <div className="flex-auto flex flex-col min-h-0 bg-card border border-muted/40 rounded-2xl shadow-sm overflow-hidden">
+                {error ? (
+                    <div className="p-12 text-center">
+                        <XCircle className="w-12 h-12 text-rose-500 mx-auto mb-4" />
+                        <p className="text-rose-500 font-bold">Error loading queue</p>
                     </div>
-                ) : records.length === 0 ? (
-                    <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-16 text-center shadow-premium">
-                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                            <CheckCircle className="w-8 h-8 text-emerald-500" />
+
+                ) : isLoading ? (
+                    <div className="py-20 flex-auto flex items-center justify-center">
+                        <Spinner className="w-6 h-6" />
+                    </div>
+
+                ) : displayed.length === 0 ? (
+                    <div className="p-20 text-center">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-8 h-8 text-emerald-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-foreground mb-2 tracking-tight">
-                            All caught up!
-                        </h3>
-                        <p className="text-sm text-muted-foreground max-w-sm mx-auto font-medium">
-                            There are no pending requests at the moment. You've processed all recent submissions.
+                        <h3 className="text-lg font-bold text-foreground">Queue Clear!</h3>
+                        <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">
+                            All pending submissions have been reviewed.
                         </p>
                     </div>
+
                 ) : viewMode === 'grid' ? (
-                    <div className="flex-auto overflow-y-auto custom-scrollbar min-h-0">
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-6">
-                            {records.map((record) => (
+                    <div className="flex-auto overflow-y-auto custom-scrollbar p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                            {displayed.map((record) => (
                                 <RecordCard
                                     key={record.id}
                                     record={record}
-                                    onView={handleView}
+                                    onView={(r) => { setSelectedRecord(r); setIsDetailOpen(true) }}
                                     actions={approvalActions}
                                 />
                             ))}
                         </div>
                     </div>
+
                 ) : (
-                    <div className="flex-auto flex flex-col min-h-0">
+                    <div className="flex-auto min-h-0">
                         <RecordTable
-                            records={records}
-                            selectedDomain="all"
-                            onView={handleView}
+                            records={displayed}
+                            selectedDomain={domainFilter}
+                            onView={(r) => { setSelectedRecord(r); setIsDetailOpen(true) }}
                             actions={approvalActions}
                         />
                     </div>
                 )}
             </div>
 
-            {/* Record Detail Modal */}
+            {/* ── Modals ── */}
             <RecordDetailModal
                 isOpen={isDetailOpen}
                 onClose={() => setIsDetailOpen(false)}
                 record={selectedRecord}
             />
 
-            {/* Approval/Rejection Confirmation */}
             <ConfirmDialog
-                isOpen={actionDialog.isOpen}
-                onClose={() =>
-                    setActionDialog({ isOpen: false, type: 'approve', requestId: null })
-                }
-                onConfirm={handleConfirmAction}
-                title={
-                    actionDialog.type === 'approve' ? 'Approve Request' : 'Reject Request'
-                }
+                isOpen={confirmDialog.open}
+                onClose={() => setConfirmDialog({ open: false, action: 'approve', record: null })}
+                onConfirm={handleConfirm}
+                title={confirmDialog.action === 'approve' ? 'Confirm Approval' : 'Reject Submission'}
                 message={
-                    actionDialog.type === 'approve'
-                        ? 'Are you sure you want to approve this request? The record will be published immediately.'
-                        : 'Are you sure you want to reject this request? The submitter will be notified.'
+                    confirmDialog.action === 'approve'
+                        ? 'This submission will be published to the public archive.'
+                        : 'Please provide a reason if you wish to reject this submission.'
                 }
-                confirmLabel={actionDialog.type === 'approve' ? 'Approve' : 'Reject'}
-                variant={actionDialog.type === 'approve' ? 'default' : 'danger'}
+                confirmLabel={confirmDialog.action === 'approve' ? 'Approve' : 'Reject'}
+                variant={confirmDialog.action === 'approve' ? 'default' : 'danger'}
             />
         </div>
     )

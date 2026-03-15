@@ -1,255 +1,312 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
+import { Plus, Search, FileText, X, LayoutGrid, List } from 'lucide-react'
 import { Card } from '@/components/shadcn/ui/card'
-import { useUserRecords, useCreateRecord, useUpdateRecord, useDeleteRecord } from '@/hooks/useRecords'
-import { Spinner } from '@/components/shadcn/ui/spinner'
 import { Button } from '@/components/shadcn/ui/button'
-import {
-    Plus,
-    Search,
-    FileText
-} from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/shadcn/ui/dropdown-menu'
-import { cn } from '@/components/shadcn/utils'
-import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import {
-    RecordCard,
-    RecordFormModal,
-    RecordDetailModal,
-    RecordTable,
     Searchbar,
     DomainFilter,
     YearFilter,
-    ViewSlider
+    RecordCard,
+    RecordTable,
+    RecordFormModal,
+    RecordDetailModal,
 } from '@/components/custom'
+import { Spinner } from '@/components/shadcn/ui/spinner'
+import { cn } from '@/components/shadcn/utils'
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
+import { useAllUserRecords, useCreateRecord, useUpdateRecord, useDeleteRecord } from '@/hooks/useRecords'
+import type { RecordType } from '@/@types/rims.types'
 
 const Submissions = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [search, setSearch] = useState('')
+    const [domainFilter, setDomainFilter] = useState('all')
+    const [yearFilter, setYearFilter] = useState('all')
+    const [addType, setAddType] = useState<string>('journal')
+    const [isAddOpen, setIsAddOpen] = useState(false)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
-    const [selectedType, setSelectedType] = useState('journal')
-    const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null)
-    const [searchQuery, setSearchQuery] = useState('')
-    const [selectedDomain, setSelectedDomain] = useState<string>('all')
-    const [selectedYear, setSelectedYear] = useState<string>('all')
+    const [selected, setSelected] = useState<any | null>(null)
 
-    const { data: submissions = [], isLoading } = useUserRecords()
+    // ── Data ──────────────────────────────────────────────────────────────
+    const { data: submissions = [], isLoading, error } = useAllUserRecords()
     const createRecord = useCreateRecord()
     const updateRecord = useUpdateRecord()
     const deleteRecord = useDeleteRecord()
 
+    // ── Available years from data ──────────────────────────────────────────
     const availableYears = useMemo(() => {
-        const years = new Set<string>();
+        const years = new Set<string>()
+
+        // 1. Add baseline years (2021 to current/next)
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const endYear = now.getMonth() === 11 ? currentYear + 1 : currentYear
+        for (let i = 2021; i <= endYear; i++) {
+            years.add(i.toString())
+        }
+
+        // 2. Add years found in data (for legacy or future records)
         submissions.forEach((s: any) => {
-            let date = null;
-            if (s.created_at) {
-                date = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at);
-            }
-            if (date && !isNaN(date.getTime())) {
-                years.add(date.getFullYear().toString());
-            }
-            // Check specific year fields if date parsing fails or as fallback
-            const anyRecord = s as any;
-            if (anyRecord.publicationYear) years.add(anyRecord.publicationYear.toString());
-            if (anyRecord.publicationDate) {
-                const pubDate = new Date(anyRecord.publicationDate);
-                if (!isNaN(pubDate.getTime())) years.add(pubDate.getFullYear().toString());
-            }
-        });
-        return Array.from(years).sort((a, b) => b.localeCompare(a));
-    }, [submissions]);
+            const dateVal = s.date || s.date_of_publication || s.published_date || s.grant_date || s.month_year || s.year_of_publication || s.publicationYear || ''
+            const yearStr = String(dateVal).match(/\d{4}/)?.[0]
+            if (yearStr) years.add(yearStr)
 
-    const filteredSubmissions = useMemo(() => {
+            if (s.created_at) {
+                const d = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at)
+                if (!isNaN(d.getTime())) years.add(d.getFullYear().toString())
+            }
+        })
+        return Array.from(years).sort((a, b) => b.localeCompare(a))
+    }, [submissions])
+
+    // ── Client-side filter ────────────────────────────────────────────────
+    const displayed = useMemo(() => {
         return submissions.filter((s: any) => {
-            const matchesSearch = s.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                s.approval_status?.toLowerCase().includes(searchQuery.toLowerCase())
+            const title = (
+                s.title ||
+                s.title_of_paper ||
+                s.title_of_book ||
+                s.award_name ||
+                s.project_title ||
+                s.topic_title ||
+                s.name_of_student ||
+                ''
+            ).toLowerCase()
 
-            const matchesDomain = selectedDomain === 'all' || s.type?.toLowerCase() === selectedDomain.toLowerCase()
+            const matchesSearch = !search || title.includes(search.toLowerCase()) ||
+                (s.approval_status || 'pending').toLowerCase().includes(search.toLowerCase())
 
-            // Extract year logic
-            let recordYear = '';
-            if (s.created_at) {
-                const date = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at);
-                recordYear = date.getFullYear().toString();
+            const matchesDomain = domainFilter === 'all' || s.type === domainFilter
+
+            let matchesYear = yearFilter === 'all'
+            if (!matchesYear) {
+                const dateVal = s.date || s.date_of_publication || s.published_date || s.grant_date || s.month_year || s.year_of_publication || s.publicationYear || ''
+                matchesYear = String(dateVal).includes(yearFilter)
+
+                if (!matchesYear && s.created_at) {
+                    const d = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at)
+                    matchesYear = d.getFullYear().toString() === yearFilter
+                }
             }
-            const pubYear = (s as any).publicationYear?.toString();
-            const pubDateYear = (s as any).publicationDate ? new Date((s as any).publicationDate).getFullYear().toString() : undefined;
-
-            const matchesYear = selectedYear === 'all' ||
-                recordYear === selectedYear ||
-                (pubYear && pubYear === selectedYear) ||
-                (pubDateYear && pubDateYear === selectedYear);
 
             return matchesSearch && matchesDomain && matchesYear
         })
-    }, [submissions, searchQuery, selectedDomain, selectedYear])
+    }, [submissions, search, domainFilter, yearFilter])
 
+    // ── Handlers ──────────────────────────────────────────────────────────
     const handleAddClick = (type: string) => {
-        setSelectedType(type)
-        setSelectedSubmission(null)
-        setIsAddModalOpen(true)
+        setAddType(type)
+        setSelected(null)
+        setIsAddOpen(true)
     }
 
-    const handleViewDetail = (submission: any) => {
-        setSelectedSubmission(submission)
-        setIsDetailOpen(true)
+    const handleEdit = (record: any) => {
+        setAddType(record.type || 'journal')
+        setSelected(record)
+        setIsAddOpen(true)
     }
 
-    const handleEditSubmission = (submission: any) => {
-        setSelectedType(submission.type?.toLowerCase() || 'journal')
-        setSelectedSubmission(submission)
-        setIsAddModalOpen(true)
-    }
-
-    const handleDeleteSubmission = async (id: string) => {
-        if (confirm('Are you sure you want to delete this submission?')) {
-            try {
-                await deleteRecord.mutateAsync(id)
-            } catch (error) {
-                console.error(error)
-                alert('Failed to delete record')
-            }
+    const handleDelete = async (id: string) => {
+        if (!confirm('Delete this submission? This action cannot be undone.')) return
+        const record = submissions.find((s: any) => s.id === id)
+        const type = record?.type || 'journal'
+        try {
+            await deleteRecord.mutateAsync({ type: type as RecordType, recordId: id })
+        } catch (err) {
+            console.error(err)
+            alert('Failed to delete.')
         }
     }
 
     const handleFormSubmit = async (data: any) => {
         try {
-            if (selectedSubmission) {
-                await updateRecord.mutateAsync({ recordId: selectedSubmission.id, data })
+            const type = addType as RecordType
+            if (selected) {
+                await updateRecord.mutateAsync({ recordId: selected.id, data: { ...data, type } })
             } else {
-                await createRecord.mutateAsync({ ...data, type: selectedType })
+                await createRecord.mutateAsync({ ...data, type })
             }
-            setIsAddModalOpen(false)
-        } catch (error) {
-            console.error(error)
-            alert('Failed to save record')
+            setIsAddOpen(false)
+            setSelected(null)
+        } catch (err) {
+            console.error(err)
+            alert('Failed to save.')
         }
     }
 
-    const handleExport = (format: 'pdf' | 'excel') => {
-        console.log(`Exporting as ${format}...`)
-        // Implement export logic here
-        alert(`Exporting as ${format}...`)
-    }
+    const clearFilters = () => { setSearch(''); setDomainFilter('all'); setYearFilter('all') }
+    const hasFilters = !!search || domainFilter !== 'all' || yearFilter !== 'all'
 
     return (
-        <div className="p-4 md:p-8 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-700">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-foreground/90">My Submissions</h1>
-                    <p className="text-muted-foreground font-medium">Manage and track your research portfolio across all domains.</p>
-                </div>
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button className="rounded-2xl h-11 px-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-soft transition-all duration-300 gap-2">
-                            <Plus className="h-4 w-4" /> Add Submission
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-primary/10 shadow-premium">
-                        <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Domain Type</div>
-                        {Object.entries(RECORD_TYPE_CONFIG).map(([key, config]) => (
-                            <DropdownMenuItem
-                                key={key}
-                                onClick={() => handleAddClick(key)}
-                                className="cursor-pointer rounded-xl py-2.5 gap-3 group transition-colors"
-                            >
-                                <div className={cn("p-2 rounded-lg bg-background border border-muted group-hover:bg-primary/5 transition-colors", config.color.replace('text-', 'bg-').replace('500', '50'))}>
-                                    <FileText className={cn("h-4 w-4", config.color)} />
-                                </div>
-                                <span className="font-semibold text-sm">{config.label}</span>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-
-            {/* Controls Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-6 bg-card p-4 rounded-3xl border border-muted/50 shadow-soft">
-                <div className="flex flex-col sm:flex-row flex-1 items-center gap-4 w-full">
-                    <Searchbar
-                        value={searchQuery}
-                        onChange={setSearchQuery}
-                        className="w-full max-w-none sm:max-w-md"
-                    />
-                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <DomainFilter
-                            value={selectedDomain}
-                            onChange={setSelectedDomain}
-                        />
-                        <YearFilter
-                            value={selectedYear}
-                            onChange={setSelectedYear}
-                            years={availableYears}
-                            className="w-[120px]"
-                        />
+        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6 p-1">
+            {/* Header Section */}
+            <div className="bg-card/50 backdrop-blur-sm rounded-3xl border border-border/50 p-6 shadow-premium flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0">
+                <div className="space-y-1.5">
+                    <h1 className="text-2xl font-bold text-foreground tracking-tight">Records Portfolio</h1>
+                    <div className="flex items-center gap-2">
+                        <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">
+                            {isLoading ? 'Synchronizing…' : `${submissions.length} Research Entities Found`}
+                        </p>
                     </div>
                 </div>
-                <div className="flex flex-row items-center gap-4 justify-end">
-                    <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
-                    <Button variant="outline" onClick={() => handleExport('pdf')} className="rounded-xl h-10 lg:h-12 shadow-sm border-muted font-semibold px-5">
-                        Export
-                    </Button>
+
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center bg-muted/20 p-1 rounded-2xl border border-border/50 mr-2">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={cn(
+                                "p-2 rounded-xl transition-all",
+                                viewMode === 'grid' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <LayoutGrid className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={cn(
+                                "p-2 rounded-xl transition-all",
+                                viewMode === 'table' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <List className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button className="rounded-2xl h-11 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-premium transition-all duration-300">
+                                <Plus className="w-4 h-4 mr-2 stroke-3" />
+                                New Submission
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 shadow-premium border-muted/20 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">
+                                Research Domain
+                            </div>
+                            {Object.entries(RECORD_TYPE_CONFIG)
+                                .map(([key, config]) => (
+                                    <DropdownMenuItem
+                                        key={key}
+                                        onClick={() => handleAddClick(key)}
+                                        className="cursor-pointer rounded-xl py-2.5 gap-3 focus:bg-primary/5 group"
+                                    >
+                                        <div className={cn('p-2 rounded-lg bg-background border border-muted/50 transition-colors group-focus:border-primary/30', config.color)}>
+                                            <FileText className="h-4 w-4" />
+                                        </div>
+                                        <span className="font-semibold text-sm group-focus:text-primary transition-colors">{config.label}</span>
+                                    </DropdownMenuItem>
+                                ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
-            {/* Content View */}
-            {isLoading ? (
-                <div className="py-20 flex justify-center">
-                    <Spinner className="w-8 h-8" />
-                </div>
-            ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                    {filteredSubmissions.length > 0 ? (
-                        filteredSubmissions.map((item) => (
-                            <RecordCard
-                                key={item.id}
-                                record={item}
-                                onView={handleViewDetail}
-                                onEdit={handleEditSubmission}
-                                onDelete={handleDeleteSubmission}
-                            />
-                        ))
-                    ) : (
-                        <div className="col-span-full py-20 text-center space-y-4">
-                            <div className="h-20 w-20 bg-muted rounded-full flex items-center justify-center mx-auto opacity-50">
-                                <Search className="h-10 w-10 text-muted-foreground " />
-                            </div>
-                            <p className="text-muted-foreground font-bold">No submissions found matching your search.</p>
-                        </div>
+            {/* Filter Bar */}
+            <div className="bg-card/30 backdrop-blur-sm rounded-2xl border border-border/40 p-3 shadow-sm flex flex-col sm:flex-row items-center gap-3 shrink-0">
+                <Searchbar
+                    value={search}
+                    onChange={setSearch}
+                    className="w-full sm:max-w-xs"
+                />
+                <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
+                    <DomainFilter value={domainFilter} onChange={setDomainFilter} className="w-full sm:w-[160px]" />
+                    <YearFilter value={yearFilter} onChange={setYearFilter} years={availableYears} className="w-full sm:w-[120px]" />
+                    {hasFilters && (
+                        <button
+                            onClick={clearFilters}
+                            className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     )}
                 </div>
-            ) : (
-                <Card className="border-none shadow-premium rounded-2xl overflow-hidden">
-                    <RecordTable
-                        records={filteredSubmissions}
-                        selectedDomain={selectedDomain}
-                        onView={handleViewDetail}
-                        onEdit={handleEditSubmission}
-                        onDelete={handleDeleteSubmission}
-                    />
-                </Card>
-            )}
+            </div>
 
-            {/* Modals */}
+            {/* Content Area */}
+            <div className="flex-auto overflow-hidden">
+                {error ? (
+                    <div className="h-full flex flex-col items-center justify-center p-8 bg-card rounded-3xl border border-rose-500/20">
+                        <div className="w-16 h-16 bg-rose-500/10 rounded-full flex items-center justify-center mb-4">
+                            <X className="w-8 h-8 text-rose-500" />
+                        </div>
+                        <h3 className="text-lg font-bold text-rose-500">Synchronization Error</h3>
+                        <p className="text-sm text-muted-foreground mt-1 max-w-xs text-center">{(error as any).message}</p>
+                        <Button variant="outline" className="mt-6 rounded-xl" onClick={() => window.location.reload()}>Retry Connection</Button>
+                    </div>
+                ) : isLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center gap-4 py-20">
+                        <Spinner className="w-8 h-8 text-primary" />
+                        <p className="text-sm text-muted-foreground font-medium animate-pulse">Fetching your research data…</p>
+                    </div>
+                ) : displayed.length > 0 ? (
+                    <div className="h-full">
+                        {viewMode === 'grid' ? (
+                            <div className="h-full overflow-y-auto custom-scrollbar pr-2 pb-12">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    {displayed.map((item: any) => (
+                                        <RecordCard
+                                            key={item.id}
+                                            record={item}
+                                            onView={(r) => { setSelected(r); setIsDetailOpen(true) }}
+                                            onEdit={handleEdit}
+                                            onDelete={handleDelete}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <Card className="h-full border border-border/40 shadow-premium rounded-2xl overflow-hidden bg-card/50">
+                                <RecordTable
+                                    records={displayed}
+                                    selectedDomain={domainFilter}
+                                    onView={(r) => { setSelected(r); setIsDetailOpen(true) }}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                />
+                            </Card>
+                        )}
+                    </div>
+                ) : (
+                    <div className="h-full flex flex-col items-center justify-center py-20 bg-card/20 rounded-3xl border border-dashed border-border/60">
+                        <div className="h-20 w-20 bg-muted/40 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <Search className="h-10 w-10 text-muted-foreground/30" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground">No Submissions Found</h3>
+                        <p className="text-sm text-muted-foreground max-w-xs mx-auto text-center mt-2 leading-relaxed">
+                            {hasFilters
+                                ? "No items match your high-precision search criteria."
+                                : "You haven't initiated any research submissions yet. Begin your portfolio today."}
+                        </p>
+                        {hasFilters ? (
+                            <Button variant="ghost" className="mt-4 rounded-xl font-bold text-primary" onClick={clearFilters}>Reset All Filters</Button>
+                        ) : (
+                            <Button className="mt-6 rounded-xl shadow-premium h-11 px-8" onClick={() => handleAddClick('journal')}>Initiate First Submission</Button>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Global Modals */}
             <RecordFormModal
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                type={selectedType}
-                initialData={selectedSubmission}
+                isOpen={isAddOpen}
+                onClose={() => { setIsAddOpen(false); setSelected(null) }}
+                type={addType}
+                initialData={selected}
                 onSubmit={handleFormSubmit}
+                loading={createRecord.isPending || updateRecord.isPending}
             />
 
             <RecordDetailModal
                 isOpen={isDetailOpen}
-                onClose={() => setIsDetailOpen(false)}
-                record={selectedSubmission}
+                onClose={() => { setIsDetailOpen(false); setSelected(null) }}
+                record={selected}
             />
         </div>
     )

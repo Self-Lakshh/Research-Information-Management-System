@@ -38,14 +38,14 @@ const _UserDropdown = () => {
             className="flex"
             toggleClassName="flex items-center"
             renderTitle={
-                <div className="cursor-pointer flex items-center">
+                <Link className="cursor-pointer flex items-center" to="/profile">
                     <Avatar size={32} {...avatarProps} />
-                </div>
+                </Link>
             }
             placement="bottom-end"
         >
             <Dropdown.Item variant="header">
-                <div className="py-2 px-3 flex items-center gap-3">
+                <Link className="py-2 px-3 flex items-center gap-3" to="/profile">
                     <Avatar {...avatarProps} />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-gray-100">
@@ -55,7 +55,7 @@ const _UserDropdown = () => {
                             {email || 'No email available'}
                         </div>
                     </div>
-                </div>
+                </Link>
             </Dropdown.Item>
             <Dropdown.Item variant="divider" />
             {dropdownItemList.map((item) => (

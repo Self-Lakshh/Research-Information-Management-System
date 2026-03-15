@@ -10,12 +10,6 @@ const userRoutes: Routes = [
         authority: [USER],
     },
     {
-        key: 'user.profile',
-        path: '/profile',
-        component: lazy(() => import('@/views/user/Profile')),
-        authority: [USER],
-    },
-    {
         key: 'user.submissions',
         path: '/user/submissions',
         component: lazy(() => import('@/views/user/Submissions')),

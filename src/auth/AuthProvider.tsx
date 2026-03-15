@@ -105,7 +105,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
             handleSignIn({ accessToken: firebaseUser.uid }, {
                 ...userData,
-                userId: userData.uid,
+                userId: userData.id,
                 email: userData.email,
                 avatar: userData.profile_picture_url || '',
                 userName: userData.name,

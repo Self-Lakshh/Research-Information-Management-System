@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { StatCard, ChartHeader, ComparisionFilter, YearFilter, DomainFilter } from '@/components/custom'
 import { RecordsSummaryTable } from './components'
-import { useAllRecords } from '@/hooks/useRecords'
+import { useDashboardData } from '@/hooks/useDashboard'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
@@ -44,79 +44,48 @@ import {
 // ============================================
 
 const AdminDashboard = () => {
-    const [selectedYear, setSelectedYear] = useState('all')
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const endYear = now.getMonth() === 11 ? currentYear + 1 : currentYear
 
-    const [chartYear, setChartYear] = useState('2026')
+    const [selectedYear, setSelectedYear] = useState('all')
+    const [statsDomain, setStatsDomain] = useState('all')
+
+    const [chartYear, setChartYear] = useState(currentYear.toString())
     const [chartDomain, setChartDomain] = useState('all')
     const [compareYears, setCompareYears] = useState<string[]>([])
     const [chartType, setChartType] = useState<'line' | 'area' | 'bar'>('area')
 
-    const currentYear = new Date().getFullYear()
     const availableYears = ['all']
-    for (let year = currentYear; year >= 2024; year--) {
+    for (let year = endYear; year >= 2021; year--) {
         availableYears.push(year.toString())
     }
 
     const chartYears = availableYears.filter(y => y !== 'all')
 
-    const { data: records = [] } = useAllRecords()
+    // 1. USE THE NEW CLOUD FUNCTION HOOK
+    const { data, isLoading } = useDashboardData({
+        statsYear: selectedYear,
+        statsDomain,
+        chartYear,
+        chartDomain,
+        compareYears
+    })
 
-    // Mock data generation logic
-    const monthlyData = useMemo(() => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    // Get aggregated data from result
+    const stats = data?.stats || {
+        totalRecords: 0,
+        pendingApprovals: 0,
+        totalUsers: 0,
+        monthlySubmissions: 0,
+        iprs: 0,
+        journals: 0,
+        conferences: 0,
+        grants: 0
+    }
 
-        return months.map((month, idx) => {
-            const dataPoint: any = { name: month, current: 0 };
-
-            // Primary year data
-            dataPoint.current = records.filter(r => {
-                if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
-                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
-                return date.getFullYear().toString() === chartYear && date.getMonth() === idx;
-            }).length;
-
-            // Comparison years data
-            compareYears.forEach(year => {
-                dataPoint[`year_${year}`] = records.filter(r => {
-                    if (chartDomain !== 'all' && ((r as any).category || (r as any).type) !== chartDomain) return false;
-                    const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
-                    return date.getFullYear().toString() === year && date.getMonth() === idx;
-                }).length;
-            });
-
-            return dataPoint;
-        })
-    }, [chartYear, chartDomain, compareYears, records])
-
-    // Generate accurate stats from actual records
-    const stats = useMemo(() => {
-        const filteredRecords = selectedYear === 'all'
-            ? records
-            : records.filter(r => {
-                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
-                return date.getFullYear().toString() === selectedYear;
-            });
-
-        return {
-            totalRecords: filteredRecords.length,
-            pendingApprovals: filteredRecords.filter(r => (r as any).status === 'pending').length,
-            totalUsers: new Set(filteredRecords.map(r => (r as any).userId)).size,
-            monthlySubmissions: filteredRecords.filter(r => {
-                const date = (r as any).createdAt?.toDate ? (r as any).createdAt.toDate() : new Date((r as any).createdAt || Date.now());
-                return date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear();
-            }).length,
-            iprs: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'ipr').length,
-            journals: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'journal').length,
-            conferences: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'conference').length,
-            grants: filteredRecords.filter(r => ((r as any).category || (r as any).type) === 'consultancy').length
-        }
-    }, [records, selectedYear])
-
-    const summaryData = Object.values(RECORD_TYPE_CONFIG).map((meta) => ({
-        type: meta.label,
-        total: Math.floor(Math.random() * 300) + 50,
-        pending: Math.floor(Math.random() * 10)
-    }))
+    const monthlyData = data?.chartData || []
+    const summaryData = data?.summaryData || []
 
     const COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#0ea5e9']
 
@@ -197,25 +166,32 @@ const AdminDashboard = () => {
                 <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/50 p-6 shadow-premium flex flex-col gap-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <h2 className="text-xl font-bold text-foreground tracking-tight uppercase">Statistical Overview</h2>
-                        <YearFilter
-                            value={selectedYear}
-                            onChange={setSelectedYear}
-                        />
+                        <div className="flex items-center gap-3">
+                            <DomainFilter
+                                value={statsDomain}
+                                onChange={setStatsDomain}
+                                className="w-[160px] h-9"
+                            />
+                            <YearFilter
+                                value={selectedYear}
+                                onChange={setSelectedYear}
+                            />
+                        </div>
                     </div>
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                         {[
-                            { label: "Researchers", value: stats.totalUsers, icon: <Users className="w-4 h-4" />, variant: 'indigo' },
-                            { label: "Publications", value: stats.totalRecords, icon: <FileText className="w-4 h-4" />, variant: 'primary' },
-                            { label: "Journals", value: stats.journals, icon: <BookOpen className="w-4 h-4" />, variant: 'azure' },
-                            { label: "IPR / Patents", value: stats.iprs, icon: <Shield className="w-4 h-4" />, variant: 'rose' },
-                            { label: "Conf. Papers", value: stats.conferences, icon: <Activity className="w-4 h-4" />, variant: 'amber' },
-                            { label: "Research Grants", value: stats.grants, icon: <Briefcase className="w-4 h-4" />, variant: 'emerald' },
-                            { label: "Avg. Citations", value: "42.8", icon: <TrendingUp className="w-4 h-4" />, variant: 'indigo' },
-                            { label: "H-Index", value: "24", icon: <BarChart3 className="w-4 h-4" />, variant: 'azure' },
-                            { label: "Review Pending", value: stats.pendingApprovals, icon: <Clock className="w-4 h-4" />, variant: 'warning' },
-                            { label: "Monthly Goal", value: "84%", icon: <PieChart className="w-4 h-4" />, variant: 'primary' }
+                            { label: "Researchers", value: stats.totalUsers, icon: Users, variant: 'indigo' },
+                            { label: "Publications", value: stats.totalRecords, icon: FileText, variant: 'primary' },
+                            { label: "Journals", value: stats.journals, icon: BookOpen, variant: 'azure' },
+                            { label: "IPR / Patents", value: stats.iprs, icon: Shield, variant: 'rose' },
+                            { label: "Conf. Papers", value: stats.conferences, icon: Activity, variant: 'amber' },
+                            { label: "Research Grants", value: stats.grants, icon: Briefcase, variant: 'emerald' },
+                            { label: "Books & Chapters", value: (stats as any).books || 0, icon: FileText, variant: 'primary' },
+                            { label: "Other Activity", value: (stats as any).others || 0, icon: TrendingUp, variant: 'indigo' },
+                            { label: "Review Pending", value: stats.pendingApprovals, icon: Clock, variant: 'warning' },
+                            { label: "Monthly Progress", value: stats.monthlySubmissions, icon: PieChart, variant: 'primary' }
                         ].map((stat, idx) => (
                             <StatCard
                                 key={idx}
@@ -223,7 +199,6 @@ const AdminDashboard = () => {
                                 value={stat.value.toLocaleString()}
                                 variant={stat.variant as any}
                                 icon={stat.icon}
-                                className="bg-card border-border/60 hover:border-primary/40 transition-all duration-300 shadow-sm"
                             />
                         ))}
                     </div>

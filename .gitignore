@@ -32,3 +32,7 @@ secrets/
 *-adminsdk-*.json
 serviceAccountKey.json
 firebase-adminsdk*.json
+
+# Netlify
+.netlify/
+netlify/functions/node_modules/

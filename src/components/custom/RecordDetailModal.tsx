@@ -29,107 +29,133 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
     const category = (record.category || record.type || 'journal').toLowerCase() as RecordType
     const typeConfig = RECORD_TYPE_CONFIG[category] || RECORD_TYPE_CONFIG.journal
 
-    const getStatusIcon = (status: string) => {
-        switch (status?.toLowerCase()) {
+    const status = (record.approval_status || record.status || 'pending').toLowerCase()
+    const displayStatus = record.approval_status || record.status || 'Pending'
+
+    const getStatusIcon = (st: string) => {
+        switch (st?.toLowerCase()) {
             case 'approved': return <CheckCircle2 className="h-4 w-4" />
             case 'rejected': return <XCircle className="h-4 w-4" />
             default: return <Clock className="h-4 w-4" />
         }
     }
 
+    // A robust helper to prevent "Objects are not valid as a React child"
+    // and correctly handle Firestore Timestamps.
+    const safeString = (val: any): string => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'object') {
+            if (val.seconds !== undefined) {
+                return new Date(val.seconds * 1000).toLocaleDateString();
+            }
+            // If it's some other Firestore reference or complex object, hide it.
+            return '';
+        }
+        return String(val);
+    }
+
+    // Alias to prevent ReferenceErrors if any old logic expects it
+    const formatDate = safeString;
+
+    const displayDate = safeString(record.data?.date || record.date || record.data?.year || record.year) || 'N/A'
+    const displayFaculty = safeString(record.data?.faculty || record.faculty || record.data?.author || record.author) || 'Unspecified'
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-card border border-muted/50 rounded-3xl shadow-premium">
-                <DialogHeader className="p-6 bg-linear-to-r from-primary/5 to-transparent border-b border-muted/50">
-                    <div className="flex items-center gap-3 mb-2">
-                        <Badge variant="outline" className="bg-background/50 backdrop-blur-sm rounded-lg border-primary/20">
-                            {typeConfig?.label || category || 'Research'}
+            <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden bg-card border border-muted/20 rounded-2xl shadow-premium">
+                <DialogHeader className="p-8 border-b border-muted/10 bg-muted/5">
+                    <div className="flex items-center justify-between mb-4">
+                        <Badge variant="outline" className="text-[10px] uppercase tracking-widest font-bold border-primary/20 bg-primary/5 text-primary rounded-md px-2 py-0.5">
+                            {typeConfig?.label || category || 'Audit Record'}
                         </Badge>
-                        <Badge className={cn("rounded-lg gap-1.5 px-3 py-1", getStatusColor(record.status))}>
-                            {getStatusIcon(record.status)}
-                            {record.status}
+                        <Badge className={cn("rounded-full gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest border-none shadow-none", getStatusColor(status))}>
+                            <span className={cn(
+                                "h-1.5 w-1.5 rounded-full",
+                                status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
+                            )} />
+                            {displayStatus}
                         </Badge>
                     </div>
-                    <DialogTitle className="text-2xl font-bold leading-tight">{record.title}</DialogTitle>
+                    <DialogTitle className="text-xl font-bold leading-snug text-foreground">
+                        {safeString(record.title || record.title_of_paper || record.title_of_book || record.award_name || record.project_title || record.topic_title || record.name_of_student || 'Untitled Audit Item')}
+                    </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                    <div className="space-y-8">
-                        {/* Summary Section */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            <div className="p-4 rounded-2xl bg-muted/30 border border-muted flex flex-col gap-1">
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Date</span>
-                                <span className="text-sm font-semibold">{record.data?.date || record.date || record.data?.year || record.year || 'N/A'}</span>
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    <div className="space-y-10">
+                        {/* Summary Grid */}
+                        <div className="grid grid-cols-2 gap-8 pb-8 border-b border-muted/10">
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Primary Date</span>
+                                <span className="text-sm font-semibold text-foreground/90">{displayDate}</span>
                             </div>
-                            <div className="p-4 rounded-2xl bg-muted/30 border border-muted flex flex-col gap-1">
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none">Author/Faculty</span>
-                                <span className="text-sm font-semibold">{record.data?.faculty || record.faculty || record.data?.author || record.author || 'Unspecified'}</span>
-                            </div>
-                            <div className="col-span-2 p-4 rounded-2xl bg-primary/5 border border-primary/10 flex flex-col gap-1">
-                                <span className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Last Updated</span>
-                                <span className="text-sm font-semibold text-primary/80">{record.updatedAt?.toDate ? record.updatedAt.toDate().toLocaleDateString() : (record.updatedAt ? new Date(record.updatedAt).toLocaleDateString() : 'Recently')}</span>
+                            <div className="flex flex-col gap-1.5 text-right">
+                                <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Submitter / Faculty</span>
+                                <span className="text-sm font-semibold text-foreground/90">{displayFaculty}</span>
                             </div>
                         </div>
 
-                        {/* Domain Specific Data */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <FileText className="w-4 h-4" /> Record Details
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 p-6 rounded-2xl bg-background border shadow-inner">
+                        {/* Detailed Specs */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5 text-primary/60" />
+                                <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">Verification Details</h3>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-y-6 gap-x-8">
                                 {typeConfig ? (
-                                    typeConfig.fields.map((field) => (
-                                        <div key={field.key} className={cn("flex flex-col gap-1 pb-4 border-b border-muted/50 last:border-0", field.gridSpan === 2 && "sm:col-span-2")}>
-                                            <span className="text-[11px] font-medium text-muted-foreground">{field.label}</span>
-                                            <span className="text-sm font-medium">
-                                                {field.type === 'url' ? (
-                                                    <a href={record[field.key] || record.data?.[field.key]} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1">
-                                                        View Link <ExternalLink className="w-3 h-3" />
-                                                    </a>
-                                                ) : (
-                                                    record[field.key] || record.data?.[field.key] || <span className="text-muted-foreground/50 italic">Not provided</span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    ))
+                                    typeConfig.fields.map((field) => {
+                                        const rawVal = record[field.key] || record.data?.[field.key]
+                                        if (!rawVal && field.type === 'textarea') return null; // Skip empty textareas
+
+                                        return (
+                                            <div key={field.key} className={cn("flex flex-col gap-1.5", field.gridSpan === 2 && "sm:col-span-2")}>
+                                                <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-tight">{field.label}</span>
+                                                <div className="text-sm font-medium text-foreground/80">
+                                                    {field.type === 'url' ? (
+                                                        <a href={safeString(rawVal)} target="_blank" rel="noreferrer" className="text-primary hover:underline inline-flex items-center gap-1.5 bg-primary/5 px-2 py-1 rounded-lg border border-primary/10">
+                                                            External Resource <ExternalLink className="w-3 h-3" />
+                                                        </a>
+                                                    ) : (
+                                                        safeString(rawVal) || <span className="text-muted-foreground/30 italic">Not recorded</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })
                                 ) : (
                                     record.data && Object.entries(record.data).map(([key, value]) => (
-                                        <div key={key} className="flex flex-col gap-1 pb-4 border-b border-muted/50 last:border-0">
-                                            <span className="text-[11px] font-medium text-muted-foreground capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
-                                            <span className="text-sm font-medium">{String(value)}</span>
+                                        <div key={key} className="flex flex-col gap-1.5">
+                                            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-tight">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                            <span className="text-sm font-medium text-foreground/80">{safeString(value)}</span>
                                         </div>
                                     ))
                                 )}
                             </div>
                         </div>
 
-                        {/* Documents Section */}
-                        <div className="space-y-4 pb-4">
-                            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Download className="w-4 h-4" /> Supporting Documents
-                            </h3>
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-muted/20 border border-dashed border-muted-foreground/30 hover:bg-muted/30 transition-colors cursor-pointer group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-background rounded-lg border group-hover:border-primary/50 transition-colors">
-                                            <FileText className="w-5 h-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-semibold">Supporting_Document.pdf</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase">PDF Document • 2.4 MB</p>
-                                        </div>
-                                    </div>
-                                    <Button variant="ghost" size="icon" className="rounded-full">
-                                        <Download className="w-4 h-4" />
-                                    </Button>
+                        {/* Audit Trail */}
+                        <div className="pt-8 border-t border-muted/10 space-y-4">
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-3.5 h-3.5 text-muted-foreground/40" />
+                                <h3 className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40">Audit Information</h3>
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/5 border border-muted/10">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">Entry ID</span>
+                                    <span className="text-[11px] font-mono text-muted-foreground">{(record.id || 'N/A').toUpperCase()}</span>
+                                </div>
+                                <div className="text-right flex flex-col gap-0.5">
+                                    <span className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-widest">System Timestamp</span>
+                                    <span className="text-[11px] text-muted-foreground">{record.updatedAt?.toDate ? record.updatedAt.toDate().toLocaleString() : 'Recent Activity'}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <DialogFooter className="p-6 bg-muted/30 border-t">
-                    <Button variant="outline" className="rounded-xl px-8" onClick={onClose}>Close Detail</Button>
+                <DialogFooter className="p-6 border-t border-muted/5 bg-muted/5">
+                    <Button variant="ghost" className="rounded-xl text-xs font-bold text-muted-foreground hover:text-foreground" onClick={onClose}>Dismiss Audit</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

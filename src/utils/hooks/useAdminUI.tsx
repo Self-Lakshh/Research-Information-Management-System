@@ -13,16 +13,12 @@ export const useAdminUI = () => {
             pending: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-900',
             approved: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
             rejected: 'bg-destructive/10 text-destructive border-destructive/20 dark:bg-destructive/10 dark:text-destructive dark:border-destructive/20',
-            draft: 'bg-muted text-muted-foreground border-border',
-            accepted: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900',
         }
 
         const labels: Record<ApprovalStatus, string> = {
             pending: 'Pending',
             approved: 'Approved',
             rejected: 'Rejected',
-            draft: 'Draft',
-            accepted: 'Accepted'
         }
 
         return (

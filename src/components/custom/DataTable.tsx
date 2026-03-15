@@ -16,7 +16,7 @@ interface Action {
     label: string
     onClick: () => void
     icon?: React.ReactNode
-    variant?: 'default' | 'danger'
+    variant?: 'default' | 'danger' | 'success'
 }
 
 interface DataTableProps<TData, TValue> {
@@ -48,14 +48,14 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="flex flex-col h-full rounded-2xl bg-card border border-muted/50 shadow-soft overflow-hidden">
+        <div className="flex flex-col h-full rounded-2xl bg-card border border-muted/30 shadow-xs overflow-hidden">
             <Table wrapperClassName="flex-auto overflow-y-auto custom-scrollbar min-h-0">
-                <TableHeader className="bg-muted/50 sticky top-0 z-10 shadow-sm border-b backdrop-blur-md">
+                <TableHeader className="bg-muted/10 sticky top-0 z-10 border-b backdrop-blur-sm">
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id} className="hover:bg-transparent border-0">
                             {headerGroup.headers.map((header) => {
                                 return (
-                                    <TableHead key={header.id} className="h-12 text-xs font-bold uppercase tracking-wider text-muted-foreground px-6 bg-muted/30">
+                                    <TableHead key={header.id} className="h-10 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 px-6 py-2 bg-muted/5">
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
                                     </TableHead>
                                 )
                             })}
-                            {rowActions && <TableHead className="w-[50px] bg-muted/30"></TableHead>}
+                            {rowActions && <TableHead className="w-[50px] bg-muted/5"></TableHead>}
                         </TableRow>
                     ))}
                 </TableHeader>
@@ -76,13 +76,13 @@ export function DataTable<TData, TValue>({
                                 key={row.id}
                                 data-state={row.getIsSelected() && "selected"}
                                 className={cn(
-                                    "group transition-colors border-b last:border-0",
-                                    onRowClick && "cursor-pointer hover:bg-muted/30"
+                                    "group transition-colors border-b border-muted/20 last:border-0",
+                                    onRowClick && "cursor-pointer hover:bg-muted/10"
                                 )}
                                 onClick={() => onRowClick?.(row.original)}
                             >
                                 {row.getVisibleCells().map((cell) => (
-                                    <TableCell key={cell.id} className="py-4 px-6 text-sm">
+                                    <TableCell key={cell.id} className="py-3 px-6 text-sm">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </TableCell>
                                 ))}
@@ -90,11 +90,11 @@ export function DataTable<TData, TValue>({
                                     <TableCell className="px-6 text-right" onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-background/80 transition-colors">
-                                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                                <Button variant="ghost" className="h-7 w-7 p-0 rounded-lg hover:bg-muted transition-colors">
+                                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="rounded-2xl p-2 shadow-premium border-muted/50 w-52 animate-in fade-in zoom-in-95 duration-200">
+                                            <DropdownMenuContent align="end" className="rounded-xl p-1 shadow-premium border-muted/50 w-48 animate-in fade-in zoom-in-95 duration-200">
                                                 {rowActions(row.original).map((action, i) => (
                                                     <DropdownMenuItem
                                                         key={i}
@@ -103,21 +103,20 @@ export function DataTable<TData, TValue>({
                                                             action.onClick()
                                                         }}
                                                         className={cn(
-                                                            "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-200 group/item",
+                                                            "flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 group/item",
                                                             action.variant === 'danger'
-                                                                ? "text-rose-500 focus:bg-rose-50 focus:text-rose-600 dark:focus:bg-rose-950/30"
-                                                                : "text-foreground/80 focus:bg-primary/5 focus:text-primary"
+                                                                ? "text-rose-500 focus:bg-rose-50"
+                                                                : action.variant === 'success'
+                                                                    ? "text-emerald-500 focus:bg-emerald-50"
+                                                                    : "text-foreground/70 focus:bg-primary/5 focus:text-primary"
                                                         )}
                                                     >
                                                         {action.icon && (
-                                                            <div className={cn(
-                                                                "h-8 w-8 rounded-lg flex items-center justify-center transition-colors",
-                                                                action.variant === 'danger' ? "bg-rose-500/5" : "bg-primary/5 group-hover/item:bg-primary/10"
-                                                            )}>
+                                                            <div className="shrink-0">
                                                                 {action.icon}
                                                             </div>
                                                         )}
-                                                        <span className="font-bold text-xs">{action.label}</span>
+                                                        <span className="font-semibold text-xs tracking-tight">{action.label}</span>
                                                     </DropdownMenuItem>
                                                 ))}
                                             </DropdownMenuContent>

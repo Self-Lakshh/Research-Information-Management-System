@@ -1,248 +1,519 @@
+/**
+ * useRecords.ts
+ * ─────────────
+ * React Query hooks consumed by admin and user views.
+ * Every hook calls the per-domain service files directly.
+ * No generic record.service layer required.
+ */
+
+import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-    getUserRecords,
-    getApprovedUserRecords,
-    getAllRecords,
-    getPendingRecords,
-    getRecordById,
-    getRecordsByType,
-    createRecord,
-    updateRecord,
-    approveRecord,
-    rejectRecord,
-    deleteRecord,
-    updateRecordFiles,
-} from '@/services/firebase';
-import {
-    Record,
-    RecordType,
-    RecordFilters,
-    CreateRecordData,
-} from '@/@types/rims.types';
-import { uploadMultipleFiles } from '@/services/firebase';
+import { doc, updateDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { db } from '@/configs/firebase.config';
 import { useAuth } from '@/auth';
+import type { RecordType, RecordFilters } from '@/@types/rims.types';
+
+// ── Domain services ───────────────────────────────────────────────────────────
+import { getAllIPR, getUserIPR, createIPR, updateIPR, deleteIPR } from '@/services/firebase/ipr/ipr.services';
+import { getAllJournals, getUserJournals, createJournal, updateJournal, deleteJournal } from '@/services/firebase/journal/journals.services';
+import { getAllConference, getUserConference, createConference, updateConference, deleteConference } from '@/services/firebase/conference/conference.services';
+import { getAllBooks, getUserBooks, createBook, updateBook, deleteBook } from '@/services/firebase/book/books.services';
+import { getAllAwards, getUserAwards, createAward, updateAward, deleteAward } from '@/services/firebase/awards/awards.services';
+import { getAllConsultancyProjects, getUserConsultancyProjects, createConsultancyProject, updateConsultancyProject, deleteConsultancyProject } from '@/services/firebase/consultancy/consultancy.services';
+import { getAllPhDStudents, getUserPhDStudents, createPhDStudent, updatePhDStudent, deletePhDStudent } from '@/services/firebase/phd_student/phd.services';
+import { getAllOtherEvents, getUserOtherEvents, createOtherEvent, updateOtherEvent, deleteOtherEvent } from '@/services/firebase/others/other.services';
+import { uploadFile } from '@/services/firebase/storage.service';
+import { createDocument } from '@/services/firebase/document/document.services';
+import { newId } from '@/utils/id';
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const getUid = (user: any): string | undefined => user?.id || user?.uid || user?.userId;
+const useUserRef = () => {
+    const { user } = useAuth();
+    const uid = getUid(user);
+    return uid ? doc(db, 'users', uid) : null;
+};
+
+/** Firestore collection name → used only for approval status updates */
+const TYPE_TO_COL: Record<string, string> = {
+    ipr: 'ipr',
+    journal: 'journals',
+    conference: 'conferences',
+    book: 'books',
+    award: 'awards',
+    awards: 'awards',
+    consultancy: 'consultancy_projects',
+    phd_student: 'phd_students',
+    other: 'other_events',
+};
+
+/** Fetch ALL records from every domain in parallel */
+async function fetchAllDomains(userRef?: any): Promise<any[]> {
+    const fetchers = userRef
+        ? [
+            getUserIPR(userRef).catch(() => []),
+            getUserJournals(userRef).catch(() => []),
+            getUserConference(userRef).catch(() => []),
+            getUserBooks(userRef).catch(() => []),
+            getUserAwards(userRef).catch(() => []),
+            getUserConsultancyProjects(userRef).catch(() => []),
+            getUserPhDStudents(userRef).catch(() => []),
+            getUserOtherEvents(userRef).catch(() => []),
+        ]
+        : [
+            getAllIPR().catch(() => []),
+            getAllJournals().catch(() => []),
+            getAllConference().catch(() => []),
+            getAllBooks().catch(() => []),
+            getAllAwards().catch(() => []),
+            getAllConsultancyProjects().catch(() => []),
+            getAllPhDStudents().catch(() => []),
+            getAllOtherEvents().catch(() => []),
+        ];
+    const results = await Promise.all(fetchers);
+    const domains = ['ipr', 'journal', 'conference', 'book', 'award', 'consultancy', 'phd_student', 'other'];
+    return results.flatMap((arr, i) =>
+        arr.map((r: any) => ({ ...r, _domain: domains[i], type: domains[i] }))
+    );
+}
+
+/** Fetch records from a single domain (admin) */
+async function fetchDomain(type: string): Promise<any[]> {
+    const tag = (arr: any[], domain: string) => arr.map(r => ({ ...r, _domain: domain, type: domain }));
+    switch (type) {
+        case 'ipr': return tag(await getAllIPR(), 'ipr');
+        case 'journal': return tag(await getAllJournals(), 'journal');
+        case 'conference': return tag(await getAllConference(), 'conference');
+        case 'book': return tag(await getAllBooks(), 'book');
+        case 'award':
+        case 'awards': return tag(await getAllAwards(), 'award');
+        case 'consultancy': return tag(await getAllConsultancyProjects(), 'consultancy');
+        case 'phd_student': return tag(await getAllPhDStudents(), 'phd_student');
+        case 'other': return tag(await getAllOtherEvents(), 'other');
+        default: return fetchAllDomains();
+    }
+}
+
+/** Fetch user-scoped records from a single domain */
+async function fetchUserDomain(type: string, userRef: any): Promise<any[]> {
+    const tag = (arr: any[], domain: string) => arr.map(r => ({ ...r, _domain: domain, type: domain }));
+    switch (type) {
+        case 'ipr': return tag(await getUserIPR(userRef), 'ipr');
+        case 'journal': return tag(await getUserJournals(userRef), 'journal');
+        case 'conference': return tag(await getUserConference(userRef), 'conference');
+        case 'book': return tag(await getUserBooks(userRef), 'book');
+        case 'award':
+        case 'awards': return tag(await getUserAwards(userRef), 'award');
+        case 'consultancy': return tag(await getUserConsultancyProjects(userRef), 'consultancy');
+        case 'phd_student': return tag(await getUserPhDStudents(userRef), 'phd_student');
+        case 'other': return tag(await getUserOtherEvents(userRef), 'other');
+        default: return fetchAllDomains(userRef);
+    }
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QUERY KEYS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const recordKeys = {
+    all: ['records'] as const,
+    domain: (type: string) => ['records', type] as const,
+    allDomains: (uid?: string) => ['records', 'all-domains', uid] as const,
+    dashboard: (uid?: string) => ['dashboard', 'stats', uid] as const,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN HOOKS
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Hook to fetch user's records
+ * useAllRecords — fetch all records across domains (admin).
+ * Uses useEffect+useState to fire immediately on mount (no 'enabled' guard).
  */
-export const useUserRecords = (userId?: string, statusFilter?: 'pending' | 'approved' | 'rejected') => {
-    const { user } = useAuth();
-    const targetUserId = userId || user?.uid;
+export const useAllRecords = (filters: { type?: string; approvalStatus?: string } = {}) => {
+    const [data, setData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
 
-    return useQuery({
-        queryKey: ['records', 'user', targetUserId, statusFilter],
-        queryFn: () => {
-            if (!targetUserId) throw new Error('User ID is required');
-            return getUserRecords(targetUserId, statusFilter);
-        },
-        enabled: !!targetUserId,
-    });
+    const fetch = useCallback(async () => {
+        setIsLoading(true); setError(null);
+        try {
+            const raw = await (filters.type ? fetchDomain(filters.type) : fetchAllDomains());
+            const filtered = filters.approvalStatus && filters.approvalStatus !== 'all'
+                ? raw.filter(r => (r.approval_status || 'pending').toLowerCase() === (filters.approvalStatus ?? '').toLowerCase())
+                : raw;
+            setData(filtered);
+        } catch (e: any) {
+            setError(e);
+        } finally { setIsLoading(false); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.type, filters.approvalStatus]);
+
+    useEffect(() => { fetch(); }, [fetch]);
+    return { data, isLoading, error, refetch: fetch };
 };
 
 /**
- * Hook to fetch user's approved records only
+ * usePendingRecords — fetch records by approval status (admin queue).
+ * approvalStatus: 'pending' | 'rejected' | 'approved' | 'all'
  */
+export const usePendingRecords = (type?: string, approvalStatus: string = 'pending') => {
+    const [data, setData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+
+    const fetch = useCallback(async () => {
+        setIsLoading(true); setError(null);
+        try {
+            const raw = type ? await fetchDomain(type) : await fetchAllDomains();
+            const filtered = approvalStatus === 'all'
+                ? raw
+                : raw.filter(r => (r.approval_status || 'pending').toLowerCase() === approvalStatus);
+            setData(filtered);
+        } catch (e: any) {
+            setError(e);
+        } finally { setIsLoading(false); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [type, approvalStatus]);
+
+    useEffect(() => { fetch(); }, [fetch]);
+    return { data, isLoading, error, refetch: fetch };
+};
+
+/** Alias */
+export const useRecordsByStatus = usePendingRecords;
+export const usePendingApprovals = usePendingRecords;
+
+/**
+ * useAdminDomainRecords — fetch a single domain for admin.
+ */
+export const useAdminDomainRecords = (type: RecordType, filters: RecordFilters = {}) => {
+    const [data, setData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
+
+    const fetch = useCallback(async () => {
+        if (!type) return;
+        setIsLoading(true); setError(null);
+        try {
+            const raw = await fetchDomain(type);
+            const filtered = (filters as any).approvalStatus && (filters as any).approvalStatus !== 'all'
+                ? raw.filter(r => r.approval_status === (filters as any).approvalStatus)
+                : raw;
+            setData(filtered);
+        } catch (e: any) {
+            setError(e);
+        } finally { setIsLoading(false); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [type, JSON.stringify(filters)]);
+
+    useEffect(() => { fetch(); }, [fetch]);
+    return { data, isLoading, error, refetch: fetch };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USER HOOKS (React Query)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** useRecords — current user's records from a single domain. */
+export const useRecords = (type: RecordType, filters: RecordFilters = {}) => {
+    const userRef = useUserRef();
+    return useQuery({
+        queryKey: recordKeys.domain(type),
+        queryFn: () => fetchUserDomain(type, userRef),
+        enabled: !!userRef,
+    });
+};
+
+/** useUserRecords — alias for single-domain user records (legacy). */
+export const useUserRecords = (userId?: string, statusFilter?: string) => {
+    const userRef = useUserRef();
+    return useQuery({
+        queryKey: recordKeys.domain('journal'),
+        queryFn: async () => {
+            const raw = await fetchUserDomain('journal', userRef);
+            return statusFilter ? raw.filter(r => r.approval_status === statusFilter) : raw;
+        },
+        enabled: !!userRef,
+    });
+};
+
+/** useAllUserRecords — current user's records across ALL domains. */
+export const useAllUserRecords = (userId?: string, statusFilter?: string) => {
+    const userRef = useUserRef();
+    return useQuery({
+        queryKey: recordKeys.allDomains(userRef?.path),
+        queryFn: async () => {
+            const raw = await fetchAllDomains(userRef);
+            return statusFilter ? raw.filter(r => r.approval_status === statusFilter) : raw;
+        },
+        enabled: !!userRef,
+    });
+};
+
+/** useApprovedRecords — approved records for a user (portfolio). */
 export const useApprovedRecords = (userId?: string) => {
-    const { user } = useAuth();
-    const targetUserId = userId || user?.uid;
-
+    const userRef = useUserRef();
     return useQuery({
-        queryKey: ['records', 'approved', targetUserId],
-        queryFn: () => {
-            if (!targetUserId) throw new Error('User ID is required');
-            return getApprovedUserRecords(targetUserId);
+        queryKey: [...recordKeys.allDomains(userRef?.path), 'approved'],
+        queryFn: async () => {
+            const raw = await fetchAllDomains(userRef);
+            return raw.filter(r => r.approval_status === 'approved');
         },
-        enabled: !!targetUserId,
+        enabled: !!userRef,
     });
 };
 
-/**
- * Hook to fetch all records (Admin only)
- */
-export const useAllRecords = (filters?: RecordFilters) => {
-    const { user } = useAuth();
-    const isAdmin = user?.user_role === 'admin';
+// ─────────────────────────────────────────────────────────────────────────────
+// STATS
+// ─────────────────────────────────────────────────────────────────────────────
 
+/** useUserLifetimeSubmissions — fetch all records for a specific user (admin view). */
+export const useUserLifetimeSubmissions = (userId: string) => {
     return useQuery({
-        queryKey: ['records', 'all', filters],
-        queryFn: () => getAllRecords(filters),
-        enabled: isAdmin,
+        queryKey: ['records', 'lifetime', userId],
+        queryFn: async () => {
+            const userRef = doc(db, 'users', userId);
+            return fetchAllDomains(userRef);
+        },
+        enabled: !!userId,
     });
 };
 
-/**
- * Hook to fetch pending records (Admin only)
- */
-export const usePendingRecords = () => {
-    const { user } = useAuth();
-    const isAdmin = user?.user_role === 'admin';
-
-    return useQuery({
-        queryKey: ['records', 'pending'],
-        queryFn: getPendingRecords,
-        enabled: isAdmin,
+export const useUserStats = () => {
+    const userRef = useUserRef();
+    const { data, isLoading } = useQuery({
+        queryKey: recordKeys.allDomains(userRef?.path),
+        queryFn: () => fetchAllDomains(userRef),
+        enabled: !!userRef,
     });
+    const records: any[] = data ?? [];
+    return {
+        isLoading,
+        stats: {
+            totalRecords: records.length,
+            iprCount: records.filter(r => r._domain === 'ipr').length,
+            journalCount: records.filter(r => r._domain === 'journal').length,
+            conferenceCount: records.filter(r => r._domain === 'conference').length,
+            bookCount: records.filter(r => r._domain === 'book').length,
+            consultancyCount: records.filter(r => r._domain === 'consultancy').length,
+            awardCount: records.filter(r => r._domain === 'award').length,
+            phdStudentCount: records.filter(r => r._domain === 'phd_student').length,
+            otherEventCount: records.filter(r => r._domain === 'other').length,
+        },
+    };
 };
 
-/**
- * Hook to fetch a single record
- */
-export const useRecord = (recordId: string) => {
-    return useQuery({
-        queryKey: ['records', recordId],
-        queryFn: () => getRecordById(recordId),
-        enabled: !!recordId,
-    });
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// MUTATIONS
+// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Hook to fetch records by type
- */
-export const useRecordsByType = (type: RecordType, userId?: string) => {
-    return useQuery({
-        queryKey: ['records', 'type', type, userId],
-        queryFn: () => getRecordsByType(type, userId),
-        enabled: !!type,
-    });
-};
+async function createByType(type: string, data: any): Promise<string> {
+    const id = data.id || newId();
+    switch (type) {
+        case 'ipr': await createIPR(id, data); break;
+        case 'journal': await createJournal(id, data); break;
+        case 'conference': await createConference(id, data); break;
+        case 'book': await createBook(id, data); break;
+        case 'award':
+        case 'awards': await createAward(id, data); break;
+        case 'consultancy': await createConsultancyProject(id, data); break;
+        case 'phd_student': await createPhDStudent(id, data); break;
+        case 'other': await createOtherEvent(id, data); break;
+        default: throw new Error(`Unknown record type: ${type}`);
+    }
+    return id;
+}
 
-/**
- * Hook to create a new record
- */
-export const useCreateRecord = () => {
-    const queryClient = useQueryClient();
-    const { user } = useAuth();
+async function updateByType(type: string, id: string, data: any): Promise<string> {
+    switch (type) {
+        case 'ipr': await updateIPR(id, data); break;
+        case 'journal': await updateJournal(id, data); break;
+        case 'conference': await updateConference(id, data); break;
+        case 'book': await updateBook(id, data); break;
+        case 'award':
+        case 'awards': await updateAward(id, data); break;
+        case 'consultancy': await updateConsultancyProject(id, data); break;
+        case 'phd_student': await updatePhDStudent(id, data); break;
+        case 'other': await updateOtherEvent(id, data); break;
+        default: throw new Error(`Unknown record type: ${type}`);
+    }
+    return id;
+}
 
+async function deleteByType(type: string, id: string): Promise<void> {
+    switch (type) {
+        case 'ipr': return deleteIPR(id);
+        case 'journal': return deleteJournal(id);
+        case 'conference': return deleteConference(id);
+        case 'book': return deleteBook(id);
+        case 'award':
+        case 'awards': return deleteAward(id);
+        case 'consultancy': return deleteConsultancyProject(id);
+        case 'phd_student': return deletePhDStudent(id);
+        case 'other': return deleteOtherEvent(id);
+        default: throw new Error(`Unknown record type: ${type}`);
+    }
+}
+
+export const useSaveRecord = () => {
+    const qc = useQueryClient();
+    const userRef = useUserRef();
     return useMutation({
-        mutationFn: async (data: CreateRecordData & { files?: File[] }) => {
-            if (!user?.uid) throw new Error('User not authenticated');
+        mutationFn: async ({ type, data, id }: { type: RecordType; data: any; id?: string }) => {
+            if (!userRef) throw new Error('User not authenticated');
 
-            // Create record
-            const recordId = await createRecord(user.uid, data);
-
-            // Upload files if provided
+            // 1. Handle File Upload if present
             if (data.files && data.files.length > 0) {
-                const uploadedFiles = await uploadMultipleFiles(data.files, user.uid, recordId);
-                await updateRecordFiles(recordId, uploadedFiles);
+                const file = data.files[0];
+                const recordId = id || newId();
+                const uploadResult = await uploadFile(file, userRef.id, recordId);
+
+                // 2. Create Document record
+                const docId = newId();
+                await createDocument(docId, {
+                    document_name: file.name,
+                    document_type: type as any,
+                    file_url: uploadResult.fileUrl,
+                    status: 'pending',
+                    uploaded_by: userRef,
+                    upload_date: Timestamp.now() as any, // Cast for simplicity, service handles it
+                });
+
+                data.document_id = docId;
+                data.data = { ...data.data, file_url: uploadResult.fileUrl }; // backward compatibility
+                delete data.files;
             }
 
-            return recordId;
+            // 3. Inject Metadata
+            if (!id) {
+                data.user_id = userRef.id;
+                data.created_by = userRef;
+            } else {
+                data.updated_by = userRef;
+            }
+
+            // 4. Create/Update the Record
+            const resultId = id ? await updateByType(type, id, data) : await createByType(type, data);
+            return resultId;
         },
         onSuccess: () => {
-            // Invalidate relevant queries
-            queryClient.invalidateQueries({ queryKey: ['records'] });
+            qc.invalidateQueries({ queryKey: recordKeys.all });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 };
 
-/**
- * Hook to update a record
- */
-export const useUpdateRecord = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: ({ recordId, data }: { recordId: string; data: Partial<CreateRecordData> }) =>
-            updateRecord(recordId, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['records'] });
-        },
-    });
-};
-
-/**
- * Hook to approve a record (Admin only)
- */
-export const useApproveRecord = () => {
-    const queryClient = useQueryClient();
-    const { user } = useAuth();
-
-    return useMutation({
-        mutationFn: (recordId: string) => {
-            if (!user?.uid) throw new Error('Admin not authenticated');
-            return approveRecord(recordId, user.uid);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['records'] });
-        },
-    });
-};
-
-/**
- * Hook to reject a record (Admin only)
- */
-export const useRejectRecord = () => {
-    const queryClient = useQueryClient();
-    const { user } = useAuth();
-
-    return useMutation({
-        mutationFn: (recordId: string) => {
-            if (!user?.uid) throw new Error('Admin not authenticated');
-            return rejectRecord(recordId, user.uid);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['records'] });
-        },
-    });
-};
-
-/**
- * Hook to delete a record
- */
 export const useDeleteRecord = () => {
-    const queryClient = useQueryClient();
-
+    const qc = useQueryClient();
     return useMutation({
-        mutationFn: deleteRecord,
+        mutationFn: ({ type, recordId }: { type: RecordType; recordId: string }) =>
+            deleteByType(type, recordId),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['records'] });
+            qc.invalidateQueries({ queryKey: recordKeys.all });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 };
 
-/**
- * Hook to update record files
- */
-export const useUpdateRecordFiles = () => {
-    const queryClient = useQueryClient();
-    const { user } = useAuth();
-
+export const useSetRecordStatus = () => {
+    const qc = useQueryClient();
     return useMutation({
-        mutationFn: async ({
-            recordId,
-            files,
-        }: {
+        mutationFn: async ({ type, recordId, status }: {
+            type: RecordType;
             recordId: string;
-            files: File[];
+            status: 'approved' | 'rejected' | 'pending';
+            rejectionReason?: string;
         }) => {
-            if (!user?.uid) throw new Error('User not authenticated');
+            const col = TYPE_TO_COL[type];
+            if (!col) throw new Error(`Unknown record type: ${type}`);
 
-            const uploadedFiles = await uploadMultipleFiles(files, user.uid, recordId);
-            await updateRecordFiles(recordId, uploadedFiles);
+            const recordRef = doc(db, col, recordId);
+            const recordSnap = await getDoc(recordRef);
+            const recordData = recordSnap.data();
+
+            await updateDoc(recordRef, {
+                approval_status: status,
+                updated_at: serverTimestamp(),
+            });
+
+            // Update associated document if it exists
+            if (recordData?.document_id) {
+                const docRef = doc(db, 'documents', recordData.document_id);
+                await updateDoc(docRef, {
+                    status: status,
+                    review_date: serverTimestamp(),
+                });
+            }
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['records'] });
+            qc.invalidateQueries({ queryKey: recordKeys.all });
+            qc.invalidateQueries({ queryKey: ['dashboard'] });
         },
     });
 };
 
-/**
- * Calculate user statistics from approved records
- */
-export const useUserStats = (userId?: string) => {
-    const { data: records, isLoading } = useApprovedRecords(userId);
+// ─────────────────────────────────────────────────────────────────────────────
+// LEGACY WRAPPERS (keep existing view code unchanged)
+// ─────────────────────────────────────────────────────────────────────────────
 
-    const stats = {
-        totalRecords: records?.length || 0,
-        iprCount: records?.filter((r) => r.type === 'ipr').length || 0,
-        journalCount: records?.filter((r) => r.type === 'journal').length || 0,
-        conferenceCount: records?.filter((r) => r.type === 'conference').length || 0,
-        bookCount: records?.filter((r) => r.type === 'book').length || 0,
-        consultancyCount: records?.filter((r) => r.type === 'consultancy').length || 0,
-        awardCount: records?.filter((r) => r.type === 'award').length || 0,
-        phdStudentCount: records?.filter((r) => r.type === 'phd_student').length || 0,
-        otherEventCount: records?.filter((r) => r.type === 'other').length || 0,
+export const saveRecord = (type: RecordType, data: any, id?: string) =>
+    id ? updateByType(type, id, data) : createByType(type, data);
+
+export const deleteRecord = (type: RecordType, id: string) => deleteByType(type, id);
+
+export const useCreateRecord = () => {
+    const save = useSaveRecord();
+    return {
+        ...save,
+        mutateAsync: (data: any) => save.mutateAsync({ type: data.type as RecordType, data }),
+        mutate: (data: any) => save.mutate({ type: data.type as RecordType, data }),
     };
-
-    return { stats, isLoading };
 };
+
+export const useUpdateRecord = () => {
+    const save = useSaveRecord();
+    return {
+        ...save,
+        mutateAsync: ({ recordId, data }: { recordId: string; data: any }) =>
+            save.mutateAsync({ type: data.type as RecordType, data, id: recordId }),
+        mutate: ({ recordId, data }: { recordId: string; data: any }) =>
+            save.mutate({ type: data.type as RecordType, data, id: recordId }),
+    };
+};
+
+export const useApproveRecord = () => {
+    const m = useSetRecordStatus();
+    return {
+        ...m,
+        mutate: ({ type, recordId }: { type: RecordType; recordId: string }) =>
+            m.mutate({ type, recordId, status: 'approved' }),
+    };
+};
+
+export const useRejectRecord = () => {
+    const m = useSetRecordStatus();
+    return {
+        ...m,
+        mutate: ({ type, recordId, rejectionReason }: { type: RecordType; recordId: string; rejectionReason?: string }) =>
+            m.mutate({ type, recordId, status: 'rejected', rejectionReason }),
+    };
+};
+
+export const getDomainRecords = (type: RecordType | 'all', filters: any = {}) =>
+    type === 'all' ? fetchAllDomains() : fetchDomain(type);
+
+export const getAdminAllRecords = (filters: any = {}) =>
+    filters.type ? fetchDomain(filters.type) : fetchAllDomains();
+
+export const getPendingRecords = (filters: any = {}) =>
+    fetchAllDomains().then(r => r.filter(x => x.approval_status === 'pending'));
+
+export const adminSaveRecord = saveRecord;
+export const adminDeleteRecord = deleteRecord;
+
+export const getUserProfileWithData = async (uid?: string) => ({ uid, domains: {} });
+
+export const getDashboardStats = async () => ({ totalRecords: 0, byDomain: {}, byStatus: {}, byYear: {} });

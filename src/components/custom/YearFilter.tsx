@@ -18,8 +18,13 @@ interface YearFilterProps {
 const YearFilter = ({ value, onChange, years, className, variant = 'select' }: YearFilterProps) => {
     const defaultYears = ['all']
     if (!years) {
-        const currentYear = new Date().getFullYear()
-        for (let i = currentYear; i >= currentYear - 10; i--) {
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const startYear = 2021
+        // If we are in December, add the next year to the filter
+        const endYear = now.getMonth() === 11 ? currentYear + 1 : currentYear
+
+        for (let i = endYear; i >= startYear; i--) {
             defaultYears.push(i.toString())
         }
     }

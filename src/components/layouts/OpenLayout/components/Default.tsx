@@ -76,7 +76,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
             if (nextSection) {
                 // If it's the home section, scroll to top
                 if (nextIdx === 0) {
-                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                    document.getElementById('open-layout-container')?.scrollTo({ top: 0, behavior: 'smooth' })
                 } else {
                     nextSection.scrollIntoView({ behavior: 'smooth' })
                 }
@@ -103,7 +103,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
     }, [])
 
     return (
-        <div className="flex flex-col min-h-screen relative">
+        <div id="open-layout-container" className="flex flex-col h-screen overflow-y-auto relative custom-scrollbar scroll-smooth">
             <AnimatedBackdrop />
 
             {/* Desktop & Mobile Header */}

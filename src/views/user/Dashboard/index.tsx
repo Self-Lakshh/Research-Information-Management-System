@@ -1,226 +1,88 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ui/card'
-import { Badge } from '@/components/shadcn/ui/badge'
-import { Button } from '@/components/shadcn/ui/button'
-import {
-    Plus,
-    FileText,
-    CheckCircle2,
-    Clock,
-    XCircle,
-    BookOpen,
-    Users,
-    GraduationCap,
-    Trophy,
-    Briefcase,
-    Globe,
-    MoreHorizontal
-} from 'lucide-react'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/shadcn/ui/dropdown-menu'
-import { ResearchCategory } from '@/@types/rims.types'
-import { RecordFormModal } from '@/components/custom'
-import { StatCard } from '@/components/custom'
-import { useNavigate } from 'react-router-dom'
-import { useUserRecords } from '@/hooks/useRecords'
-import { formatDistanceToNow } from 'date-fns'
+import { useAuth } from '@/auth';
+import { useUserStats, useApprovedRecords, useCreateRecord } from '@/hooks/useRecords';
+import { StatCard } from '@/components/custom';
+import { FileText, Award, BookOpen, Briefcase, Lightbulb, Users } from 'lucide-react';
+import { useState } from 'react';
+import { RECORD_TYPE_CONFIG } from '@/configs/rims.config';
+import { RecordCard } from '@/components/custom';
+import { RecordType } from '@/@types/rims.types';
+import { Spinner } from '@/components/shadcn/ui/spinner';
+import { Link } from 'react-router-dom';
 
-const categories: { label: string; value: ResearchCategory; icon: any }[] = [
-    { label: 'IPR', value: 'ipr', icon: Globe },
-    { label: 'PhD Student Data', value: 'phd_student', icon: GraduationCap },
-    { label: 'Journal', value: 'journal', icon: BookOpen },
-    { label: 'Conference', value: 'conference', icon: Users },
-    { label: 'Book', value: 'book', icon: FileText },
-    { label: 'Consultancy', value: 'consultancy', icon: Briefcase },
-    { label: 'Awards', value: 'award', icon: Trophy },
-    { label: 'Others', value: 'other', icon: MoreHorizontal },
-]
+const Dashboard = () => {
+    const { user } = useAuth();
+    const { stats, isLoading: statsLoading } = useUserStats();
+    const { data: records = [], isLoading: recordsLoading } = useApprovedRecords();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [addType, setAddType] = useState<string>('journal');
 
-const UserDashboard = () => {
-    const [selectedCategory, setSelectedCategory] = React.useState<ResearchCategory | null>(null)
-    const navigate = useNavigate()
-    const { data: records = [], isLoading } = useUserRecords()
+    const createMutation = useCreateRecord();
 
-    const totalSubmissions = records.length
-    const approved = records.filter(r => (r as any).status === 'approved').length
-    const pending = records.filter(r => (r as any).status === 'pending').length
-    const rejected = records.filter(r => (r as any).status === 'rejected').length
-    const recentRecords = records.slice(0, 3)
+    const handleFormSubmit = async (data: any) => {
+        try {
+            await createMutation.mutateAsync({ ...data, type: addType as RecordType });
+            setIsFormOpen(false);
+        } catch (err) {
+            console.error(err);
+            alert('Failed to save record.');
+        }
+    };
+
+    const roseVariant = Award; // Just a helper for Award icon mapping
+
+
+    const recentRecords = records.slice(0, 4);
 
     return (
-        <div className="p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                        My Research Dashboard
-                    </h1>
-                    <p className="text-muted-foreground">Manage and track your research activity and submissions.</p>
+        <div className="space-y-4 h-full p-1 overflow-y-auto custom-scrollbar">
+            {/* Metrics Grid */}
+            <div className="flex flex-col bg-card shadow-sm rounded-md border border-emerald-200 overflow-hidden">
+                <div className="bg-emerald-600 flex items-center border-b py-2 px-4">
+                    <h2 className="text-xl text-white font-bold tracking-tight">
+                        My Research Insights
+                    </h2>
                 </div>
-
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button size="lg" className="rounded-full shadow-lg hover:shadow-xl transition-all gap-2 px-6">
-                            <Plus className="h-5 w-5" />
-                            Add New Submission
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
-                        {categories.map((cat) => (
-                            <DropdownMenuItem
-                                key={cat.value}
-                                className="flex items-center gap-2 py-3 cursor-pointer rounded-lg"
-                                onClick={() => setSelectedCategory(cat.value)}
-                            >
-                                <cat.icon className="h-4 w-4 text-muted-foreground" />
-                                <span>{cat.label}</span>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatCard
-                        title="Total Submissions"
-                        value={totalSubmissions.toString()}
-                        icon={FileText}
-                        description={isLoading ? "Loading..." : "All time records"}
-                        colorClass="bg-blue-500/10 text-blue-600 dark:bg-blue-500/20"
-                    />
-                </div>
-                <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatCard
-                        title="Approved"
-                        value={approved.toString()}
-                        icon={CheckCircle2}
-                        description={totalSubmissions > 0 ? `${Math.round((approved / totalSubmissions) * 100)}% approval rate` : "No records"}
-                        colorClass="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20"
-                    />
-                </div>
-                <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatCard
-                        title="Pending"
-                        value={pending.toString()}
-                        icon={Clock}
-                        description="Awaiting review"
-                        colorClass="bg-amber-500/10 text-amber-600 dark:bg-amber-500/20"
-                    />
-                </div>
-                <div className="cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                    <StatCard
-                        title="Rejected"
-                        value={rejected.toString()}
-                        icon={XCircle}
-                        description="Needs revision"
-                        colorClass="bg-rose-500/10 text-rose-600 dark:bg-rose-500/20"
-                    />
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 p-4">
+                    <StatCard label="IPR Publication" value={stats?.iprCount || 0} icon={Lightbulb} variant="amber" isLoading={statsLoading} />
+                    <StatCard label="Journal Publication" value={stats?.journalCount || 0} icon={FileText} variant="primary" isLoading={statsLoading} />
+                    <StatCard label="Conference Publication" value={stats?.conferenceCount || 0} icon={Users} variant="indigo" isLoading={statsLoading} />
+                    <StatCard label="Book/Chapter Publication" value={stats?.bookCount || 0} icon={BookOpen} variant="emerald" isLoading={statsLoading} />
+                    <StatCard label="Award & Recognition" value={stats?.awardCount || 0} icon={roseVariant} variant="rose" isLoading={statsLoading} />
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
-                <Card className="lg:col-span-2 border-none shadow-premium">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
-                            <CardTitle>Recent Submissions</CardTitle>
-                            <p className="text-sm text-muted-foreground">Track the status of your latest research requests.</p>
+            <div className="flex flex-col bg-card shadow-sm rounded-md border-emerald-200 border overflow-hidden">
+                <div className="flex items-center bg-emerald-600 border-b py-2 px-4">
+                    <h2 className="text-xl text-white font-bold tracking-tight">
+                        My Recent Requests
+                    </h2>
+                </div>
+                <div className="flex overflow-x-auto gap-4 p-4 no-scrollbar">
+                    {recordsLoading ? (
+                        <div className="flex h-full w-full items-center justify-center w-full">
+                            <Spinner />
                         </div>
-                        <Button variant="ghost" size="sm" onClick={() => navigate('/user/submissions')}>View All</Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {isLoading ? (
-                                <div className="p-4 text-center text-muted-foreground text-sm flex items-center justify-center h-20">Loading submissions...</div>
-                            ) : recentRecords.length === 0 ? (
-                                <div className="p-4 text-center text-muted-foreground text-sm flex items-center justify-center h-20">No recent submissions found.</div>
-                            ) : recentRecords.map((record) => {
-                                const categoryMeta = categories.find(c => c.value === ((record as any).category || (record as any).type)) || categories[7];
-                                const RecordIcon = categoryMeta.icon;
-                                const timestampStr = (record as any).createdAt?.toDate ? formatDistanceToNow((record as any).createdAt.toDate(), { addSuffix: true }) : ((record as any).createdAt ? formatDistanceToNow(new Date((record as any).createdAt), { addSuffix: true }) : 'Recently');
-                                return (
-                                    <div key={record.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors group cursor-pointer" onClick={() => navigate('/user/submissions')}>
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                <RecordIcon className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium group-hover:text-primary transition-colors line-clamp-1">{(record as any).title}</p>
-                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                    <span>{categoryMeta.label}</span>
-                                                    <span>•</span>
-                                                    <span>{timestampStr}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <Badge variant={(record as any).status === 'approved' ? "default" : (record as any).status === 'pending' ? "secondary" : "outline"} className="capitalize">
-                                            {(record as any).status}
-                                        </Badge>
-                                    </div>
-                                )
-                            })}
+                    ) : records.filter((r) => r.approval_status === 'pending').length > 0 ? (
+                        records
+                            .filter((r) => r.approval_status === 'pending')
+                            .map((record) => (
+                                <div key={record.id}
+                                    className="flex flex-col items-center justify-center w-full h-full"
+                                >
+                                    <RecordCard onView={() => { }} record={record} />
+                                </div>
+                            ))
+                    ) : (
+                        <div className="flex h-full min-h-40 w-full items-center justify-center w-full">
+                            <p className="text-center text-muted-foreground">
+                                No pending requests.
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="border-none shadow-premium">
-                    <CardHeader>
-                        <CardTitle>My Profile Stats</CardTitle>
-                        <p className="text-sm text-muted-foreground">Quick overview of your impact.</p>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Publications</span>
-                                <span className="font-semibold">24</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                                <div className="h-full bg-primary w-[70%]" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Citations</span>
-                                <span className="font-semibold">156</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                                <div className="h-full bg-blue-500 w-[45%]" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Impact Factor</span>
-                                <span className="font-semibold">3.8</span>
-                            </div>
-                            <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                                <div className="h-full bg-emerald-500 w-[60%]" />
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t">
-                            <Button variant="outline" className="w-full rounded-xl" onClick={() => navigate('/user/profile')}>
-                                View Detailed Profile
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
+                    )}
+                </div>
             </div>
-
-            <RecordFormModal
-                isOpen={!!selectedCategory}
-                onClose={() => setSelectedCategory(null)}
-                type={selectedCategory || 'journal'}
-                onSubmit={(data) => {
-                    console.log('Submission:', data)
-                    setSelectedCategory(null)
-                }}
-            />
         </div>
-    )
-}
+    );
+};
 
-
-export default UserDashboard
+export default Dashboard;

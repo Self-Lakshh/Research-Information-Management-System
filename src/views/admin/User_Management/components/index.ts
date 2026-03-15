@@ -1,2 +1,3 @@
-export { UserFormModal } from './UserFormModal'
-export type { UserFormData } from './UserFormModal'
+export * from './UserFormModal'
+export * from './UserProfile'
+export { default as AdminUserProfile } from './UserProfile'

@@ -46,6 +46,18 @@ export const RecordTable: React.FC<RecordTableProps> = ({
     showActions = true,
     actions
 }) => {
+    // Shared safety helper for rendering
+    const safeString = (val: any): string => {
+        if (val === null || val === undefined) return '';
+        if (typeof val === 'object') {
+            if (val.seconds !== undefined) {
+                return new Date(val.seconds * 1000).toLocaleDateString();
+            }
+            return '';
+        }
+        return String(val);
+    }
+
     const columns = useMemo(() => {
         const baseColumns: ColumnDef<any>[] = [
             {
@@ -58,7 +70,9 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 ),
                 cell: ({ row }) => {
                     const category = row.original.category || row.original.type || 'journal';
-                    const config = RECORD_TYPE_CONFIG[category.toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal;
+                    const config = RECORD_TYPE_CONFIG[String(category).toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal;
+                    const displayTitle = safeString(row.original.title || row.original.title_of_paper || row.original.title_of_book || row.original.award_name || row.original.project_title || row.original.topic_title || row.original.name_of_student || 'Untitled');
+
                     return (
                         <div className="flex items-center gap-4 py-2">
                             <div className={cn(
@@ -69,12 +83,12 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                             </div>
                             <div className="flex flex-col gap-0.5">
                                 <span className="font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-                                    {row.original.title}
+                                    {displayTitle}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                    {(config?.label || category)}
+                                    {safeString(config?.label || category)}
                                     <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                                    ID: {row.original.id.slice(0, 6).toUpperCase()}
+                                    ID: {safeString(row.original.id).slice(0, 6).toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -93,7 +107,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                     cell: ({ row }) => (
                         <div className="text-center px-4">
                             <span className="text-xs font-bold text-foreground/80">
-                                {row.original.data?.author || row.original.author || row.original.submittedBy?.name || '-'}
+                                {safeString(row.original.data?.author || row.original.author || row.original.submittedBy?.name || '-')}
                             </span>
                         </div>
                     )
@@ -103,7 +117,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                     header: () => <div className="text-center font-bold">Domain</div>,
                     cell: ({ row }) => {
                         const category = row.original.category || row.original.type || 'journal';
-                        const config = RECORD_TYPE_CONFIG[category.toLowerCase() as RecordType]
+                        const config = RECORD_TYPE_CONFIG[String(category).toLowerCase() as RecordType];
                         return (
                             <div className="flex justify-center px-4">
                                 <Badge variant="secondary" className="rounded-[10px] h-7 text-[10px] uppercase font-bold tracking-wider bg-background shadow-soft border border-muted/50 px-3">
@@ -123,15 +137,20 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                     .map((field: any) => ({
                         accessorKey: field.key,
                         header: () => <div className="text-center font-bold">{field.label}</div>,
-                        cell: ({ row }: any) => (
-                            <div className="text-center px-4">
-                                <span className="text-xs font-bold text-foreground/80">
-                                    {field.type === 'number' && typeof row.original[field.key] === 'number'
-                                        ? `₹${row.original[field.key].toLocaleString()}`
-                                        : (row.original[field.key] || row.original.data?.[field.key] || '-')}
-                                </span>
-                            </div>
-                        )
+                        cell: ({ row }: any) => {
+                            const rawVal = row.original[field.key] || row.original.data?.[field.key];
+                            const val = field.type === 'number' && typeof rawVal === 'number'
+                                ? `₹${rawVal.toLocaleString()}`
+                                : safeString(rawVal || '-');
+
+                            return (
+                                <div className="text-center px-4">
+                                    <span className="text-xs font-bold text-foreground/80">
+                                        {val}
+                                    </span>
+                                </div>
+                            )
+                        }
                     }));
             }
         }
@@ -145,24 +164,30 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                         <span className="font-bold">Date</span>
                     </div>
                 ),
-                cell: ({ row }) => (
-                    <div className="text-center px-4 flex flex-col items-center gap-1">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground tabular-nums">
-                            {row.original.data?.date || row.original.date || row.original.data?.startDate || row.original.startDate || row.original.data?.filingDate || row.original.filingDate || row.original.data?.year || row.original.year || '-'}
+                cell: ({ row }) => {
+                    const displayDate = safeString(row.original.data?.date || row.original.date || row.original.data?.startDate || row.original.startDate || row.original.data?.filingDate || row.original.filingDate || row.original.data?.year || row.original.year || row.original.date_of_publication || row.original.published_date || row.original.grant_date || row.original.month_year || row.original.year_of_publication || row.original.publicationYear) || '-';
+
+                    return (
+                        <div className="text-center px-4 flex flex-col items-center gap-1">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground tabular-nums">
+                                {displayDate}
+                            </div>
                         </div>
-                    </div>
-                )
+                    )
+                }
             },
             {
                 accessorKey: 'status',
                 header: () => <div className="text-center font-bold">Status</div>,
                 cell: ({ row }) => {
-                    const status = (row.original.status || 'pending').toLowerCase();
+                    const status = safeString(row.original.approval_status || row.original.status || 'pending').toLowerCase();
+                    const displayStatus = safeString(row.original.approval_status || row.original.status || 'Pending');
+
                     return (
                         <div className="flex justify-center px-4">
                             <Badge className={cn(
                                 "rounded-full gap-2 px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest shadow-soft border-none pointer-events-none",
-                                getStatusColor(row.original.status)
+                                getStatusColor(status)
                             )}>
                                 <span className="relative flex h-2 w-2">
                                     <span className={cn(
@@ -174,7 +199,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                                         status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
                                     )}></span>
                                 </span>
-                                {row.original.status}
+                                {displayStatus}
                             </Badge>
                         </div>
                     )
