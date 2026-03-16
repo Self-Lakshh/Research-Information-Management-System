@@ -699,6 +699,30 @@ html {
 	scrollbar-width: none;
 }
 
+.show-scrollbar::-webkit-scrollbar {
+	display: block;
+	height: 6px;
+	width: 6px;
+}
+
+.show-scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.show-scrollbar::-webkit-scrollbar-thumb {
+	background: var(--gray-300);
+	border-radius: 10px;
+}
+
+.show-scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--gray-400);
+}
+
+.show-scrollbar {
+	-ms-overflow-style: auto;
+	scrollbar-width: thin;
+}
+
 /* Skeleton Shimmer Animation */
 @keyframes shimmer {
 	0% {

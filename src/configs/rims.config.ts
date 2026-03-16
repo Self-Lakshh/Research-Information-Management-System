@@ -14,6 +14,7 @@ export type FieldType =
     | 'multiselect'
     | 'file'
     | 'url'
+    | 'user_select'
 
 export interface FieldConfig {
     key: string
@@ -23,6 +24,7 @@ export interface FieldConfig {
     placeholder?: string
     options?: { label: string; value: string }[]
     gridSpan?: 1 | 2 // For form layout
+    multiple?: boolean // For multi-select or multi-file
 }
 
 export interface FilterConfig {
@@ -56,6 +58,7 @@ export interface DomainConfig {
 const createField = (field: Partial<FieldConfig> & { key: string; label: string; type: any }): FieldConfig => ({
     required: true,
     gridSpan: 1,
+    multiple: false,
     ...field
 })
 
@@ -64,9 +67,77 @@ const createField = (field: Partial<FieldConfig> & { key: string; label: string;
 // ============================================
 
 export const RECORD_TYPE_CONFIG: Record<RecordType, DomainConfig> = {
+    ipr: {
+        type: 'ipr',
+        label: 'IPR Publications',
+        shortLabel: 'IPR',
+        pluralLabel: 'IPR Publications',
+        icon: 'Lightbulb',
+        color: 'text-sky-600 bg-sky-600/10',
+        badgeColor: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
+        themeColor: 'sky',
+        fields: [
+            createField({ key: 'title', label: 'Title of Invention', type: 'text', gridSpan: 2 }),
+            createField({ key: 'inventors', label: 'Inventors', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'application_no', label: 'Application No.', type: 'text' }),
+            createField({ key: 'filing_date', label: 'Filing Date', type: 'date' }),
+            createField({ key: 'applicants', label: 'Applicants', type: 'text', placeholder: 'Comma separated names' }),
+            createField({ key: 'country', label: 'Country', type: 'text' }),
+            createField({
+                key: 'patent_type',
+                label: 'Patent Type',
+                type: 'select',
+                options: [
+                    { label: 'Design', value: 'design' },
+                    { label: 'Utility', value: 'utility' },
+                    { label: 'Patent', value: 'patent' },
+                    { label: 'Ordinary', value: 'ordinary' },
+                    { label: 'Copyright', value: 'copyright' }
+                ]
+            }),
+            createField({
+                key: 'status',
+                label: 'Status',
+                type: 'select',
+                options: [
+                    { label: 'Registered', value: 'registered' },
+                    { label: 'Granted', value: 'granted' },
+                    { label: 'Published', value: 'published' }
+                ]
+            }),
+            createField({ key: 'published_date', label: 'Published Date', type: 'date' }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
+        ]
+    },
+    phd_student: {
+        type: 'phd_student',
+        label: 'PhD Student Data',
+        shortLabel: 'PHD',
+        pluralLabel: 'PhD Student Records',
+        icon: 'GraduationCap',
+        color: 'text-emerald-600 bg-emerald-600/10',
+        badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+        themeColor: 'emerald',
+        fields: [
+            createField({ key: 'name_of_student', label: 'Name of Student', type: 'text', gridSpan: 2 }),
+            createField({ key: 'faculty_ref', label: 'Faculty / Supervisor', type: 'user_select', gridSpan: 2 }),
+            createField({
+                key: 'supervisor_type',
+                label: 'Supervisor Type',
+                type: 'select',
+                options: [
+                    { label: 'Major Advisor', value: 'major_advisor' },
+                    { label: 'Advisor', value: 'advisor' }
+                ]
+            }),
+            createField({ key: 'enrollment_number', label: 'Enrollment Number', type: 'text' }),
+            createField({ key: 'phd_stream', label: 'PhD Stream', type: 'text' }),
+            createField({ key: 'file', label: 'Supporting Document', type: 'file', required: false, multiple: true })
+        ]
+    },
     journal: {
         type: 'journal',
-        label: 'Journal',
+        label: 'Journal Publication',
         shortLabel: 'JRN',
         pluralLabel: 'Journal Publications',
         icon: 'BookOpen',
@@ -74,33 +145,29 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, DomainConfig> = {
         badgeColor: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
         themeColor: 'indigo',
         fields: [
-            createField({ key: 'title', label: 'Paper Title', type: 'text', gridSpan: 2 }),
-            createField({ key: 'journalName', label: 'Journal Name', type: 'text', gridSpan: 2 }),
-            createField({ key: 'authors', label: 'Authors', type: 'text', placeholder: 'Separate with commas' }),
-            createField({ key: 'publicationDate', label: 'Publication Date', type: 'date' }),
-            createField({ key: 'volume', label: 'Volume', type: 'text', required: false }),
-            createField({ key: 'issue', label: 'Issue', type: 'text', required: false }),
-            createField({ key: 'pages', label: 'Pages', type: 'text', required: false }),
-            createField({ key: 'publisher', label: 'Publisher', type: 'text' }),
-            createField({ key: 'doi', label: 'DOI', type: 'url', required: false }),
-            createField({ key: 'link', label: 'Link to Paper', type: 'url', required: false }),
+            createField({ key: 'title_of_paper', label: 'Title of Paper', type: 'text', gridSpan: 2 }),
+            createField({ key: 'authors', label: 'Authors', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'journal_name', label: 'Journal Name', type: 'text', gridSpan: 2 }),
             createField({
-                key: 'indexing',
-                label: 'Indexing',
+                key: 'journal_type',
+                label: 'Journal Type',
                 type: 'select',
                 options: [
                     { label: 'SCI', value: 'sci' },
                     { label: 'Scopus', value: 'scopus' },
-                    { label: 'UGC Care', value: 'ugc' },
-                    { label: 'Other', value: 'other' }
+                    { label: 'Web of Science', value: 'web_of_science' },
+                    { label: 'ESCI', value: 'esci' }
                 ]
             }),
-            createField({ key: 'impactFactor', label: 'Impact Factor', type: 'number', required: false }),
+            createField({ key: 'isbn_issn_number', label: 'ISSN Number', type: 'text' }),
+            createField({ key: 'date_of_publication', label: 'Date of Publication', type: 'date' }),
+            createField({ key: 'web_link', label: 'Web Link', type: 'url', required: false }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
         ]
     },
     conference: {
         type: 'conference',
-        label: 'Conference',
+        label: 'Conference Paper',
         shortLabel: 'CONF',
         pluralLabel: 'Conference Papers',
         icon: 'Users',
@@ -108,102 +175,46 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, DomainConfig> = {
         badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
         themeColor: 'blue',
         fields: [
-            createField({ key: 'title', label: 'Paper Title', type: 'text', gridSpan: 2 }),
-            createField({ key: 'conferenceName', label: 'Conference Name', type: 'text', gridSpan: 2 }),
-            createField({ key: 'organizer', label: 'Organizer', type: 'text' }),
-            createField({ key: 'location', label: 'Location', type: 'text' }),
-            createField({ key: 'startDate', label: 'Start Date', type: 'date' }),
-            createField({ key: 'endDate', label: 'End Date', type: 'date' }),
-            createField({ key: 'authors', label: 'Authors', type: 'text' }),
+            createField({ key: 'title_of_paper', label: 'Title of Paper', type: 'text', gridSpan: 2 }),
+            createField({ key: 'authors', label: 'Authors', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'title_of_proceedings', label: 'Title of Proceedings', type: 'text', gridSpan: 2 }),
+            createField({ key: 'name_of_conference', label: 'Name of Conference', type: 'text', gridSpan: 2 }),
             createField({
-                key: 'presentationType',
-                label: 'Presentation Type',
+                key: 'origin',
+                label: 'Conference Origin',
                 type: 'select',
                 options: [
-                    { label: 'Oral', value: 'oral' },
-                    { label: 'Poster', value: 'poster' },
-                    { label: 'Keynote', value: 'keynote' },
+                    { label: 'National', value: 'national' },
+                    { label: 'International', value: 'international' }
                 ]
             }),
-            createField({ key: 'proceedingsLink', label: 'Proceedings Link', type: 'url', required: false }),
+            createField({ key: 'year_of_publication', label: 'Year of Publication', type: 'text' }),
+            createField({ key: 'isbn_issn_number', label: 'ISBN/ISSN Number', type: 'text' }),
+            createField({ key: 'name_of_publisher', label: 'Name of Publisher', type: 'text' }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
         ]
     },
     book: {
         type: 'book',
-        label: 'Book/Chapter',
+        label: 'Book Publication',
         shortLabel: 'BOOK',
-        pluralLabel: 'Books & Chapters',
+        pluralLabel: 'Book Publications',
         icon: 'FileText',
         color: 'text-amber-600 bg-amber-600/10',
         badgeColor: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
         themeColor: 'amber',
         fields: [
-            createField({ key: 'title', label: 'Title', type: 'text', gridSpan: 2 }),
-            createField({
-                key: 'type',
-                label: 'Type',
-                type: 'select',
-                options: [
-                    { label: 'Authored Book', value: 'authored_book' },
-                    { label: 'Edited Book', value: 'edited_book' },
-                    { label: 'Book Chapter', value: 'chapter' },
-                ]
-            }),
-            createField({ key: 'authors', label: 'Authors/Editors', type: 'text' }),
-            createField({ key: 'publisher', label: 'Publisher', type: 'text' }),
-            createField({ key: 'publicationYear', label: 'Year', type: 'number' }),
-            createField({ key: 'isbn', label: 'ISBN', type: 'text' }),
-            createField({ key: 'doi', label: 'DOI', type: 'url', required: false }),
-        ]
-    },
-    ipr: {
-        type: 'ipr',
-        label: 'IPR',
-        shortLabel: 'IPR',
-        pluralLabel: 'IPR & Patents',
-        icon: 'Lightbulb',
-        color: 'text-sky-600 bg-sky-600/10',
-        badgeColor: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
-        themeColor: 'sky',
-        fields: [
-            createField({ key: 'title', label: 'Title of Invention', type: 'text', gridSpan: 2 }),
-            createField({ key: 'inventors', label: 'Inventors', type: 'text', gridSpan: 2 }),
-            createField({ key: 'applicationNo', label: 'Application No.', type: 'text' }),
-            createField({ key: 'filingDate', label: 'Filing Date', type: 'date' }),
-            createField({
-                key: 'status',
-                label: 'Patent Status',
-                type: 'select',
-                options: [
-                    { label: 'Filed', value: 'filed' },
-                    { label: 'Published', value: 'published' },
-                    { label: 'Granted', value: 'granted' },
-                ]
-            }),
-            createField({ key: 'publicationDate', label: 'Publication Date', type: 'date', required: false }),
-            createField({ key: 'grantDate', label: 'Grant Date', type: 'date', required: false }),
-            createField({ key: 'patentNo', label: 'Patent No. (if granted)', type: 'text', required: false }),
-        ]
-    },
-    award: {
-        type: 'award',
-        label: 'Award/Recognition',
-        shortLabel: 'AWD',
-        pluralLabel: 'Awards & Recognitions',
-        icon: 'Trophy',
-        color: 'text-rose-600 bg-rose-600/10',
-        badgeColor: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-        themeColor: 'rose',
-        fields: [
-            createField({ key: 'title', label: 'Award Name', type: 'text', gridSpan: 2 }),
-            createField({ key: 'agency', label: 'Awarding Agency', type: 'text' }),
-            createField({ key: 'date', label: 'Date', type: 'date' }),
-            createField({ key: 'description', label: 'Description', type: 'textarea', gridSpan: 2 }),
+            createField({ key: 'title_of_book', label: 'Title of Book', type: 'text', gridSpan: 2 }),
+            createField({ key: 'authors', label: 'Authors', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'publisher_name', label: 'Publisher Name', type: 'text' }),
+            createField({ key: 'isbn_number', label: 'ISBN Number', type: 'text' }),
+            createField({ key: 'date_of_publication', label: 'Date of Publication', type: 'date' }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false })
         ]
     },
     consultancy: {
         type: 'consultancy',
-        label: 'Consultancy',
+        label: 'Consultancy & Grants',
         shortLabel: 'CONS',
         pluralLabel: 'Consultancy Projects',
         icon: 'Briefcase',
@@ -211,41 +222,49 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, DomainConfig> = {
         badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
         themeColor: 'emerald',
         fields: [
-            createField({ key: 'title', label: 'Project Title', type: 'text', gridSpan: 2 }),
-            createField({ key: 'client', label: 'Client Organization', type: 'text' }),
-            createField({ key: 'amount', label: 'Amount (INR)', type: 'number' }),
-            createField({ key: 'startDate', label: 'Start Date', type: 'date' }),
-            createField({ key: 'endDate', label: 'End Date', type: 'date', required: false }),
+            createField({ key: 'project_title', label: 'Project Title', type: 'text', gridSpan: 2 }),
+            createField({ key: 'principal_investigator_ref', label: 'Principal Investigator', type: 'user_select', gridSpan: 2 }),
+            createField({ key: 'co_investigators_refs', label: 'Co-Investigators', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'organization', label: 'Organization', type: 'text' }),
+            createField({ key: 'organization_url', label: 'Organization URL', type: 'url', required: false }),
+            createField({ key: 'amount', label: 'Amount', type: 'number' }),
+            createField({ key: 'institution', label: 'Institution', type: 'text' }),
+            createField({ key: 'duration', label: 'Duration', type: 'text' }),
+            createField({ key: 'grant_date', label: 'Grant Date', type: 'date' }),
             createField({
                 key: 'status',
                 label: 'Status',
                 type: 'select',
                 options: [
                     { label: 'Ongoing', value: 'ongoing' },
-                    { label: 'Completed', value: 'completed' },
+                    { label: 'Completed', value: 'completed' }
                 ]
             }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
         ]
     },
-    phd_student: {
-        type: 'phd_student',
-        label: 'PhD Student',
-        shortLabel: 'PHD',
-        pluralLabel: 'PhD Students',
-        icon: 'GraduationCap',
-        color: 'text-emerald-600 bg-emerald-600/10',
-        badgeColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-        themeColor: 'emerald',
+    award: {
+        type: 'award',
+        label: 'Awards & Recognition',
+        shortLabel: 'AWD',
+        pluralLabel: 'Awards & Recognitions',
+        icon: 'Trophy',
+        color: 'text-rose-600 bg-rose-600/10',
+        badgeColor: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+        themeColor: 'rose',
         fields: [
-            createField({ key: 'name', label: 'Name of Student', type: 'text', gridSpan: 2 }),
-            createField({ key: 'enrollmentNumber', label: 'Enrollment Number', type: 'text' }),
-            createField({ key: 'phdStream', label: 'PhD Stream', type: 'text' }),
-            createField({ key: 'supervisorType', label: 'Supervisor Type', type: 'text' }),
+            createField({ key: 'award_name', label: 'Award Name', type: 'text', gridSpan: 2 }),
+            createField({ key: 'title', label: 'Title / Purpose', type: 'text', gridSpan: 2 }),
+            createField({ key: 'recipient_ref', label: 'Recipient', type: 'user_select', gridSpan: 2 }),
+            createField({ key: 'institution_body', label: 'Institution / Body', type: 'text' }),
+            createField({ key: 'country', label: 'Country', type: 'text' }),
+            createField({ key: 'month_year', label: 'Month & Year', type: 'text', placeholder: 'e.g. March 2024' }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
         ]
     },
     other: {
         type: 'other',
-        label: 'Other',
+        label: 'Other Activities',
         shortLabel: 'OTHR',
         pluralLabel: 'Other Activities',
         icon: 'MoreHorizontal',
@@ -253,9 +272,23 @@ export const RECORD_TYPE_CONFIG: Record<RecordType, DomainConfig> = {
         badgeColor: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
         themeColor: 'slate',
         fields: [
-            createField({ key: 'title', label: 'Title', type: 'text', gridSpan: 2 }),
-            createField({ key: 'description', label: 'Description', type: 'textarea', gridSpan: 2 }),
+            createField({
+                key: 'type',
+                label: 'Activity Type',
+                type: 'select',
+                options: [
+                    { label: 'FDP', value: 'fdp' },
+                    { label: 'Seminar', value: 'seminar' },
+                    { label: 'Workshop', value: 'workshop' },
+                    { label: 'Keynote Speaker', value: 'keynote_speaker' }
+                ]
+            }),
+            createField({ key: 'topic_title', label: 'Topic / Title', type: 'text', gridSpan: 2 }),
+            createField({ key: 'organization', label: 'Organization', type: 'text' }),
+            createField({ key: 'role', label: 'Role', type: 'text' }),
             createField({ key: 'date', label: 'Date', type: 'date' }),
+            createField({ key: 'involved_faculty_refs', label: 'Involved Faculty', type: 'user_select', gridSpan: 2, multiple: true }),
+            createField({ key: 'file', label: 'Supporting Documents', type: 'file', required: false, multiple: true })
         ]
     }
 }

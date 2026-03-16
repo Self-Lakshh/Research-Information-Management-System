@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { UploadCloud } from 'lucide-react'
+import { UploadCloud, X, FileText } from 'lucide-react'
 import { cn } from '@/components/shadcn/utils'
 import { FieldConfig } from '@/configs/rims.config'
 import { Label } from '@/components/shadcn/ui/label'
@@ -13,15 +13,24 @@ interface DynamicFormProps {
     data?: any
     onChange: (key: string, value: any) => void
     readOnly?: boolean
+    isAdmin?: boolean
+    users?: any[]
 }
 
-export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onChange, readOnly = false }) => {
+export const DynamicForm: React.FC<DynamicFormProps> = ({ 
+    fields, 
+    data = {}, 
+    onChange, 
+    readOnly = false,
+    isAdmin = false,
+    users = []
+}) => {
 
     const renderField = (field: FieldConfig) => {
         const { key, label, placeholder, required, options } = field
         const value = data[key] || ''
 
-        const baseInputStyles = "rounded-xl border border-muted/50 bg-card shadow-soft focus:border-primary/50 focus:ring-primary/20 transition-all duration-300"
+        const baseInputStyles = "rounded-xl border border-slate-300 bg-white dark:bg-slate-950 dark:border-slate-800 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 placeholder:text-slate-400 font-medium px-4"
 
         switch (field.type) {
             case 'textarea':
@@ -31,24 +40,115 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
                         placeholder={placeholder}
                         value={value}
                         onChange={(e) => onChange(key, e.target.value)}
-                        className={cn(baseInputStyles, "min-h-[120px] resize-none")}
+                        className={cn(baseInputStyles, "min-h-[120px] resize-none py-3 px-4")}
                     />
                 )
-            case 'select':
+            case 'user_select': {
+                const optionsList = users
+                const isMultiple = field.multiple
+                // Normalize value to an array for easier rendering
+                const rawSelectedValues = isMultiple ? (Array.isArray(value) ? value : [value].filter(Boolean)) : [value].filter(Boolean)
+                
+                // For non-admins, show a premium read-only display
+                if (!isAdmin) {
+                    return (
+                        <div className="flex flex-wrap gap-2 p-3 min-h-[48px] rounded-xl border border-slate-200 bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-800 shadow-inner">
+                            {rawSelectedValues.map((val: any) => {
+                                // Extract the string path/ID for comparison if it's a Firestore Ref
+                                const targetId = (val && typeof val === 'object' && val.id) ? val.id : String(val);
+                                const userObj = users.find(u => u.id === targetId || u.value === targetId || u.id === val);
+                                
+                                return (
+                                    <div key={targetId} className="flex items-center gap-1.5 bg-primary/10 text-primary text-[11px] font-bold px-3 py-1.5 rounded-lg border border-primary/20">
+                                        {userObj?.name || 'Loading Name...'}
+                                    </div>
+                                )
+                            })}
+                            {rawSelectedValues.length === 0 && <span className="text-slate-400 text-xs font-medium italic">Auto-assigned to your profile</span>}
+                        </div>
+                    )
+                }
+
+                // For Admins, show the selector
                 return (
-                    <Select disabled={readOnly} value={value} onValueChange={(val) => onChange(key, val)}>
-                        <SelectTrigger className={cn(baseInputStyles, "h-11 font-medium")}>
+                    <div className="space-y-2">
+                        {isMultiple && rawSelectedValues.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                                {rawSelectedValues.map((val: any) => {
+                                    const targetId = (val && typeof val === 'object' && val.id) ? val.id : String(val);
+                                    const userObj = users.find(u => u.id === targetId || u.value === targetId || u.id === val);
+                                    return (
+                                        <div key={targetId} className="flex items-center gap-1.5 bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-1 rounded-md border border-slate-200">
+                                            {userObj?.name || targetId}
+                                            <button 
+                                                type="button"
+                                                onClick={() => onChange(key, rawSelectedValues.filter((v: any) => v !== val))}
+                                                className="hover:text-rose-500 transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
+                        <Select 
+                            disabled={readOnly} 
+                            value={isMultiple ? "" : (rawSelectedValues[0] ? (rawSelectedValues[0].id || rawSelectedValues[0]) : "")} 
+                            onValueChange={(val) => {
+                                // Important: We store the string ID/path which RecordFormModal/useSaveRecord converts to Ref if needed
+                                // Or simply store the Ref if we have it. For simplicity, we store what we select.
+                                if (isMultiple) {
+                                    if (!rawSelectedValues.includes(val)) {
+                                        onChange(key, [...rawSelectedValues, val])
+                                    }
+                                } else {
+                                    onChange(key, val)
+                                }
+                            }}
+                        >
+                            <SelectTrigger className={cn(baseInputStyles, "h-12")}>
+                                <SelectValue placeholder={placeholder || `Select ${label}`} />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200 shadow-xl overflow-hidden max-h-[300px]">
+                                {optionsList?.map((opt: any) => (
+                                    <SelectItem 
+                                        key={opt.id || opt.value} 
+                                        value={opt.id || opt.value} 
+                                        className="rounded-lg py-2.5 focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
+                                    >
+                                        {opt.name} ({opt.email})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )
+            }
+            case 'select': {
+                return (
+                    <Select 
+                        disabled={readOnly} 
+                        value={value} 
+                        onValueChange={(val) => onChange(key, val)}
+                    >
+                        <SelectTrigger className={cn(baseInputStyles, "h-12")}>
                             <SelectValue placeholder={placeholder || `Select ${label}`} />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-primary/5 shadow-premium">
-                            {options?.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value} className="rounded-lg">
+                        <SelectContent className="rounded-xl border-slate-200 shadow-xl overflow-hidden">
+                            {options?.map((opt: any) => (
+                                <SelectItem 
+                                    key={opt.value} 
+                                    value={opt.value} 
+                                    className="rounded-lg py-2.5 focus:bg-primary/5 focus:text-primary transition-colors cursor-pointer"
+                                >
                                     {opt.label}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 )
+            }
             case 'date':
                 return (
                     <Input
@@ -56,7 +156,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
                         type="date"
                         value={value}
                         onChange={(e) => onChange(key, e.target.value)}
-                        className={cn(baseInputStyles, "h-11 font-medium")}
+                        className={cn(baseInputStyles, "h-12")}
                     />
                 )
             case 'number':
@@ -67,30 +167,119 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
                         placeholder={placeholder}
                         value={value}
                         onChange={(e) => onChange(key, e.target.value)}
-                        className={cn(baseInputStyles, "h-11 font-medium")}
+                        className={cn(baseInputStyles, "h-12")}
+                    />
+                )
+            case 'url':
+                return (
+                    <Input
+                        disabled={readOnly}
+                        type="url"
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => onChange(key, e.target.value)}
+                        className={cn(baseInputStyles, "h-12")}
                     />
                 )
             case 'file':
+                const filesArray = Array.isArray(value) ? value : (value ? [value] : [])
+
                 return (
-                    <div className="relative group/file">
-                        <Input
-                            disabled={readOnly}
-                            type="file"
-                            onChange={(e) => onChange(key, e.target.files?.[0])}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div className={cn(
-                            "flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl transition-all duration-300 gap-2 shadow-soft",
-                            value ? "border-primary/50 bg-primary/5" : "border-muted/50 bg-card group-hover/file:border-primary/30 group-hover/file:bg-muted/30"
-                        )}>
-                            <UploadCloud className={cn("w-8 h-8", value ? "text-primary" : "text-muted-foreground")} />
-                            <div className="text-center">
-                                <p className="text-sm font-medium text-foreground">
-                                    {value ? (value.name || 'File selected') : "Click or drag to upload"}
-                                </p>
-                                {!value && <p className="text-xs text-muted-foreground mt-1">PDF, DOCX up to 10MB</p>}
+                    <div className="space-y-4">
+                        <div className="relative group/file">
+                            <Input
+                                disabled={readOnly}
+                                type="file"
+                                multiple={field.multiple} 
+                                onChange={(e) => {
+                                    const files = e.target.files
+                                    if (files && files.length > 0) {
+                                        const newFiles = Array.from(files)
+                                        onChange(key, field.multiple ? [...filesArray, ...newFiles] : newFiles[0])
+                                    }
+                                }}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div className={cn(
+                                "flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl transition-all duration-300 gap-3 shadow-sm",
+                                value 
+                                    ? "border-primary bg-primary/5 ring-4 ring-primary/5" 
+                                    : "border-slate-300 bg-slate-50 dark:bg-slate-900 dark:border-slate-800 group-hover/file:border-primary/50 group-hover/file:bg-primary/5"
+                            )}>
+                                <div className={cn(
+                                    "p-3 rounded-full transition-colors",
+                                    value ? "bg-primary text-white" : "bg-white text-slate-400 shadow-sm"
+                                )}>
+                                    <UploadCloud className="w-6 h-6" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        Click or drag to upload {field.multiple ? 'documents' : 'document'}
+                                    </p>
+                                    {!value && <p className="text-xs text-slate-500 mt-1">{field.multiple ? "PDF, DOCX, Images" : "PDF, DOCX up to 10MB"}</p>}
+                                </div>
                             </div>
                         </div>
+
+                        {/* File Preview Grid */}
+                        {filesArray.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                {filesArray.map((file: any, index: number) => {
+                                    let fileName = 'Document';
+                                    let isExisting = false;
+
+                                    if (file instanceof File) {
+                                        fileName = file.name;
+                                    } else if (typeof file === 'string') {
+                                        isExisting = true;
+                                        try {
+                                            const decoded = decodeURIComponent(file);
+                                            const parts = decoded.split('/');
+                                            const filenameWithParams = parts[parts.length - 1];
+                                            fileName = filenameWithParams.split('?')[0].split('%2F').pop() || 'Existing File';
+                                        } catch (e) {
+                                            fileName = file.split('/').pop() || 'Existing File';
+                                        }
+                                    }
+
+                                    const fileSize = (file instanceof File) ? (file.size / 1024 / 1024).toFixed(1) + 'MB' : 'Cloud Asset';
+                                    
+                                    return (
+                                        <div key={index} className="group relative flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all shadow-sm h-28">
+                                            <div className={cn(
+                                                "p-2 rounded-lg mb-2 transition-colors",
+                                                isExisting ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-red-50 dark:bg-red-500/10 text-red-500"
+                                            )}>
+                                                <FileText className="w-5 h-5" />
+                                            </div>
+                                            <div className="w-full text-center min-w-0">
+                                                <p className="text-[10px] font-bold text-slate-700 dark:text-slate-200 truncate px-1">
+                                                    {fileName}
+                                                </p>
+                                                <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
+                                                    {fileSize}
+                                                </p>
+                                            </div>
+                                            
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (field.multiple) {
+                                                        onChange(key, filesArray.filter((_, i) => i !== index))
+                                                    } else {
+                                                        onChange(key, null)
+                                                    }
+                                                }}
+                                                className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-400 shadow-md transition-all z-20 hover:scale-110 active:scale-90"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        )}
                     </div>
                 )
             default:
@@ -100,7 +289,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
                         placeholder={placeholder}
                         value={value}
                         onChange={(e) => onChange(key, e.target.value)}
-                        className={cn(baseInputStyles, "h-11 font-medium")}
+                        className={cn(baseInputStyles, "h-12")}
                     />
                 )
         }
@@ -108,16 +297,20 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({ fields, data = {}, onC
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-            {fields.map((field) => (
-                <div key={field.key} className={field.gridSpan === 2 ? 'col-span-1 md:col-span-2' : 'col-span-1'}>
-                    <Label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                        {field.label} {field.required && <span className="text-rose-500">*</span>}
-                    </Label>
-                    <div className="relative group transition-all duration-300">
-                        {renderField(field)}
+            {fields.map((field) => {
+                const isFullWidth = field.gridSpan === 2 || field.type === 'file' || field.type === 'textarea'
+                
+                return (
+                    <div key={field.key} className={isFullWidth ? 'col-span-1 md:col-span-2' : 'col-span-1'}>
+                        <Label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                            {field.label} {field.required && <span className="text-rose-500">*</span>}
+                        </Label>
+                        <div className="relative group transition-all duration-300">
+                            {renderField(field)}
+                        </div>
                     </div>
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }

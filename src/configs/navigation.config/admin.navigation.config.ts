@@ -43,6 +43,26 @@ const adminNavigationConfig: NavigationTree[] = [
         authority: [ADMIN],
         subMenu: [],
     },
+    {
+        key: 'admin.manage-events',
+        path: '/admin/manage-events',
+        title: 'Manage Events',
+        translateKey: 'nav.admin.manage_events',
+        icon: 'staffs',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN],
+        subMenu: [],
+    },
+    {
+        key: 'admin.manage-partners',
+        path: '/admin/manage-partners',
+        title: 'Manage Partners',
+        translateKey: 'nav.admin.manage_partners',
+        icon: 'staffs',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [ADMIN],
+        subMenu: [],
+    }
 ]
 
 export default adminNavigationConfig

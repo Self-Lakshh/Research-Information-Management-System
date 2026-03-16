@@ -9,9 +9,10 @@ import {
     RecordTable,
     RecordDetailModal,
     RecordFormModal,
+    AddSubmissions,
 } from '@/components/custom'
 import { Spinner } from '@/components/shadcn/ui/spinner'
-import { useAllRecords, useDeleteRecord, useUpdateRecord } from '@/hooks/useRecords'
+import { useAllRecords, useDeleteRecord, useUpdateRecord, useCreateRecord } from '@/hooks/useRecords'
 import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
 
@@ -24,6 +25,8 @@ const Records = () => {
     const [selectedRecord, setSelectedRecord] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
+    const [isAddOpen, setIsAddOpen] = useState(false)
+    const [addType, setAddType] = useState<string>('journal')
 
     // ── Fetch ─────────────────────────────────────────────────────────────
     const { data: rawRecords = [], isLoading, error } = useAllRecords({
@@ -33,6 +36,7 @@ const Records = () => {
 
     const updateRecord = useUpdateRecord()
     const deleteRecord = useDeleteRecord()
+    const createRecord = useCreateRecord()
 
     // ── Client-side search + year filter ──────────────────────────────────
     const displayed = useMemo(() => {
@@ -92,19 +96,30 @@ const Records = () => {
     }
 
     const handleEdit = (record: any) => {
+        setAddType(record.type || 'journal')
         setSelectedRecord(record)
         setIsEditOpen(true)
     }
 
+    const handleAddClick = (type: string) => {
+        setAddType(type)
+        setSelectedRecord(null)
+        setIsAddOpen(true)
+    }
+
     const handleFormSubmit = async (data: any) => {
-        if (!selectedRecord) return
-        const type = (selectedRecord._domain || selectedRecord.type || domainFilter) as RecordType
         try {
-            await updateRecord.mutateAsync({ recordId: selectedRecord.id, data: { ...data, type } })
-            setIsEditOpen(false)
+            const type = addType as RecordType
+            if (selectedRecord) {
+                await updateRecord.mutateAsync({ recordId: selectedRecord.id, data: { ...data, type } })
+                setIsEditOpen(false)
+            } else {
+                await createRecord.mutateAsync({ ...data, type })
+                setIsAddOpen(false)
+            }
         } catch (err) {
             console.error(err)
-            alert('Failed to update.')
+            alert('Failed to save.')
         }
     }
 
@@ -122,6 +137,7 @@ const Records = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
+                        <AddSubmissions onAddClick={handleAddClick} />
                         <button className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white transition-all">
                             <Download className="w-3.5 h-3.5" />
                             Export CSV
@@ -235,15 +251,26 @@ const Records = () => {
                 record={selectedRecord}
             />
 
+            {/* Edit Modal */}
             {selectedRecord && (
                 <RecordFormModal
                     isOpen={isEditOpen}
-                    onClose={() => setIsEditOpen(false)}
-                    type={(selectedRecord._domain || selectedRecord.type || domainFilter) as any}
+                    onClose={() => { setIsEditOpen(false); setSelectedRecord(null) }}
+                    type={addType as any}
                     initialData={selectedRecord}
                     onSubmit={handleFormSubmit}
+                    loading={updateRecord.isPending}
                 />
             )}
+
+            {/* Add Modal */}
+            <RecordFormModal
+                isOpen={isAddOpen}
+                onClose={() => { setIsAddOpen(false); setSelectedRecord(null) }}
+                type={addType as any}
+                onSubmit={handleFormSubmit}
+                loading={createRecord.isPending}
+            />
         </div>
     )
 }

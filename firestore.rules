@@ -2,151 +2,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helper functions ──────────────────────────────────────────────────────
+    // ── Public Access (LANDING PAGE) ──────────────────────────────────────────
+    // These MUST be public so the landing page works for guest visitors.
+    match /partners/{partnerId} { allow read: if true; }
+    match /blogs/{blogId} { allow read: if true; }
+    match /events/{eventId} { allow read: if true; }
+    match /media/{mediaId} { allow read: if true; }
 
-    /** True when the caller is authenticated */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /** True when the caller's Firestore profile marks them as admin */
-    function isAdmin() {
-      return isSignedIn() &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.user_role == 'admin';
-    }
-
-    /** True when the caller's Firestore profile is active */
-    function isActive() {
-      return isSignedIn() &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.is_active == true;
-    }
-
-    /** True when the incoming document is "owned" by the caller */
-    function isOwner() {
-      return isSignedIn() &&
-             request.resource.data.created_by == 'users/' + request.auth.uid;
-    }
-
-    /**
-     * True when the record being updated still belongs to the caller.
-     * Uses resource (existing data) not request.resource.
-     */
-    function ownsRecord() {
-      return isSignedIn() &&
-             resource.data.created_by == 'users/' + request.auth.uid;
-    }
-
-    // ── Users collection ──────────────────────────────────────────────────────
+    // ── Users collection (CRITICAL FOR LOGIN) ─────────────────────────────────
     match /users/{userId} {
-      // Any authenticated, active user can read user profiles
-      allow read: if isSignedIn() && isActive();
-
-      // Admins can create user documents (done server-side via Netlify Function)
-      // Users can create their OWN document (on first sign-up)
-      allow create: if isAdmin() || request.auth.uid == userId;
-
-      // Users may update their own non-sensitive fields; admins can update all
-      allow update: if isAdmin() ||
-                    (request.auth.uid == userId && isActive() &&
-                     !request.resource.data.diff(resource.data).affectedKeys()
-                       .hasAny(['user_role', 'is_active', 'created_by', 'created_at']));
-
-      // Only admins can deactivate/delete user documents
-      allow delete: if isAdmin();
+      allow get: if true;
+      allow list: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // ── Media collection ──────────────────────────────────────────────────────
+    // ── Media Write (AS REQUESTED) ─────────────────────────────────────────────
     match /media/{mediaId} {
-      allow read:   if isSignedIn();
-      // Users can upload their own media; admins can manage all media
-      allow create: if isSignedIn() && isActive() &&
-                    request.resource.data.uploaded_by == 'users/' + request.auth.uid;
-      allow update, delete: if isAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
+        && resource.data.uploaded_by == /databases/$(database)/documents/users/$(request.auth.uid);
     }
 
-    // ── Document metadata collection ──────────────────────────────────────────
-    match /document/{docId} {
-      allow read:   if isSignedIn();
-      allow write:  if isAdmin();
-    }
-
-    // ── Research domain collections ────────────────────────────────────────────
-    // Applies to: Journal, Conference, Book, IPR, Awards,
-    //             Consultancy_Project_Grants, PHD_Student_Data, Others
-
-    match /Journal/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      // Users can create their own records
-      allow create: if isSignedIn() && isActive() && isOwner();
-      // Users may only update their own records; admins can update any
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      // Soft-delete (is_active = false) allowed for owner or admin
-      allow delete: if isAdmin();
-    }
-
-    match /Conference/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
-    }
-
-    match /Book/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
-    }
-
-    match /IPR/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
-    }
-
-    match /Awards/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
-    }
-
-    match /Consultancy_Project_Grants/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
-    }
-
-    match /PHD_Student_Data/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      // PHD records can also be created by the supervising faculty
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive());
-      allow delete: if isAdmin();
-    }
-
-    match /Others/{recordId} {
-      allow read:   if isSignedIn() && isActive();
-      allow create: if isSignedIn() && isActive() && isOwner();
-      allow update: if isAdmin() ||
-                    (ownsRecord() && isActive() &&
-                     resource.data.approval_status == 'pending');
-      allow delete: if isAdmin();
+    // ── General Records (AUTHENTICATED ONLY) ──────────────────────────────────
+    match /{collection}/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
   }
 }

@@ -10,8 +10,11 @@ import {
     Trash2,
     CheckCircle2,
     Clock,
-    XCircle
+    XCircle,
+    User
 } from 'lucide-react'
+import { DocumentReference, getDoc, doc } from 'firebase/firestore'
+import { db } from '@/configs/firebase.config'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -36,6 +39,45 @@ interface RecordCardProps {
     onDelete?: (id: string) => void
     showActions?: boolean
     actions?: RecordAction[]
+    className?: string
+}
+
+const CardUserDisplay: React.FC<{ reference: any }> = ({ reference }) => {
+    const [name, setName] = React.useState<string>('...')
+
+    React.useEffect(() => {
+        if (!reference) {
+            setName('N/A')
+            return
+        }
+        
+        const resolve = async () => {
+            try {
+                // If it's an array, just show "Multiple" or first name
+                if (Array.isArray(reference)) {
+                    if (reference.length === 0) return setName('N/A')
+                    const first = reference[0]
+                    if (first instanceof DocumentReference || (first?.path)) {
+                        const snap = await getDoc(first instanceof DocumentReference ? first : doc(db, first.path))
+                        setName(snap.exists() ? (snap.data()?.name || 'User') : 'User')
+                        if (reference.length > 1) setName(prev => `${prev} +${reference.length - 1}`)
+                    } else {
+                        setName(String(first))
+                    }
+                } else if (reference instanceof DocumentReference || (reference?.path)) {
+                    const snap = await getDoc(reference instanceof DocumentReference ? reference : doc(db, reference.path))
+                    setName(snap.exists() ? (snap.data()?.name || 'User') : 'User')
+                } else {
+                    setName(String(reference))
+                }
+            } catch {
+                setName('User')
+            }
+        }
+        resolve()
+    }, [reference])
+
+    return <span>{name}</span>
 }
 
 export const RecordCard: React.FC<RecordCardProps> = ({
@@ -44,110 +86,109 @@ export const RecordCard: React.FC<RecordCardProps> = ({
     onEdit,
     onDelete,
     showActions = true,
-    actions
+    actions,
+    className
 }) => {
     const config = RECORD_TYPE_CONFIG[(record.category || record.type || 'journal').toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal
 
     const safeString = (val: any): string => {
         if (val === null || val === undefined) return '';
         if (typeof val === 'object') {
-            if (val.seconds !== undefined) return new Date(val.seconds * 1000).toLocaleDateString();
-            return ''; // Hide complex Firestore objects/references
+            if (val.seconds !== undefined) {
+                return new Date(val.seconds * 1000).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+            return '';
         }
         return String(val);
     }
 
-    const status = safeString(record.approval_status || record.status || 'pending').toLowerCase()
-    const displayStatus = safeString(record.approval_status || record.status || 'Pending')
-    const displayDate = safeString(record.date || record.year || record.data?.date || record.data?.year || record.date_of_publication || record.published_date || record.grant_date || record.month_year || record.year_of_publication || record.publicationYear) || 'N/A'
-    const displayTitle = safeString(record.title || record.title_of_paper || record.title_of_book || record.award_name || record.project_title || record.topic_title || record.name_of_student || 'Untitled Record')
-    const displayDescription = safeString(record.data?.journalName || record.data?.conferenceName || record.data?.client || record.data?.agency || record.data?.author || record.data?.publisher || record.journal_name || record.name_of_conference || record.client || record.agency || record.author || record.publisher || record.institution_body || 'Detailed record for research evaluation.')
+    const status = (record.approval_status || 'pending').toLowerCase()
+    const displayStatus = record.approval_status || 'Pending'
+    const displayDate = safeString(record.published_date || record.date_of_publication || record.grant_date || record.date || record.event_date || record.updatedAt) || 'N/A'
+    const displayTitle = String(record.title || record.title_of_paper || record.title_of_book || record.award_name || record.project_title || record.topic_title || record.name_of_student || 'Untitled Record')
+    const userRef = record.authors || record.author || record.inventors || record.principal_investigator_ref || record.recipient_ref || record.faculty_ref
 
     return (
         <Card
-            className="group relative overflow-hidden bg-card border border-muted/30 shadow-xs hover:border-primary/30 transition-all duration-300 rounded-2xl cursor-pointer h-full min-h-[220px] flex flex-col"
+            className={cn(
+                "group relative overflow-hidden bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-500 rounded-[24px] cursor-pointer flex flex-col w-full sm:w-[340px] h-[220px]",
+                className
+            )}
             onClick={() => onView(record)}
         >
-            <CardContent className="p-0 relative z-10 flex flex-col h-full">
-                <div className="p-5 space-y-4 flex-1 flex flex-col">
-                    {/* Header: Category & Status */}
+            {/* Glossy Overlay */}
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <CardContent className="p-6 flex flex-col h-full relative z-10">
+                <div className="flex flex-col h-full justify-between">
+                    {/* Top Row: Domain & Actions */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="rounded-lg text-[9px] font-bold uppercase tracking-widest bg-muted/5 border-muted/50 px-2 h-5 pointer-events-none text-muted-foreground">
-                                {config?.label || record.category || record.type}
-                            </Badge>
-                        </div>
+                        <Badge variant="outline" className={cn("rounded-full text-[10px] font-bold uppercase tracking-widest px-3 py-1 border-none shadow-sm flex items-center gap-2", config.badgeColor)}>
+                            <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                            {config?.label || record.category || record.type}
+                        </Badge>
 
                         {showActions && (onEdit || onDelete || (actions && actions.length > 0)) && (
                             <div onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="rounded-lg h-7 w-7 hover:bg-muted transition-all duration-300">
-                                            <MoreHorizontal className="h-4 w-4 text-muted-foreground/50" />
+                                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                            <MoreHorizontal className="h-4 w-4 text-slate-400" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="rounded-xl w-48 p-1 shadow-premium border-muted/20">
+                                    <DropdownMenuContent align="end" className="rounded-xl w-48 p-1 shadow-2xl border-slate-200 dark:border-slate-800">
                                         {onEdit && (
-                                            <DropdownMenuItem onClick={() => onEdit(record)} className="cursor-pointer gap-2 rounded-lg py-2">
-                                                <Edit2 className="h-3.5 w-3.5 text-amber-500" />
-                                                <span className="font-semibold text-xs text-foreground/80">Edit</span>
+                                            <DropdownMenuItem onClick={() => onEdit(record)} className="cursor-pointer gap-2 rounded-lg py-2 focus:bg-primary/5 focus:text-primary">
+                                                <Edit2 className="h-3.5 w-3.5" />
+                                                <span className="font-bold text-xs">Edit Record</span>
                                             </DropdownMenuItem>
                                         )}
                                         {onDelete && (
-                                            <DropdownMenuItem onClick={() => onDelete(record.id)} className="cursor-pointer gap-2 rounded-lg py-2 text-rose-500">
+                                            <DropdownMenuItem onClick={() => onDelete(record.id)} className="cursor-pointer gap-2 rounded-lg py-2 text-rose-500 focus:bg-rose-50 focus:text-rose-600">
                                                 <Trash2 className="h-3.5 w-3.5" />
-                                                <span className="font-semibold text-xs">Remove</span>
+                                                <span className="font-bold text-xs">Delete</span>
                                             </DropdownMenuItem>
                                         )}
-
-                                        {actions?.map((action, idx) => (
-                                            <DropdownMenuItem
-                                                key={idx}
-                                                onClick={() => action.onClick(record)}
-                                                className={cn(
-                                                    "cursor-pointer gap-2 rounded-lg py-2",
-                                                    action.variant === 'danger' && "text-rose-500",
-                                                    action.variant === 'success' && "text-emerald-500",
-                                                    action.variant === 'warning' && "text-amber-500"
-                                                )}
-                                            >
-                                                {action.icon && <span className="h-3.5 w-3.5">{action.icon}</span>}
-                                                <span className="font-semibold text-xs">{action.label}</span>
-                                            </DropdownMenuItem>
-                                        ))}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         )}
                     </div>
 
-                    {/* Title & Description */}
-                    <div className="space-y-2 flex-1">
-                        <h3 className="text-sm font-bold leading-snug line-clamp-2 transition-colors duration-300 group-hover:text-primary">
+                    {/* Middle: Title */}
+                    <div className="mt-4">
+                        <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white leading-[1.3] line-clamp-2 group-hover:text-primary transition-colors duration-300">
                             {displayTitle}
                         </h3>
-                        <p className="text-[11px] text-muted-foreground/70 leading-relaxed line-clamp-2 font-medium">
-                            {displayDescription}
-                        </p>
                     </div>
 
-                    {/* Metadata Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-muted/20">
-                        <div className="flex items-center gap-1.5 text-muted-foreground/60">
-                            <Calendar className="h-3 w-3" />
-                            <span className="text-[9px] font-bold uppercase tracking-wider">{displayDate}</span>
+                    {/* Bottom: Info Row */}
+                    <div className="mt-auto pt-4 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                <User className="h-3.5 w-3.5" />
+                                <span className="text-[11px] font-bold truncate max-w-[140px]">
+                                    <CardUserDisplay reference={userRef} />
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-slate-400">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span className="text-[10px] font-bold">{displayDate}</span>
+                            </div>
                         </div>
 
-                        <Badge className={cn(
-                            "rounded-full gap-1.5 px-3 py-0.5 font-bold text-[9px] uppercase tracking-widest border-none shadow-none pointer-events-none",
-                            getStatusColor(status)
-                        )}>
-                            <span className={cn(
-                                "h-1.5 w-1.5 rounded-full",
-                                status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
-                            )} />
-                            {displayStatus}
-                        </Badge>
+                        <div className="flex items-center justify-between">
+                            <Badge className={cn(
+                                "rounded-lg px-3 py-1 font-bold text-[9px] uppercase tracking-widest border-none shadow-none",
+                                getStatusColor(status)
+                            )}>
+                                {displayStatus}
+                            </Badge>
+                        </div>
                     </div>
                 </div>
             </CardContent>

@@ -8,6 +8,7 @@ import { cn } from '@/components/shadcn/utils'
 interface ShowcaseItem {
     src: string
     title: string
+    date?: string
 }
 
 interface ShowcaseProps {
@@ -103,14 +104,19 @@ export const Showcase = ({
                         />
                         <div className="absolute bottom-0 left-0 right-0 
                 p-3 sm:p-4 
-                bg-gradient-to-t from-black/60 to-transparent 
+                bg-linear-to-t from-black/80 via-black/20 to-transparent 
                 pt-10 sm:pt-16 
-                z-10 pointer-events-none">
+                z-10 pointer-events-none text-center">
                             <h3 className="text-xs sm:text-sm md:text-base 
-                 text-center font-semibold tracking-wide 
+                 font-semibold tracking-wide 
                  text-white drop-shadow-md">
                                 {items[itemIndex].title}
                             </h3>
+                            {items[itemIndex].date && (
+                                <p className="text-[10px] sm:text-xs text-white/80 mt-1 font-medium italic">
+                                    {items[itemIndex].date}
+                                </p>
+                            )}
                         </div>
                     </motion.div>
                 </AnimatePresence>

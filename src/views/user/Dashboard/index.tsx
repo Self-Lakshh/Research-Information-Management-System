@@ -1,5 +1,5 @@
 import { useAuth } from '@/auth';
-import { useUserStats, useApprovedRecords, useCreateRecord } from '@/hooks/useRecords';
+import { useUserStats, useAllUserRecords, useCreateRecord } from '@/hooks/useRecords';
 import { StatCard } from '@/components/custom';
 import { FileText, Award, BookOpen, Briefcase, Lightbulb, Users } from 'lucide-react';
 import { useState } from 'react';
@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
     const { user } = useAuth();
     const { stats, isLoading: statsLoading } = useUserStats();
-    const { data: records = [], isLoading: recordsLoading } = useApprovedRecords();
+    const { data: records = [], isLoading: recordsLoading } = useAllUserRecords();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [addType, setAddType] = useState<string>('journal');
 
@@ -57,25 +57,26 @@ const Dashboard = () => {
                         My Recent Requests
                     </h2>
                 </div>
-                <div className="flex overflow-x-auto gap-4 p-4 no-scrollbar">
+                <div className="overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory flex gap-5 p-5 show-scrollbar">
                     {recordsLoading ? (
-                        <div className="flex h-full w-full items-center justify-center w-full">
+                        <div className="flex h-56 w-full items-center justify-center">
                             <Spinner />
                         </div>
-                    ) : records.filter((r) => r.approval_status === 'pending').length > 0 ? (
+                    ) : records.filter((r) => r.approval_status === "pending").length > 0 ? (
                         records
-                            .filter((r) => r.approval_status === 'pending')
+                            .filter((r) => r.approval_status === "pending")
                             .map((record) => (
-                                <div key={record.id}
-                                    className="flex flex-col items-center justify-center w-full h-full"
-                                >
-                                    <RecordCard onView={() => { }} record={record} />
-                                </div>
+                                <RecordCard
+                                    key={record.id}
+                                    onView={() => { }}
+                                    record={record}
+                                    className="snap-start snap-always"
+                                />
                             ))
                     ) : (
-                        <div className="flex h-full min-h-40 w-full items-center justify-center w-full">
-                            <p className="text-center text-muted-foreground">
-                                No pending requests.
+                        <div className="flex h-56 w-full items-center justify-center">
+                            <p className="text-center text-muted-foreground font-semibold">
+                                No pending requests found.
                             </p>
                         </div>
                     )}

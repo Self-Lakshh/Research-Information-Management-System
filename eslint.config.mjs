@@ -17,31 +17,30 @@ const compat = new FlatCompat({
 })
 
 export default tseslint.config(
-    [
-        {
-            ignores: [
-                '**/build/',
-                '**/node_modules/',
-                '**/dist/',
-                '**/.prettierrc.js',
-                '**/.eslintrc.js',
-                '**/env.d.ts',
-                '**/eslint.config.mjs',
-                '**/postcss.config.cjs',
-                '**/tailwind.config.cjs',
-            ],
-        },
-        // @ts-ignore
-        ...fixupConfigRules(
-            compat.extends(
-                'eslint:recommended',
-                'plugin:import/recommended',
-                'plugin:react/recommended',
-                'plugin:react-hooks/recommended',
-                'prettier',
-                'eslint-config-prettier',
-            ),
+    {
+        ignores: [
+            '**/build/',
+            '**/node_modules/',
+            '**/dist/',
+            '**/.prettierrc.js',
+            '**/.eslintrc.js',
+            '**/env.d.ts',
+            '**/eslint.config.mjs',
+            '**/postcss.config.cjs',
+            '**/tailwind.config.cjs',
+        ],
+    },
+    // @ts-ignore - type mismatch between compatibility layer and tseslint
+    ...fixupConfigRules(
+        compat.extends(
+            'eslint:recommended',
+            'plugin:import/recommended',
+            'plugin:react/recommended',
+            'plugin:react-hooks/recommended',
+            'prettier',
+            'eslint-config-prettier',
         ),
+    ),
         {
             plugins: {
                 'react-refresh': reactRefresh,
@@ -89,9 +88,8 @@ export default tseslint.config(
                         noSortAlphabetically: true,
                     },
                 ],
-            },
         },
-    ],
+    },
     tseslint.configs.recommended,
     {
         languageOptions: {

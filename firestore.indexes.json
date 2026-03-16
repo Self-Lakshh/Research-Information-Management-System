@@ -1,0 +1,25 @@
+{
+  "indexes": [],
+  "fieldOverrides": [],
+  "collectionGroups": [
+    {
+      "collectionId": "records",
+      "queryScope": "COLLECTION_GROUP",
+      "indexes": [
+        {
+          "fields": [
+            { "fieldPath": "status", "order": "ASCENDING" },
+            { "fieldPath": "userId", "order": "ASCENDING" },
+            { "fieldPath": "createdAt", "order": "DESCENDING" }
+          ]
+        },
+        {
+          "fields": [
+            { "fieldPath": "userId", "order": "ASCENDING" },
+            { "fieldPath": "createdAt", "order": "DESCENDING" }
+          ]
+        }
+      ]
+    }
+  ]
+}

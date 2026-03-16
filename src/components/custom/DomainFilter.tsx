@@ -8,6 +8,8 @@ import {
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import { cn } from '@/components/shadcn/utils'
 
+import useAuth from '@/auth/useAuth'
+
 interface DomainFilterProps {
     value: string
     onChange: (value: string) => void
@@ -15,7 +17,14 @@ interface DomainFilterProps {
 }
 
 const DomainFilter = ({ value, onChange, className }: DomainFilterProps) => {
+    const { user } = useAuth()
+    const isAdmin = user?.user_role === 'admin'
     const isSelected = value && value !== 'all';
+
+    const filteredRecords = Object.entries(RECORD_TYPE_CONFIG).filter(([key]) => {
+        if (isAdmin) return true
+        return key !== 'phd_student'
+    })
 
     return (
         <Select value={value || 'all'} onValueChange={onChange}>
@@ -34,7 +43,7 @@ const DomainFilter = ({ value, onChange, className }: DomainFilterProps) => {
             </SelectTrigger>
             <SelectContent className="rounded-xl">
                 <SelectItem value="all">All Domains</SelectItem>
-                {Object.entries(RECORD_TYPE_CONFIG).map(([key, config]) => (
+                {filteredRecords.map(([key, config]) => (
                     <SelectItem key={key} value={key}>{config.label}</SelectItem>
                 ))}
             </SelectContent>

@@ -76,7 +76,7 @@ export const StatCard = ({
                 </div>
 
                 <div className="flex flex-col flex-auto min-w-0">
-                    <div className="min-h-[2rem] flex items-start">
+                    <div className="min-h-8 flex items-start">
                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest line-clamp-2 leading-tight">
                             {textLabel}
                         </span>

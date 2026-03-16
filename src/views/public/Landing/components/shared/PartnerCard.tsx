@@ -3,18 +3,25 @@ import { OptimizedImage } from './OptimizedImage'
 import { ArrowRight } from 'lucide-react'
 
 interface PartnerCardProps {
-    icon: string
+    icon?: string
+    logo_url?: string
     name: string
     description: string
     url?: string
+    link?: string
 }
 
 export const PartnerCard = ({
     icon,
+    logo_url,
     name,
     description,
-    url = '#',
+    url,
+    link,
 }: PartnerCardProps) => {
+    const imgSrc = logo_url || icon || ''
+    const href = link || url || '#'
+
     return (
         <Card
             className="
@@ -37,9 +44,9 @@ export const PartnerCard = ({
                 <div className="mb-4 sm:mb-5 lg:mb-6 w-full flex justify-center">
                     <div className="flex h-16 sm:h-18 lg:h-20 w-full items-center justify-center rounded-xl bg-primary/5 transition-all duration-300 overflow-hidden">
                         <OptimizedImage
-                            src={icon}
+                            src={imgSrc}
                             alt={name}
-                            className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                            className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-105"
                             skeletonClassName="h-full w-full"
                         />
                     </div>
@@ -53,12 +60,14 @@ export const PartnerCard = ({
                     {description}
                 </p>
 
-                <div className="flex-grow" />
+                <div className="grow" />
 
                 <div className="my-2 sm:my-3 lg:my-4 h-px w-full bg-border transition-colors duration-300 group-hover:bg-primary/20" />
 
                 <a
-                    href={url}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 transition-all duration-300 group-hover:translate-x-1"
                 >
                     Visit{' '}

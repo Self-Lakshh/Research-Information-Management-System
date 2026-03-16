@@ -1,14 +1,33 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { DomainCard } from "../components/shared/DomainCard"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import Showcase from "./Showcase"
 import { useScrollAnimation } from "../hooks/useScrollAnimation"
+import { useActiveEvents } from "@/hooks/useEvents"
 
 export const Domains = () => {
   const [isExpanded, setIsExpanded] = useState(false)
   const [headerRef, isHeaderVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.3 })
   const [cardsRef, isCardsVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 })
   const [showcaseRef, isShowcaseVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 })
+
+  const { data: activeEvents = [] } = useActiveEvents()
+
+  const staticShowcaseItems = [
+    { src: "/img/others/car-1.jpg", title: "IIT Professor delivers Expert Lecture on Human Rights and Human Duties at SPSU" },
+    { src: "/img/others/car-2.jpg", title: "International Conference on Computational Intelligence and Autonomous Systems (ICIAS 2025) on October 9-10, 2025" },
+  ]
+
+  const showcaseItems = useMemo(() => {
+    if (activeEvents.length > 0) {
+      return activeEvents.map(event => ({
+        src: event.image_url,
+        title: event.title,
+        date: event.event_date
+      }))
+    }
+    return staticShowcaseItems
+  }, [activeEvents])
 
   const domains = [
     {
@@ -80,7 +99,7 @@ export const Domains = () => {
       <div className="max-w-7xl mx-auto flex flex-col h-full relative z-10 w-full space-y-6 sm:space-y-10 lg:space-y-12">
 
         {/* Domains Section */}
-        <div className="flex-[2] flex flex-col justify-center w-full">
+        <div className="flex-2 flex flex-col justify-center w-full">
           {/* Header */}
           <div
             ref={headerRef}
@@ -97,7 +116,7 @@ export const Domains = () => {
               Explore our comprehensive research domains and categories providing deep insights into institutional progress.
             </p>
             <div className="flex justify-center pt-3 sm:pt-6">
-              <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full" />
+              <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-linear-to-r from-primary to-secondary rounded-full" />
             </div>
           </div>
 
@@ -144,16 +163,13 @@ export const Domains = () => {
         {/* Showcase Section */}
         <div
           ref={showcaseRef}
-          className={`flex-[3] flex flex-col justify-center transition-all duration-1000 ease-out ${isShowcaseVisible
+          className={`flex-3 flex flex-col justify-center transition-all duration-1000 ease-out ${isShowcaseVisible
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-20'
             }`}
         >
           <Showcase
-            items={[
-              { src: "/img/others/car-1.jpg", title: "IIT Professor delivers Expert Lecture on Human Rights and Human Duties at SPSU" },
-              { src: "/img/others/car-2.jpg", title: "International Conference on Computational Intelligence and Autonomous Systems (ICIAS 2025) on October 9-10, 2025" },
-            ]}
+            items={showcaseItems}
           />
         </div>
 

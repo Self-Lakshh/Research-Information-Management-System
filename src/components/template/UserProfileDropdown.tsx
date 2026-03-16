@@ -38,9 +38,9 @@ const _UserDropdown = () => {
             className="flex"
             toggleClassName="flex items-center"
             renderTitle={
-                <Link className="cursor-pointer flex items-center" to="/profile">
+                <div className="cursor-pointer flex items-center">
                     <Avatar size={32} {...avatarProps} />
-                </Link>
+                </div>
             }
             placement="bottom-end"
         >

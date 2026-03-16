@@ -220,9 +220,13 @@ export const useAdminDomainRecords = (type: RecordType, filters: RecordFilters =
 /** useRecords — current user's records from a single domain. */
 export const useRecords = (type: RecordType, filters: RecordFilters = {}) => {
     const userRef = useUserRef();
+    const { user } = useAuth();
     return useQuery({
         queryKey: recordKeys.domain(type),
-        queryFn: () => fetchUserDomain(type, userRef),
+        queryFn: async () => {
+            if (type === 'phd_student' && user?.user_role !== 'admin') return [];
+            return fetchUserDomain(type, userRef);
+        },
         enabled: !!userRef,
     });
 };
@@ -243,10 +247,14 @@ export const useUserRecords = (userId?: string, statusFilter?: string) => {
 /** useAllUserRecords — current user's records across ALL domains. */
 export const useAllUserRecords = (userId?: string, statusFilter?: string) => {
     const userRef = useUserRef();
+    const { user } = useAuth();
     return useQuery({
         queryKey: recordKeys.allDomains(userRef?.path),
         queryFn: async () => {
-            const raw = await fetchAllDomains(userRef);
+            let raw = await fetchAllDomains(userRef);
+            if (user?.user_role !== 'admin') {
+                raw = raw.filter(r => r.type !== 'phd_student');
+            }
             return statusFilter ? raw.filter(r => r.approval_status === statusFilter) : raw;
         },
         enabled: !!userRef,
@@ -284,9 +292,16 @@ export const useUserLifetimeSubmissions = (userId: string) => {
 
 export const useUserStats = () => {
     const userRef = useUserRef();
+    const { user } = useAuth();
     const { data, isLoading } = useQuery({
         queryKey: recordKeys.allDomains(userRef?.path),
-        queryFn: () => fetchAllDomains(userRef),
+        queryFn: async () => {
+            let raw = await fetchAllDomains(userRef);
+            if (user?.user_role !== 'admin') {
+                raw = raw.filter(r => r.type !== 'phd_student');
+            }
+            return raw;
+        },
         enabled: !!userRef,
     });
     const records: any[] = data ?? [];
@@ -365,38 +380,94 @@ export const useSaveRecord = () => {
         mutationFn: async ({ type, data, id }: { type: RecordType; data: any; id?: string }) => {
             if (!userRef) throw new Error('User not authenticated');
 
-            // 1. Handle File Upload if present
-            if (data.files && data.files.length > 0) {
-                const file = data.files[0];
-                const recordId = id || newId();
-                const uploadResult = await uploadFile(file, userRef.id, recordId);
+            const recordId = id || newId()
+            const documentIds: string[] = []
 
-                // 2. Create Document record
-                const docId = newId();
-                await createDocument(docId, {
-                    document_name: file.name,
-                    document_type: type as any,
-                    file_url: uploadResult.fileUrl,
-                    status: 'pending',
-                    uploaded_by: userRef,
-                    upload_date: Timestamp.now() as any, // Cast for simplicity, service handles it
-                });
+            // 1. Handle File Uploads (Generic 'file' field)
+            // It could be a single File or an Array of Files
+            const fileData = data.file
+            if (fileData) {
+                const filesToUpload = Array.isArray(fileData) ? fileData : [fileData]
+                for (const f of filesToUpload) {
+                    if (f instanceof File) {
+                        const uploadResult = await uploadFile(f, userRef.id, recordId)
+                        const docId = newId()
+                        await createDocument(docId, {
+                            document_name: f.name,
+                            document_type: type as any,
+                            file_url: uploadResult.fileUrl,
+                            status: 'pending',
+                            uploaded_by: userRef,
+                            upload_date: Timestamp.now() as any,
+                        })
+                        documentIds.push(docId)
+                    }
+                }
+                delete data.file
+            }
 
-                data.document_id = docId;
-                data.data = { ...data.data, file_url: uploadResult.fileUrl }; // backward compatibility
-                delete data.files;
+            // 2. Map document IDs to schema
+            if (documentIds.length > 0) {
+                data.document_id = documentIds[0] // Primary doc (backward compatibility)
+                data.documents = documentIds // Full list
+                // Standardize as 'sources' array of references for all domains
+                data.sources = documentIds.map(dId => doc(db, 'documents', dId))
             }
 
             // 3. Inject Metadata
             if (!id) {
                 data.user_id = userRef.id;
                 data.created_by = userRef;
+                data.is_active = true;
+
+                // Domain specific ownership injection
+                // This ensures non-admins can only see their own data
+                if (['phd_student', 'ipr', 'journal', 'conference', 'book', 'award', 'consultancy', 'other'].includes(type)) {
+                    // For PhD, we use faculty_ref as the owner
+                    if (type === 'phd_student') data.faculty_ref = userRef
+                    // For others, we might use user_id or specific refs if not already set
+                    if (type === 'ipr') data.faculty_ref = userRef
+                }
             } else {
                 data.updated_by = userRef;
             }
 
-            // 4. Create/Update the Record
-            const resultId = id ? await updateByType(type, id, data) : await createByType(type, data);
+            // 4. Flatten the 'data' sub-object if present (new UI convention)
+            const finalData = { ...data };
+            if (finalData.data && typeof finalData.data === 'object') {
+                const subData = finalData.data;
+                delete finalData.data;
+                Object.assign(finalData, subData);
+            }
+
+            // 5. Reference Conversion (Generic)
+            const SINGLE_REF_FIELDS = ['faculty_ref', 'recipient_ref', 'author', 'principal_investigator_ref'];
+            const MULTI_REF_FIELDS = ['inventors', 'authors', 'co_investigators_refs', 'involved_faculty_refs'];
+
+            SINGLE_REF_FIELDS.forEach(field => {
+                if (finalData[field] && typeof finalData[field] === 'string') {
+                    finalData[field] = doc(db, 'users', finalData[field]);
+                }
+            });
+
+            MULTI_REF_FIELDS.forEach(field => {
+                if (Array.isArray(finalData[field])) {
+                    finalData[field] = finalData[field].map((uid: any) => 
+                        typeof uid === 'string' ? doc(db, 'users', uid) : uid
+                    );
+                } else if (finalData[field] && typeof finalData[field] === 'string') {
+                    // Handle single string ID passed for multiple field
+                    finalData[field] = [doc(db, 'users', finalData[field])];
+                }
+            });
+
+            // Special handling for IPR applicants (comma separated string -> array)
+            if (type === 'ipr' && typeof finalData.applicants === 'string') {
+                finalData.applicants = finalData.applicants.split(',').map((s: string) => s.trim()).filter(Boolean);
+            }
+
+            // 6. Create/Update the Record
+            const resultId = id ? await updateByType(type, id, finalData) : await createByType(type, finalData);
             return resultId;
         },
         onSuccess: () => {

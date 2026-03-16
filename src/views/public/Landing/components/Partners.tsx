@@ -1,41 +1,14 @@
-import { PartnerCard } from '../components/shared/PartnerCard'
-
-const partners = [
-    {
-        icon: '/img/partners/irins.png',
-        name: 'SPSU IRINS',
-        description:
-            'Faculty Profile a major provider of research resources for libraries, offering databases, e-journals, e-books',
-    },
-    {
-        icon: '/img/partners/ebsco.png',
-        name: 'SPSU EBSCO',
-        description:
-            'A major provider of research resources for libraries, offering databases, e-journals, e-books',
-    },
-    {
-        icon: '/img/partners/delnet.png',
-        name: 'DELNET',
-        description:
-            'Access Millions of Networked Library Resources through DELNET',
-    },
-    {
-        icon: '/img/partners/jstor.png',
-        name: 'JSTOR',
-        description:
-            'Digital library providing access to academic journals, books, and primary sources',
-    },
-    {
-        icon: '/img/partners/scopus.png',
-        name: 'SCOPUS',
-        description:
-            'Abstract and citation database of peer-reviewed literature',
-    },
-]
+import { PartnerCard } from './shared/PartnerCard'
+import { useActivePartners } from '@/hooks/usePartners'
+import { Skeleton, PartnerCardSkeleton } from './shared/Skeleton'
 
 export const Partners = () => {
+    const { data: activePartners = [], isLoading } = useActivePartners()
+
+    if (!isLoading && activePartners.length === 0) return null
+
     // Create a quadrupled list for seamless looping on wide screens
-    const marqueePartners = [...partners, ...partners, ...partners, ...partners]
+    const marqueePartners = [...activePartners, ...activePartners, ...activePartners, ...activePartners]
 
     return (
         <section
@@ -72,21 +45,35 @@ export const Partners = () => {
                         innovation.
                     </p>
                     <div className="flex justify-center pt-2 sm:pt-4 animate-fade-in-up delay-300">
-                        <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-gradient-to-r from-primary to-secondary rounded-full" />
+                        <div className="h-1 sm:h-1.5 w-16 sm:w-20 bg-linear-to-r from-primary to-secondary rounded-full" />
                     </div>
                 </div>
 
                 {/* Marquee Wrapper */}
-                <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+                <div className="relative w-full overflow-hidden mask-[linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
                     <div className="partner-marquee py-4 pl-4">
-                        {marqueePartners.map((partner, i) => (
-                            <div
-                                key={i}
-                                className="mx-4 w-[260px] sm:w-[300px] lg:w-[320px] transition-transform duration-500"
-                            >
-                                <PartnerCard {...partner} />
-                            </div>
-                        ))}
+                        {isLoading ? (
+                            // Loading Skeletons
+                            Array.from({ length: 8 }).map((_, i) => (
+                                <div key={`skeleton-${i}`} className="mx-4 w-[260px] sm:w-[300px] lg:w-[320px]">
+                                    <PartnerCardSkeleton />
+                                </div>
+                            ))
+                        ) : (
+                            marqueePartners.map((partner, i) => (
+                                <div
+                                    key={`${partner.id}-${i}`}
+                                    className="mx-4 w-[260px] sm:w-[300px] lg:w-[320px] transition-transform duration-500"
+                                >
+                                    <PartnerCard 
+                                        name={partner.name}
+                                        description={partner.description}
+                                        logo_url={partner.logo_url}
+                                        link={partner.link}
+                                    />
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

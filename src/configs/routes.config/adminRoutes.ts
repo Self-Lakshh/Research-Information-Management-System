@@ -33,6 +33,18 @@ const adminRoutes: Routes = [
         component: lazy(() => import('@/views/admin/User_Management/components/UserProfile')),
         authority: [ADMIN],
     },
+    {
+        key: 'admin.manage-events',
+        path: '/admin/manage-events',
+        component: lazy(() => import('@/views/admin/Manage_Events')),
+        authority: [ADMIN],
+    },
+    {
+        key: 'admin.manage-partners',
+        path: '/admin/manage-partners',
+        component: lazy(() => import('@/views/admin/Manage_Partners')),
+        authority: [ADMIN],
+    },
 ]
 
 export default adminRoutes

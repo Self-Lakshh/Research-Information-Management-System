@@ -19,7 +19,6 @@ export interface BaseRecordDetails {
 export type MediaType =
   | "profile"
   | "events"
-  | "blog"
 
 
 export type RecordType =

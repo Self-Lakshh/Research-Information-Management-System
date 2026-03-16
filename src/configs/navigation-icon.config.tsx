@@ -14,6 +14,7 @@ import {
     PiUserDuotone,
     PiFileTextDuotone,
 } from 'react-icons/pi'
+import { Airplay } from 'lucide-react'
 
 export type NavigationIcons = Record<string, ReactNode>
 
@@ -35,6 +36,7 @@ const navigationIcon: NavigationIcons = {
     groupMenu: <PiSquaresFourDuotone />,
     user: <PiUserDuotone />,
     submissions: <PiFileTextDuotone />,
+    partners: <Airplay />,
 }
 
 export default navigationIcon

@@ -19,6 +19,8 @@ import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
 import { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
 import { ColumnDef } from '@tanstack/react-table'
+import { doc, getDoc, DocumentReference } from 'firebase/firestore'
+import { db } from '@/configs/firebase.config'
 
 interface RecordAction {
     label: string
@@ -37,6 +39,52 @@ interface RecordTableProps {
     actions?: RecordAction[]
 }
 
+// A small component to resolve user references in table cells
+const UserCell: React.FC<{ value: any }> = ({ value }) => {
+    const [name, setName] = React.useState<string | null>(null)
+
+    React.useEffect(() => {
+        const resolve = async () => {
+            if (!value) return;
+            
+            // Handle array of references
+            if (Array.isArray(value)) {
+                if (value.length === 0) {
+                    setName('None');
+                    return;
+                }
+                const names = await Promise.all(value.map(async (item) => {
+                    if (item instanceof DocumentReference || (item && item.path)) {
+                        const ref = item instanceof DocumentReference ? item : doc(db, item.path);
+                        const snap = await getDoc(ref);
+                        return snap.exists() ? (snap.data()?.name || snap.data()?.email) : 'Unknown';
+                    }
+                    return String(item);
+                }));
+                setName(names.join(', '));
+                return;
+            }
+
+            // Handle single reference
+            if (value instanceof DocumentReference || (value && value.path)) {
+                const ref = value instanceof DocumentReference ? value : doc(db, value.path);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    setName(snap.data()?.name || snap.data()?.email || 'Unknown');
+                } else {
+                    setName('Deleted');
+                }
+            } else {
+                setName(String(value));
+            }
+        }
+        resolve().catch(() => setName('Unresolved'));
+    }, [value])
+
+    if (!name) return <span className="animate-pulse text-muted-foreground/20 italic">Loading...</span>
+    return <span className="line-clamp-1">{name}</span>
+}
+
 export const RecordTable: React.FC<RecordTableProps> = ({
     records,
     selectedDomain,
@@ -46,15 +94,30 @@ export const RecordTable: React.FC<RecordTableProps> = ({
     showActions = true,
     actions
 }) => {
-    // Shared safety helper for rendering
-    const safeString = (val: any): string => {
-        if (val === null || val === undefined) return '';
+    // Shared safety helper for rendering basic strings/dates
+    const renderCellContent = (val: any, field?: any): React.ReactNode => {
+        if (val === null || val === undefined || val === '') return <span className="text-muted-foreground/30 italic">N/A</span>;
+        
+        if (field?.type === 'user_select' || val instanceof DocumentReference || (val && val.path) || (Array.isArray(val) && val.length > 0 && (val[0] instanceof DocumentReference || val[0]?.path))) {
+            return <UserCell value={val} />;
+        }
+
         if (typeof val === 'object') {
             if (val.seconds !== undefined) {
-                return new Date(val.seconds * 1000).toLocaleDateString();
+                return new Date(val.seconds * 1000).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
             }
-            return '';
+            return <span className="text-xs font-mono">{JSON.stringify(val)}</span>;
         }
+
+        if (field?.type === 'select' && field.options) {
+            const opt = field.options.find((o: any) => o.value === val);
+            return opt ? opt.label : String(val);
+        }
+        
         return String(val);
     }
 
@@ -65,30 +128,28 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 header: () => (
                     <div className="flex items-center gap-2 px-2">
                         <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span>Research Title</span>
+                        <span>Resource Title</span>
                     </div>
                 ),
                 cell: ({ row }) => {
                     const category = row.original.category || row.original.type || 'journal';
                     const config = RECORD_TYPE_CONFIG[String(category).toLowerCase() as RecordType] || RECORD_TYPE_CONFIG.journal;
-                    const displayTitle = safeString(row.original.title || row.original.title_of_paper || row.original.title_of_book || row.original.award_name || row.original.project_title || row.original.topic_title || row.original.name_of_student || 'Untitled');
+                    const displayTitle = String(row.original.title || row.original.title_of_paper || row.original.title_of_book || row.original.award_name || row.original.project_title || row.original.topic_title || row.original.name_of_student || 'Untitled Record');
 
                     return (
-                        <div className="flex items-center gap-4 py-2">
+                        <div className="flex items-center gap-4 py-2 min-w-[250px]">
                             <div className={cn(
-                                "h-11 w-11 rounded-2xl flex items-center justify-center shadow-soft border border-muted/30 transition-all duration-300 group-hover:scale-110",
+                                "h-11 w-11 rounded-2xl flex items-center justify-center shadow-soft border border-muted/30 transition-all duration-300 group-hover:scale-110 shrink-0",
                                 config.color
                             )}>
                                 <FileText className="h-5 w-5" />
                             </div>
-                            <div className="flex flex-col gap-0.5">
+                            <div className="flex flex-col gap-0.5 overflow-hidden">
                                 <span className="font-bold text-sm tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
                                     {displayTitle}
                                 </span>
-                                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                    {safeString(config?.label || category)}
-                                    <span className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                                    ID: {safeString(row.original.id).slice(0, 6).toUpperCase()}
+                                <span className="text-[9px] text-muted-foreground font-extrabold uppercase tracking-widest flex items-center gap-1.5 underline decoration-primary/20 decoration-2 underline-offset-4">
+                                    {config?.label || category}
                                 </span>
                             </div>
                         </div>
@@ -102,52 +163,49 @@ export const RecordTable: React.FC<RecordTableProps> = ({
         if (selectedDomain === 'all') {
             middleColumns = [
                 {
-                    accessorKey: 'author',
-                    header: () => <div className="text-center font-bold">Researcher</div>,
-                    cell: ({ row }) => (
-                        <div className="text-center px-4">
-                            <span className="text-xs font-bold text-foreground/80">
-                                {safeString(row.original.data?.author || row.original.author || row.original.submittedBy?.name || '-')}
-                            </span>
-                        </div>
-                    )
-                },
-                {
-                    accessorKey: 'category',
-                    header: () => <div className="text-center font-bold">Domain</div>,
+                    accessorKey: 'domain',
+                    header: () => <div className="text-center font-bold">Research Domain</div>,
                     cell: ({ row }) => {
                         const category = row.original.category || row.original.type || 'journal';
                         const config = RECORD_TYPE_CONFIG[String(category).toLowerCase() as RecordType];
                         return (
                             <div className="flex justify-center px-4">
-                                <Badge variant="secondary" className="rounded-[10px] h-7 text-[10px] uppercase font-bold tracking-wider bg-background shadow-soft border border-muted/50 px-3">
-                                    {config?.label || category}
+                                <Badge variant="secondary" className="rounded-lg h-7 text-[10px] uppercase font-extrabold tracking-wider bg-background shadow-soft border border-muted/50 px-3">
+                                    {config?.shortLabel || category}
                                 </Badge>
                             </div>
                         )
                     }
+                },
+                {
+                    accessorKey: 'owner',
+                    header: () => <div className="text-center font-bold">Submitter / Ref</div>,
+                    cell: ({ row }) => (
+                        <div className="text-center px-4 max-w-[150px] mx-auto">
+                            <div className="text-xs font-bold text-foreground/80 truncate">
+                                {renderCellContent(row.original.faculty_ref || row.original.author || row.original.authors || row.original.inventors || row.original.principal_investigator_ref || row.original.submittedBy?.name || 'N/A')}
+                            </div>
+                        </div>
+                    )
                 }
             ];
         } else {
             const config = RECORD_TYPE_CONFIG[selectedDomain.toLowerCase() as RecordType];
             if (config) {
+                // Determine which fields to skip in the middle columns
                 middleColumns = config.fields
-                    .filter((f: any) => f.key !== 'title' && f.type !== 'textarea')
-                    .slice(0, 3)
+                    .filter((f: any) => 
+                        !['title', 'title_of_paper', 'title_of_book', 'award_name', 'project_title', 'topic_title', 'name_of_student', 'file'].includes(f.key) && 
+                        f.type !== 'textarea'
+                    )
                     .map((field: any) => ({
                         accessorKey: field.key,
                         header: () => <div className="text-center font-bold">{field.label}</div>,
                         cell: ({ row }: any) => {
                             const rawVal = row.original[field.key] || row.original.data?.[field.key];
-                            const val = field.type === 'number' && typeof rawVal === 'number'
-                                ? `₹${rawVal.toLocaleString()}`
-                                : safeString(rawVal || '-');
-
                             return (
-                                <div className="text-center px-4">
-                                    <span className="text-xs font-bold text-foreground/80">
-                                        {val}
-                                    </span>
+                                <div className="text-center px-4 text-xs font-bold text-foreground/70">
+                                    {renderCellContent(rawVal, field)}
                                 </div>
                             )
                         }
@@ -157,48 +215,31 @@ export const RecordTable: React.FC<RecordTableProps> = ({
 
         const endColumns: ColumnDef<any>[] = [
             {
-                accessorKey: 'date',
-                header: () => (
-                    <div className="flex items-center justify-center gap-2">
-                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="font-bold">Date</span>
+                accessorKey: 'created_at',
+                header: () => <div className="text-center font-bold text-muted-foreground/40 font-mono text-[9px]">Last Updated</div>,
+                cell: ({ row }) => (
+                    <div className="text-center text-[10px] font-bold text-muted-foreground/60 tabular-nums">
+                        {renderCellContent(row.original.updated_at || row.original.created_at)}
                     </div>
-                ),
-                cell: ({ row }) => {
-                    const displayDate = safeString(row.original.data?.date || row.original.date || row.original.data?.startDate || row.original.startDate || row.original.data?.filingDate || row.original.filingDate || row.original.data?.year || row.original.year || row.original.date_of_publication || row.original.published_date || row.original.grant_date || row.original.month_year || row.original.year_of_publication || row.original.publicationYear) || '-';
-
-                    return (
-                        <div className="text-center px-4 flex flex-col items-center gap-1">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground tabular-nums">
-                                {displayDate}
-                            </div>
-                        </div>
-                    )
-                }
+                )
             },
             {
                 accessorKey: 'status',
-                header: () => <div className="text-center font-bold">Status</div>,
+                header: () => <div className="text-center font-bold">Audit Status</div>,
                 cell: ({ row }) => {
-                    const status = safeString(row.original.approval_status || row.original.status || 'pending').toLowerCase();
-                    const displayStatus = safeString(row.original.approval_status || row.original.status || 'Pending');
+                    const status = String(row.original.approval_status || row.original.status || 'pending').toLowerCase();
+                    const displayStatus = String(row.original.approval_status || row.original.status || 'Pending');
 
                     return (
                         <div className="flex justify-center px-4">
                             <Badge className={cn(
-                                "rounded-full gap-2 px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest shadow-soft border-none pointer-events-none",
+                                "rounded-full gap-2 px-3 py-1 font-bold text-[9px] uppercase tracking-widest shadow-none border-none pointer-events-none",
                                 getStatusColor(status)
                             )}>
-                                <span className="relative flex h-2 w-2">
-                                    <span className={cn(
-                                        "animate-ping absolute inline-flex h-full w-full rounded-full opacity-75",
-                                        status === 'pending' ? 'bg-amber-400' : (status === 'approved' ? 'bg-emerald-400' : 'bg-rose-400')
-                                    )}></span>
-                                    <span className={cn(
-                                        "relative inline-flex rounded-full h-2 w-2",
-                                        status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
-                                    )}></span>
-                                </span>
+                                <span className={cn(
+                                    "h-1.5 w-1.5 rounded-full shrink-0",
+                                    status === 'pending' ? 'bg-amber-500' : (status === 'approved' ? 'bg-emerald-500' : 'bg-rose-500')
+                                )} />
                                 {displayStatus}
                             </Badge>
                         </div>
@@ -218,7 +259,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
 
             if (onEdit) {
                 items.push({
-                    label: 'Edit Content',
+                    label: 'Update Record',
                     onClick: () => onEdit(record),
                     icon: <Edit2 className="h-4 w-4" />
                 });
@@ -226,7 +267,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
 
             if (onDelete) {
                 items.push({
-                    label: 'Remove Record',
+                    label: 'Archive / Delete',
                     onClick: () => onDelete(record.id),
                     icon: <Trash2 className="h-4 w-4" />,
                     variant: 'danger'
@@ -247,7 +288,7 @@ export const RecordTable: React.FC<RecordTableProps> = ({
     }, [onEdit, onDelete, actions, showActions]);
 
     return (
-        <div className="overflow-hidden border-none">
+        <div className="overflow-hidden border-none h-full">
             <DataTable
                 columns={columns}
                 data={records}

@@ -30,6 +30,47 @@
     }
   },
 
+  "partner": {
+    "partner_id": {
+      "name": "",
+      "description": "",
+      "link": "",
+      "logo_url": "",
+      "logo_media": "media/{media_id}",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "blog": {
+    "blog_id": {
+      "title": "",
+      "description": "",
+      "content": "",
+      "date": "",
+      "image_url": "",
+      "image_media": "media/{media_id}",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
+  "event": {
+    "event_id": {
+      "title": "",
+      "image_url": "",
+      "image_media": "media/{media_id}",
+      "created_at": "",
+      "updated_at": "",
+      "created_by": "users/{user_id}",
+      "updated_by": "users/{user_id}"
+    }
+  },
+
   "document": {
     "document_id": {
       "document_name": "",
@@ -60,7 +101,6 @@
         "media/{media_id}",
         "media/{media_id}"
       ],
-
       "approval_status": "approved/rejected/pending",
       "approval_action_by": "users/{user_id}",
       "action_at": "",
