@@ -115,7 +115,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
     return (
         <Card
             className={cn(
-                "group relative overflow-hidden bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-500 rounded-[24px] cursor-pointer flex flex-col w-full sm:w-[340px] h-[220px]",
+                "group relative overflow-hidden bg-card border border-slate-200 dark:border-slate-700/50 shadow-sm hover:shadow-xl hover:border-primary/40 transition-all duration-500 rounded-[24px] cursor-pointer flex flex-col w-full sm:w-[340px] h-[220px]",
                 className
             )}
             onClick={() => onView(record)}
@@ -136,7 +136,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                             <div onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 border border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                             <MoreHorizontal className="h-4 w-4 text-slate-400" />
                                         </Button>
                                     </DropdownMenuTrigger>
@@ -167,28 +167,26 @@ export const RecordCard: React.FC<RecordCardProps> = ({
                     </div>
 
                     {/* Bottom: Info Row */}
-                    <div className="mt-auto pt-4 flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
+                    <div className="mt-auto pt-4 flex items-end justify-between">
+                        <div className="flex flex-col gap-1.5 min-w-0">
                             <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                                <User className="h-3.5 w-3.5" />
+                                <User className="h-3.5 w-3.5 text-primary/60 shrink-0" />
                                 <span className="text-[11px] font-bold truncate max-w-[140px]">
                                     <CardUserDisplay reference={userRef} />
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 text-slate-400">
-                                <Calendar className="h-3.5 w-3.5" />
+                                <Calendar className="h-3.5 w-3.5 shrink-0" />
                                 <span className="text-[10px] font-bold">{displayDate}</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <Badge className={cn(
-                                "rounded-lg px-3 py-1 font-bold text-[9px] uppercase tracking-widest border-none shadow-none",
-                                getStatusColor(status)
-                            )}>
-                                {displayStatus}
-                            </Badge>
-                        </div>
+                        <Badge className={cn(
+                            "rounded-lg px-3 py-1 font-bold text-[9px] uppercase tracking-widest border-none shadow-none shrink-0 mb-0.5",
+                            getStatusColor(status)
+                        )}>
+                            {displayStatus}
+                        </Badge>
                     </div>
                 </div>
             </CardContent>

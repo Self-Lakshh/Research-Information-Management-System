@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { UploadCloud, X, FileText } from 'lucide-react'
+import { UploadCloud, X, FileText, Eye } from 'lucide-react'
 import { cn } from '@/components/shadcn/utils'
 import { FieldConfig } from '@/configs/rims.config'
 import { Label } from '@/components/shadcn/ui/label'
@@ -7,6 +7,7 @@ import { Input } from '@/components/shadcn/ui/input'
 import { Textarea } from '@/components/shadcn/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/ui/select'
 import { Card, CardContent } from '@/components/shadcn/ui/card'
+import { Button } from '@/components/shadcn/ui/button'
 
 interface DynamicFormProps {
     fields: FieldConfig[]
@@ -15,6 +16,7 @@ interface DynamicFormProps {
     readOnly?: boolean
     isAdmin?: boolean
     users?: any[]
+    onDeleteAsset?: (url: string) => void
 }
 
 export const DynamicForm: React.FC<DynamicFormProps> = ({ 
@@ -23,14 +25,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     onChange, 
     readOnly = false,
     isAdmin = false,
-    users = []
+    users = [],
+    onDeleteAsset
 }) => {
 
     const renderField = (field: FieldConfig) => {
         const { key, label, placeholder, required, options } = field
         const value = data[key] || ''
 
-        const baseInputStyles = "rounded-xl border border-slate-300 bg-white dark:bg-slate-950 dark:border-slate-800 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 placeholder:text-slate-400 font-medium px-4"
+        const baseInputStyles = "rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-sm focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 placeholder:text-zinc-400 font-medium px-4"
 
         switch (field.type) {
             case 'textarea':
@@ -52,7 +55,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 // For non-admins, show a premium read-only display
                 if (!isAdmin) {
                     return (
-                        <div className="flex flex-wrap gap-2 p-3 min-h-[48px] rounded-xl border border-slate-200 bg-slate-50/50 dark:bg-slate-900/50 dark:border-slate-800 shadow-inner">
+                        <div className="flex flex-wrap gap-2 p-3 min-h-[48px] rounded-xl border border-zinc-200 bg-zinc-50/50 dark:bg-zinc-700/50 dark:border-zinc-700 shadow-inner">
                             {rawSelectedValues.map((val: any) => {
                                 // Extract the string path/ID for comparison if it's a Firestore Ref
                                 const targetId = (val && typeof val === 'object' && val.id) ? val.id : String(val);
@@ -221,17 +224,19 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                             </div>
                         </div>
 
-                        {/* File Preview Grid */}
+                        {/* File Preview List (Simplified Rows) */}
                         {filesArray.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            <div className="space-y-2">
                                 {filesArray.map((file: any, index: number) => {
                                     let fileName = 'Document';
                                     let isExisting = false;
+                                    let url = '';
 
                                     if (file instanceof File) {
                                         fileName = file.name;
                                     } else if (typeof file === 'string') {
                                         isExisting = true;
+                                        url = file;
                                         try {
                                             const decoded = decodeURIComponent(file);
                                             const parts = decoded.split('/');
@@ -242,39 +247,54 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                                         }
                                     }
 
-                                    const fileSize = (file instanceof File) ? (file.size / 1024 / 1024).toFixed(1) + 'MB' : 'Cloud Asset';
-                                    
                                     return (
-                                        <div key={index} className="group relative flex flex-col items-center justify-center p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all shadow-sm h-28">
-                                            <div className={cn(
-                                                "p-2 rounded-lg mb-2 transition-colors",
-                                                isExisting ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-red-50 dark:bg-red-500/10 text-red-500"
-                                            )}>
-                                                <FileText className="w-5 h-5" />
-                                            </div>
-                                            <div className="w-full text-center min-w-0">
-                                                <p className="text-[10px] font-bold text-slate-700 dark:text-slate-200 truncate px-1">
-                                                    {fileName}
-                                                </p>
-                                                <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest mt-0.5">
-                                                    {fileSize}
-                                                </p>
+                                        <div key={index} className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50/50 dark:bg-zinc-700/50 border border-zinc-100 dark:border-zinc-700/50 transition-all group">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className={cn(
+                                                    "p-2 rounded-xl shrink-0 transition-colors",
+                                                    isExisting ? "bg-emerald-500/10 text-emerald-500" : "bg-zinc-200 dark:bg-zinc-600 text-zinc-400"
+                                                )}>
+                                                    <FileText className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[13px] font-bold text-zinc-700 dark:text-zinc-200 truncate pr-4">
+                                                        {fileName.length > 20 ? fileName.substring(0, 15) + '...' : fileName}
+                                                    </span>
+                                                    {isExisting && <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest opacity-80">Stored in Cloud</span>}
+                                                </div>
                                             </div>
                                             
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (field.multiple) {
-                                                        onChange(key, filesArray.filter((_, i) => i !== index))
-                                                    } else {
-                                                        onChange(key, null)
-                                                    }
-                                                }}
-                                                className="absolute -top-2 -right-2 w-6 h-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 hover:border-rose-400 shadow-md transition-all z-20 hover:scale-110 active:scale-90"
-                                            >
-                                                <X className="w-3.5 h-3.5" />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                {isExisting && (
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        type="button"
+                                                        onClick={() => window.open(url, '_blank')}
+                                                        className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                                                        title="Preview"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (isExisting && onDeleteAsset) {
+                                                            onDeleteAsset(url)
+                                                        }
+                                                        if (field.multiple) {
+                                                            onChange(key, filesArray.filter((_, i) => i !== index))
+                                                        } else {
+                                                            onChange(key, null)
+                                                        }
+                                                    }}
+                                                    className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     )
                                 })}

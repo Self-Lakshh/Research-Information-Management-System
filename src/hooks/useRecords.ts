@@ -336,7 +336,7 @@ async function createByType(type: string, data: any): Promise<string> {
         case 'awards': await createAward(id, data); break;
         case 'consultancy': await createConsultancyProject(id, data); break;
         case 'phd_student': await createPhDStudent(id, data); break;
-        case 'other': await createOtherEvent(id, data); break;
+        case 'other': await createOtherEvent(id, { ...data, approval_status: 'pending' }); break;
         default: throw new Error(`Unknown record type: ${type}`);
     }
     return id;
@@ -352,7 +352,7 @@ async function updateByType(type: string, id: string, data: any): Promise<string
         case 'awards': await updateAward(id, data); break;
         case 'consultancy': await updateConsultancyProject(id, data); break;
         case 'phd_student': await updatePhDStudent(id, data); break;
-        case 'other': await updateOtherEvent(id, data); break;
+        case 'other': await updateOtherEvent(id, { ...data, approval_status: 'pending' }); break;
         default: throw new Error(`Unknown record type: ${type}`);
     }
     return id;
@@ -419,6 +419,7 @@ export const useSaveRecord = () => {
                 data.user_id = userRef.id;
                 data.created_by = userRef;
                 data.is_active = true;
+                data.approval_status = 'pending';
 
                 // Domain specific ownership injection
                 // This ensures non-admins can only see their own data
@@ -430,6 +431,7 @@ export const useSaveRecord = () => {
                 }
             } else {
                 data.updated_by = userRef;
+                data.approval_status = 'pending';
             }
 
             // 4. Flatten the 'data' sub-object if present (new UI convention)
@@ -531,7 +533,7 @@ export const useSetRecordStatus = () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const saveRecord = (type: RecordType, data: any, id?: string) =>
-    id ? updateByType(type, id, data) : createByType(type, data);
+    id ? updateByType(type, id, { ...data, approval_status: 'pending' }) : createByType(type, { ...data, approval_status: 'pending' });
 
 export const deleteRecord = (type: RecordType, id: string) => deleteByType(type, id);
 

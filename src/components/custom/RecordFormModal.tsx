@@ -14,8 +14,9 @@ import { RecordType } from '@/@types/rims.types'
 
 import { useAuth } from '@/auth'
 import { getAllUsers } from '@/services/firebase/users/user.services'
-import { doc } from 'firebase/firestore'
+import { doc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore'
 import { db } from '@/configs/firebase.config'
+import { getStorage, ref, deleteObject } from 'firebase/storage'
 
 interface RecordFormModalProps {
     isOpen: boolean
@@ -65,10 +66,36 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
         if (isOpen) {
             setValidationError(null)
             if (initialData) {
+                // Pre-resolve any sources (references) into URLs for the form's 'file' field
+                const sources = initialData.sources || []
+                const resolveExistingFiles = async () => {
+                    const resolved = await Promise.all(sources.map(async (ref: any) => {
+                        try {
+                            const resolvedRef = typeof ref === 'string' 
+                                ? (ref.includes('/') ? doc(db, ref) : doc(db, 'documents', ref))
+                                : ref;
+                            const snap = await getDoc(resolvedRef);
+                            if (snap.exists()) {
+                                const dData = snap.data() as any;
+                                return dData.file_url || dData.url || dData.media_url;
+                            }
+                        } catch (e) { console.error("Error resolving initial file:", e) }
+                        return null;
+                    }))
+                    
+                    const existingFileUrls = resolved.filter(Boolean);
+                    setFormData((prev: any) => ({
+                        ...prev,
+                        file: existingFileUrls.length > 0 ? (config.fields.find(f => f.key === 'file')?.multiple ? existingFileUrls : existingFileUrls[0]) : prev.file
+                    }))
+                }
+
                 setFormData({
                     ...initialData,
                     ...(initialData.data || {})
                 })
+                
+                if (sources.length > 0) resolveExistingFiles();
             } else {
                 // Pre-fill user_select fields for regular users
                 const initial: any = {}
@@ -92,6 +119,29 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
         if (validationError) setValidationError(null)
     }
 
+    const handleDeleteAsset = async (url: string) => {
+        try {
+            // 1. Delete Firestore metadata entries
+            const q = query(collection(db, 'documents'), where('file_url', '==', url))
+            const snap = await getDocs(q)
+            
+            await Promise.all(snap.docs.map(d => deleteDoc(d.ref)))
+            
+            // 2. Delete from Storage
+            const storage = getStorage()
+            const storageRef = ref(storage, url)
+            await deleteObject(storageRef).catch(e => {
+                console.warn("Storage deletion failed or file already gone:", e)
+            })
+
+            // 3. Update parent record state (if sources exist in initialData)
+            // This is effectively handled by DynamicForm's state change, but we ensure persistence
+            console.log(`Resource ${url} purged successfully.`)
+        } catch (err) {
+            console.error("Critical error during asset purge:", err)
+        }
+    }
+
     const handleSubmit = () => {
         // Validate required fields
         const missingFields = config.fields.filter(f => {
@@ -110,26 +160,30 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-slate-950 border-none rounded-[32px] shadow-2xl">
-                <DialogHeader className="p-6 bg-blue-200 dark:bg-blue-900/30">
-                    <DialogTitle className="text-xl font-black tracking-tight text-blue-900 dark:text-blue-100">
+            <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-zinc-800 border-none rounded-[32px] shadow-2xl">
+                <DialogHeader className="p-6 bg-zinc-100 dark:bg-zinc-900/40">
+                    <DialogTitle className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
                         {initialData ? 'Update' : 'Create'} {config.label}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Form for entering research record details for {config.label}
+                    </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-y-auto px-8 py-2 custom-scrollbar">
-                    <div className="bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 mb-6">
+                <div className="flex-1 overflow-y-auto px-8 py-2 custom-scrollbar transition-colors">
+                    <div className="bg-zinc-50/50 dark:bg-zinc-700/50 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-700 mb-6 transition-colors">
                         <DynamicForm
                             fields={config.fields}
                             data={formData}
                             onChange={handleFieldChange}
+                            onDeleteAsset={handleDeleteAsset}
                             isAdmin={isAdmin}
                             users={users}
                         />
                     </div>
                 </div>
 
-                <DialogFooter className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 flex flex-row items-center justify-between gap-3">
+                <DialogFooter className="p-6 bg-zinc-50 dark:bg-zinc-700/50 border-t border-zinc-200 dark:border-zinc-700 flex flex-row items-center justify-between gap-3 transition-colors">
                     <div className="flex-1">
                         {validationError && (
                             <span className="text-rose-500 text-xs font-bold animate-in fade-in slide-in-from-left-2 duration-300">

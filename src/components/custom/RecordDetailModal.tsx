@@ -4,10 +4,11 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
     DialogFooter,
 } from "@/components/shadcn/ui/dialog"
 import { Button } from "@/components/shadcn/ui/button"
-import { Calendar, User, FileText, ExternalLink, Download, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { Calendar, User, FileText, ExternalLink, Download, Clock, CheckCircle2, XCircle, Copy, Link as LinkIcon, Trash2, Edit2, Eye } from 'lucide-react'
 import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
 import { RecordType } from '@/@types/rims.types'
 import { cn } from "@/components/shadcn/utils"
@@ -19,6 +20,8 @@ interface RecordDetailModalProps {
     isOpen: boolean
     onClose: () => void
     record: any | null
+    onEdit?: (record: any) => void
+    onDelete?: (id: string) => void
 }
 
 const UserRefDisplay: React.FC<{ reference: DocumentReference }> = ({ reference }) => {
@@ -40,10 +43,121 @@ const UserRefDisplay: React.FC<{ reference: DocumentReference }> = ({ reference 
     return <span>{name}</span>
 }
 
+const AssetRow: React.FC<{ url: string; fileName: string; label?: string }> = ({ url, fileName, label }) => {
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation()
+        window.open(url, '_blank', 'noopener,noreferrer')
+    }
+
+    const truncateName = (name: string) => {
+        const limit = 12;
+        if (name.length <= limit + 5) return name;
+        const ext = name.includes('.') ? name.split('.').pop() : '';
+        const base = name.split('.')[0];
+        return base.substring(0, limit) + '...' + (ext ? '.' + ext : '');
+    }
+
+    return (
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-50/50 dark:bg-zinc-700/50 border border-zinc-100 dark:border-zinc-700/50 transition-all hover:border-primary/30 group">
+            <div className="flex items-center gap-4 min-w-0">
+                <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 shrink-0 shadow-sm border border-rose-500/5">
+                    <FileText className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                    <span className="text-[14px] font-bold text-zinc-700 dark:text-zinc-200 truncate pr-2" title={fileName}>
+                        {truncateName(fileName)}
+                    </span>
+                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest opacity-60">
+                        {label || 'Document'}
+                    </span>
+                </div>
+            </div>
+            
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleOpen}
+                className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300 shrink-0"
+                title="Preview"
+            >
+                <Eye className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+            </Button>
+        </div>
+    )
+}
+const DocumentRefAsset: React.FC<{ reference: any }> = ({ reference }) => {
+    const [data, setData] = React.useState<any | null>(null)
+    const [loading, setLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        const resolveToken = async () => {
+            if (!reference) return
+            try {
+                // Determine the correct reference regardless of whether it was passed as ID or Path
+                let resolvedRef = reference;
+                if (typeof reference === 'string') {
+                    // It's likely a document ID or a full path string
+                    resolvedRef = reference.includes('/') ? doc(db, reference) : doc(db, 'documents', reference);
+                }
+
+                const snap = await getDoc(resolvedRef as DocumentReference)
+                if (snap.exists()) {
+                    const dData = snap.data();
+                    setData({
+                        ...dData,
+                        id: snap.id,
+                        name: dData.document_name || dData.name || 'Supporting Document',
+                        url: dData.file_url || dData.url || dData.media_url || ''
+                    })
+                } else {
+                    setData({ id: 'missing', name: 'Document Not Found', type: 'error' })
+                }
+            } catch (err) {
+                console.error("Asset resolution failed:", err)
+                setData({ id: 'error', name: 'Resolution Error', type: 'error' })
+            } finally {
+                setLoading(false)
+            }
+        }
+        resolveToken()
+    }, [reference])
+
+    if (loading) return (
+        <div className="h-[180px] rounded-[24px] bg-slate-50/50 dark:bg-slate-900/50 animate-pulse border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center gap-3">
+            <div className="w-8 h-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Resolving Asset...</span>
+        </div>
+    )
+    
+    if (!data || data.type === 'error' || data.id === 'missing') {
+        const isMissing = data?.id === 'missing';
+        return (
+            <div className="flex items-center gap-3 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-700/50 bg-zinc-50/50 dark:bg-zinc-700/50 grayscale opacity-60">
+                <XCircle className="w-5 h-5 text-rose-400" />
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">{isMissing ? 'Missing Reference' : 'Broken Link'}</span>
+                    <span className="text-[12px] font-bold text-zinc-500 italic">Reference could not be resolved</span>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <AssetRow 
+            url={data.file_url || data.url || data.media_url || ''} 
+            fileName={data.document_name || data.name || 'Supporting Document'} 
+            label={data.document_type || 'Research Resource'}
+        />
+    )
+}
+
+
 export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
     isOpen,
     onClose,
-    record
+    record,
+    onEdit,
+    onDelete
 }) => {
     if (!record) return null
 
@@ -92,11 +206,18 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                     year: 'numeric'
                 });
             }
-            if (val instanceof DocumentReference || (val.type === 'document' && val.path)) {
+            if (val instanceof DocumentReference || (val.path && typeof val.path === 'string')) {
+                // Heuristic: Documents live in various collections, but Users have a specific shape
+                // If the path includes 'documents' or 'media' or 'proof', treat it as an asset-style reference
+                const path = val.path || '';
+                if (path.includes('documents') || path.includes('media')) {
+                    return <DocumentRefAsset reference={val} />;
+                }
                 return <UserRefDisplay reference={val} />;
             }
             if (val.path && typeof val.path === 'string' && val.path.includes('/')) {
                 const ref = doc(db, val.path);
+                if (val.path.includes('documents')) return <DocumentRefAsset reference={ref} />;
                 return <UserRefDisplay reference={ref} />;
             }
             return String(val);
@@ -109,9 +230,8 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-slate-950 border-none rounded-[32px] shadow-3xl">
-                {/* Minimized Visual Header */}
-                <div className="relative p-8 overflow-hidden shrink-0 border-b border-slate-100 dark:border-slate-800">
+            <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 overflow-hidden bg-white dark:bg-zinc-800 border-none rounded-[32px] shadow-3xl">
+                <DialogHeader className="p-8 pb-4 shrink-0 border-b border-zinc-100 dark:border-zinc-700 relative overflow-hidden">
                     <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent -z-10" />
                     
                     <div className="flex flex-col gap-4 relative">
@@ -129,11 +249,14 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                             </Badge>
                         </div>
 
-                        <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight">
+                        <DialogTitle className="text-2xl font-extrabold text-slate-900 dark:text-white leading-tight tracking-tight">
                             {displayTitle}
-                        </h2>
+                        </DialogTitle>
+                        <DialogDescription className="sr-only">
+                            Research record details, status, and supporting assets for {displayTitle}.
+                        </DialogDescription>
                     </div>
-                </div>
+                </DialogHeader>
 
                 <div className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
                     <div className="grid grid-cols-1 gap-10">
@@ -144,7 +267,7 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                     <div className="p-2 rounded-xl bg-primary/10 text-primary">
                                         <FileText className="w-4 h-4" />
                                     </div>
-                                    <h3 className="text-xs font-black uppercase tracking-[0.1em] text-slate-400">Record Information</h3>
+                                     <h3 className="text-xs font-black uppercase tracking-[0.1em] text-slate-400">Record Information</h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6 bg-slate-50/50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -164,32 +287,95 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                     })}
                                     
                                     {/* Entry Lifecycle Info */}
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Entry ID</span>
-                                        <span className="text-[12px] font-mono font-bold text-slate-500 break-all uppercase">{(record.id || 'N/A')}</span>
-                                    </div>
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Last Activity</span>
-                                        <span className="text-[14px] font-bold text-slate-700 dark:text-slate-200">
-                                            {record.updatedAt?.toDate ? record.updatedAt.toDate().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}
-                                        </span>
-                                    </div>
+                                     <div className="flex flex-col gap-1">
+                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Entry ID</span>
+                                         <span className="text-[12px] font-mono font-bold text-slate-500 break-all uppercase underline decoration-primary/20 decoration-2 underline-offset-4">{(record.id || 'N/A')}</span>
+                                     </div>
+                                     <div className="flex flex-col gap-1">
+                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Registration Date</span>
+                                         <span className="text-[14px] font-bold text-slate-700 dark:text-slate-200">
+                                             {renderValue(record.created_at || record.createdAt || record.upload_date)}
+                                         </span>
+                                     </div>
+                                     <div className="flex flex-col gap-1">
+                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-0.5">Last Modification</span>
+                                         <span className="text-[14px] font-bold text-slate-700 dark:text-slate-200">
+                                            {renderValue(record.updated_at || record.updatedAt || record.last_modified)}
+                                         </span>
+                                     </div>
                                 </div>
                             </section>
 
                             {/* Unified Asset Collection Logic */}
-                            {(() => {
-                                // Gather all files from 'file' type fields defined in the domain config
-                                const configFileInputs = typeConfig.fields
-                                    .filter(f => f.type === 'file')
-                                    .map(f => record[f.key])
-                                    .flat()
-                                    .filter(Boolean);
+                             {(() => {
+                                 // A highly aggressive harvester that checks multiple potential sources for media/files
+                                 const getFrom = (obj: any) => {
+                                     if (!obj) return [];
+                                     return [
+                                         ...(Array.isArray(obj.sources) ? obj.sources : []),
+                                         ...(Array.isArray(obj.documents) ? obj.documents : []),
+                                         ...(Array.isArray(obj.files) ? obj.files : []),
+                                         ...(Array.isArray(obj.media) ? obj.media : []),
+                                         ...(obj.document_id ? [obj.document_id] : []),
+                                         ...(obj.file_url ? [obj.file_url] : []),
+                                         ...(obj.url ? [obj.url] : []),
+                                         ...(obj.media_url ? [obj.media_url] : []),
+                                         ...(obj.ipr_proof ? [obj.ipr_proof] : []),
+                                         ...(obj.certificate ? [obj.certificate] : []),
+                                         ...(obj.proof_url ? [obj.proof_url] : []),
+                                         ...(obj.supporting_document ? [obj.supporting_document] : []),
+                                         ...(obj.attachment ? [obj.attachment] : []),
+                                         ...(obj.web_link ? [obj.web_link] : []),
+                                         ...(obj.link ? [obj.link] : []),
+                                     ];
+                                 };
 
-                                // Merge with the generic 'sources' field if it exists
-                                const allAssets = [...new Set([...configFileInputs, ...(Array.isArray(record.sources) ? record.sources : [])])];
+                                 // Gather all files from 'file' and 'url' type fields defined in the domain config
+                                 const configFileInputs = typeConfig.fields
+                                     .filter(f => f.type === 'file' || f.type === 'url')
+                                     .map(f => {
+                                         const val = record[f.key] || record.data?.[f.key];
+                                         if (!val) return null;
+                                         
+                                         // If it's a URL field, we might want to brand it differently
+                                         if (f.type === 'url' && typeof val === 'string') {
+                                             return { 
+                                                 url: val, 
+                                                 name: f.label,
+                                                 label: f.label
+                                             };
+                                         }
+                                         return val;
+                                     })
+                                     .flat()
+                                     .filter(Boolean);
 
-                                if (allAssets.length === 0) return null;
+                                 const allPotentialSources = [
+                                     ...configFileInputs,
+                                     ...getFrom(record),
+                                     ...getFrom(record.data)
+                                 ].filter(s => {
+                                     if (!s) return false;
+                                     if (typeof s === 'string' && s.length < 5) return false;
+                                     if (typeof s === 'object' && Object.keys(s).length === 0) return false;
+                                     return true;
+                                 });
+
+                                 const allAssets = [...new Set(allPotentialSources)];
+
+                                 if (allAssets.length === 0) {
+                                     return (
+                                        <div className="p-8 rounded-[32px] border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col items-center justify-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                                <FileText className="w-6 h-6" />
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-sm font-bold text-slate-600 dark:text-slate-300">No Supporting Assets</p>
+                                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-1">Check the domain configuration or upload data</p>
+                                            </div>
+                                        </div>
+                                     );
+                                 }
 
                                 return (
                                     <section className="space-y-6">
@@ -197,52 +383,46 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                             <div className="p-2 rounded-xl bg-primary/10 text-primary">
                                                 <Download className="w-4 h-4" />
                                             </div>
-                                            <h3 className="text-xs font-black uppercase tracking-[0.1em] text-slate-400">Supporting Assets</h3>
+                                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Supporting Assets & Documents</h3>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                            {allAssets.map((src: any, idx: number) => {
-                                                // Robust URL search in the asset object or string
-                                                const url = typeof src === 'string' 
-                                                    ? src 
-                                                    : (src?.url || src?.fileUrl || src?.media_url || src?.document_url || src?.downloadURL || src?.link || '');
-                                                
-                                                if (!url) return null;
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                             {allAssets.map((src: any, idx: number) => {
+                                                 // Check if it's a reference or an ID (string that is NOT a URL)
+                                                 const isRef = src instanceof DocumentReference || (src?.path && typeof src?.path === 'string');
+                                                 const isId = typeof src === 'string' && !src.startsWith('http') && src.length > 5;
 
-                                                let fileName = (typeof src === 'object' && src?.name) ? src.name : 'Supporting Document';
-                                                try {
-                                                    const decoded = decodeURIComponent(url);
-                                                    const parts = decoded.split('/');
-                                                    const filenameWithParams = parts[parts.length - 1];
-                                                    const extractedName = filenameWithParams.split('?')[0].split('%2F').pop();
-                                                    if (extractedName) fileName = extractedName;
-                                                } catch (e) {}
+                                                 if (isRef || isId) {
+                                                     const ref = isRef ? (src instanceof DocumentReference ? src : doc(db, src.path)) : src;
+                                                     return <DocumentRefAsset key={idx} reference={ref} />;
+                                                 }
 
-                                                return (
-                                                    <div 
-                                                        key={idx} 
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            window.open(url, '_blank', 'noopener,noreferrer');
-                                                        }}
-                                                        className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all shadow-sm group active:scale-95"
-                                                    >
-                                                        <div className="flex items-center gap-3 min-w-0">
-                                                            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-red-500 border border-slate-100 dark:border-slate-700 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                                                <FileText className="w-4 h-4" />
-                                                            </div>
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate pr-2">
-                                                                    {fileName}
-                                                                </span>
-                                                                <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Open Resource</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 group-hover:bg-primary group-hover:text-white transition-all">
-                                                            <Download className="w-3 h-3" />
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                 const url = typeof src === 'string' 
+                                                     ? src 
+                                                     : (src?.file_url || src?.url || src?.fileUrl || src?.media_url || src?.document_url || src?.downloadURL || src?.link || '');
+                                                 
+                                                 if (!url) return null;
+
+                                                 let fileName = (typeof src === 'object' && src?.name) ? src.name : 'Supporting Document';
+                                                 let label = (typeof src === 'object' && src?.label) ? src.label : 'Storage Link';
+                                                 
+                                                 // Extract cleaner filename if possible
+                                                 try {
+                                                     const decoded = decodeURIComponent(url);
+                                                     const parts = decoded.split('/');
+                                                     const filenameWithParams = parts[parts.length - 1];
+                                                     const extractedName = filenameWithParams.split('?')[0].split('%2F').pop();
+                                                     if (extractedName && extractedName.includes('.')) fileName = extractedName;
+                                                 } catch (e) {}
+
+                                                 return (
+                                                     <AssetRow 
+                                                         key={idx}
+                                                         url={url}
+                                                         fileName={fileName}
+                                                         label={label}
+                                                     />
+                                                 );
+                                             })}
                                         </div>
                                     </section>
                                 );
@@ -251,9 +431,42 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                     </div>
                 </div>
 
-                <DialogFooter className="p-8 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
-                    <Button variant="ghost" className="rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all h-12 px-8" onClick={onClose}>
-                        Close Detail View
+                <DialogFooter className="p-6 bg-zinc-50/50 dark:bg-zinc-700/50 border-t border-zinc-100 dark:border-zinc-700/50 flex items-center justify-between sm:justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        {onDelete && (
+                            <Button 
+                                variant="ghost" 
+                                size="icon"
+                                className="h-10 w-10 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
+                                onClick={() => {
+                                    onDelete(record.id);
+                                    onClose();
+                                }}
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </Button>
+                        )}
+                        {onEdit && (
+                            <Button 
+                                variant="outline" 
+                                className="rounded-xl border-slate-200 dark:border-slate-700 font-bold text-xs gap-2 h-10 px-6 hover:bg-primary/5 hover:text-primary transition-all duration-300"
+                                onClick={() => {
+                                    onEdit(record);
+                                    onClose();
+                                }}
+                            >
+                                <Edit2 className="w-4 h-4" />
+                                Edit Record
+                            </Button>
+                        )}
+                    </div>
+                    
+                    <Button 
+                        variant="default" 
+                        className="rounded-xl font-bold text-xs h-10 px-8 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white hover:bg-primary transition-all duration-300" 
+                        onClick={onClose}
+                    >
+                        Dismiss
                     </Button>
                 </DialogFooter>
             </DialogContent>

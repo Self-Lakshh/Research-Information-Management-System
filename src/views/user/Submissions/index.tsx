@@ -307,6 +307,8 @@ const Submissions = () => {
                 isOpen={isDetailOpen}
                 onClose={() => { setIsDetailOpen(false); setSelected(null) }}
                 record={selected}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
             />
         </div>
     )

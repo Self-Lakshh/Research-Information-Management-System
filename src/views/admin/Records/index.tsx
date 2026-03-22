@@ -249,6 +249,8 @@ const Records = () => {
                 isOpen={isDetailOpen}
                 onClose={() => setIsDetailOpen(false)}
                 record={selectedRecord}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
             />
 
             {/* Edit Modal */}
