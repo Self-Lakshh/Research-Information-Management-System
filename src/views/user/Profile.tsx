@@ -157,27 +157,25 @@ const Profile = () => {
 
     return (
         <div className="h-full overflow-hidden flex justify-center">
-            <div className="w-full h-full overflow-y-auto custom-scrollbar bg-card border rounded-xl p-10 space-y-10">
+            <div className="w-full h-full overflow-y-auto custom-scrollbar bg-card border rounded-xl p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-10">
 
                 {/* PROFILE HEADER */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
 
                         {/* AVATAR */}
-                        <div className="relative">
-
-                            <div className="w-24 h-24 rounded-full overflow-hidden bg-muted border flex items-center justify-center">
-
+                        <div className="relative shrink-0">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-muted border flex items-center justify-center">
                                 {(previewUrl || user.profile_picture_url) ? (
                                     <img
                                         src={previewUrl || user.profile_picture_url}
                                         className="w-full h-full object-cover"
+                                        alt="Profile"
                                     />
                                 ) : (
                                     <User className="w-10 h-10 text-muted-foreground" />
                                 )}
-
                             </div>
 
                             {isEditing && (
@@ -196,70 +194,69 @@ const Profile = () => {
                                     <div className="w-5 h-5 border-2 border-primary border-t-transparent animate-spin rounded-full" />
                                 </div>
                             )}
-
                         </div>
 
                         {/* IDENTITY */}
-                        <div className="space-y-1">
-
-                            <div className="flex items-center gap-3">
+                        <div className="space-y-1.5">
+                            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
                                 {isEditing ? (
                                     <Input
                                         value={formData.name}
                                         onChange={(e) => handleInputChange("name", e.target.value)}
-                                        className="h-8 w-[200px]"
+                                        className="h-9 w-full sm:w-[200px]"
                                     />
                                 ) : (
-                                    <h2 className="text-xl font-bold tracking-tight">
+                                    <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
                                         {user.name}
                                     </h2>
                                 )}
-                                <div className="inline-flex items-center justify-center text-[10px] px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-widest h-fit">
+                                <div className="inline-flex items-center justify-center text-[9px] sm:text-[10px] px-3 py-1 rounded-full bg-primary/10 text-primary font-bold uppercase tracking-widest h-fit">
                                     {user.user_role}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                <Mail size={14} />
-                                {user.email}
+                            <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-muted-foreground mt-1">
+                                <Mail size={14} className="shrink-0" />
+                                <span className="truncate">{user.email}</span>
                             </div>
-
                         </div>
 
                     </div>
 
                     {/* EDIT ACTION */}
-                    {!isEditing ? (
-                        <Button
-                            variant="default"
-                            onClick={() => setIsEditing(true)}
-                            className="gap-2 bg-blue-600 text-white hover:bg-blue-700"
-                        >
-                            <Edit2 size={14} />
-                            Edit Profile
-                        </Button>
-                    ) : (
-                        <div className="flex gap-2">
-                            <Button
-                                variant="destructive"
-                                onClick={() => setIsEditing(false)}
-                                className="gap-2 shrink-0"
-                            >
-                                <X size={14} />
-                                Cancel
-                            </Button>
-
+                    <div className="w-full sm:w-auto flex justify-center sm:justify-end">
+                        {!isEditing ? (
                             <Button
                                 variant="default"
-                                onClick={handleSave}
-                                disabled={updateUserMutation.isPending}
-                                className="gap-2 bg-blue-600 text-white hover:bg-blue-700 shrink-0"
+                                onClick={() => setIsEditing(true)}
+                                className="gap-2 bg-blue-600 text-white hover:bg-blue-700 w-full sm:w-auto"
                             >
-                                <Save size={14} />
-                                Save
+                                <Edit2 size={14} />
+                                Edit Profile
                             </Button>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => setIsEditing(false)}
+                                    className="gap-2 grow sm:grow-0"
+                                >
+                                    <X size={14} />
+                                    Cancel
+                                </Button>
+
+                                <Button
+                                    variant="default"
+                                    onClick={handleSave}
+                                    disabled={updateUserMutation.isPending}
+                                    className="gap-2 bg-blue-600 text-white hover:bg-blue-700 grow sm:grow-0"
+                                >
+                                    <Save size={14} />
+                                    Save
+                                </Button>
+                            </div>
+                        )}
+                    </div>
 
                 </div>
 
@@ -268,13 +265,11 @@ const Profile = () => {
 
                 {/* PROFILE DETAILS */}
                 <div className="space-y-6">
-
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                         Personal Information
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
                         {/* PHONE */}
                         <Field
                             icon={<Phone size={16} />}
@@ -365,7 +360,6 @@ const Profile = () => {
                                 </p>
                             )}
                         </div>
-
                     </div>
                 </div>
 

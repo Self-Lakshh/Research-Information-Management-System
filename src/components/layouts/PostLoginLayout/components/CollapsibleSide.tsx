@@ -115,24 +115,27 @@ const CollapsibleSide = ({ children }: CommonProps) => {
             className="app-layout-collapsible-side flex flex-auto flex-col"
         >
             <Header
-                className="shadow-sm dark:shadow-2xl bg-card z-30 shrink-0"
+                className="shadow-sm dark:shadow-2xl bg-card z-30 shrink-0 h-16 sm:h-20"
                 headerStart={
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
                         {smaller.lg && <MobileNav />}
-                        {/* {larger.lg && <SideNavToggle />} */}
-
-                        <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] text-slate-500 font-semibold leading-none mb-0.5">
-                                    <Logo logoWidth={220} mode={isDark ? 'dark' : 'light'} />
-                                </span>
-                            </div>
+                        
+                        <div className="flex items-center shrink-0">
+                            <Logo 
+                                logoWidth="160px" 
+                                className="sm:hidden" 
+                                mode={isDark ? 'dark' : 'light'} 
+                            />
+                            <Logo 
+                                logoWidth="220px" 
+                                className="hidden sm:block" 
+                                mode={isDark ? 'dark' : 'light'} 
+                            />
                         </div>
 
-                        <div className="h-7 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
+                        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden sm:block" />
 
-                        <div className="text-xs text-secondary dark:text-teal-400 font-medium hidden md:block">
-                            {/* Update: 11/12/2025, 12:33 PM */}
+                        <div className="text-[10px] sm:text-xs text-secondary dark:text-teal-400 font-medium hidden md:block whitespace-nowrap">
                             {time.toLocaleString('en-IN', {
                                 day: '2-digit',
                                 month: 'short',
@@ -190,10 +193,10 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                     </div>
                 }
             />
-            <div className="flex flex-auto min-w-0 overflow-hidden h-[calc(100vh-64px)]">
+            <div className="flex flex-auto min-w-0 overflow-hidden h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)]">
                 {larger.lg && <SideNav className="shrink-0" />}
                 <div className="flex flex-col flex-auto min-w-0 relative w-full bg-emerald-50 dark:bg-zinc-950 overflow-hidden">
-                    <main className="h-full flex flex-auto flex-col overflow-hidden p-4 gap-4">
+                    <main className="h-full flex flex-auto flex-col overflow-y-auto overflow-x-hidden p-2 sm:p-4 lg:p-6 gap-3 sm:gap-6">
                         {children}
                     </main>
                 </div>

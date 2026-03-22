@@ -42,7 +42,7 @@ const Dashboard = () => {
                         My Research Insights
                     </h2>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 p-4">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6 p-3 sm:p-6 transition-all">
                     <StatCard label="IPR Publication" value={stats?.iprCount || 0} icon={Lightbulb} variant="amber" isLoading={statsLoading} />
                     <StatCard label="Journal Publication" value={stats?.journalCount || 0} icon={FileText} variant="primary" isLoading={statsLoading} />
                     <StatCard label="Conference Publication" value={stats?.conferenceCount || 0} icon={Users} variant="indigo" isLoading={statsLoading} />

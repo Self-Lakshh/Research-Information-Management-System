@@ -148,44 +148,44 @@ const Submissions = () => {
             {/* Header Section */}
             <div className="bg-card backdrop-blur-sm rounded-lg border border-border/50 shadow-premium flex flex-col shrink-0 overflow-hidden">
                 {/* Row 1: Title & Actions */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border/50 p-4">
-                    <div className="space-y-1.5 ">
-                        <h1 className="text-2xl font-bold text-foreground tracking-tight">Records Portfolio</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 p-4 sm:p-6 gap-4">
+                    <div className="space-y-1 sm:space-y-2">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Records Portfolio</h1>
                         <div className="flex items-center gap-2">
                             <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
-                            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">
-                                {isLoading ? 'Synchronizing…' : `${submissions.length} Research Entities Found`}
+                            <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-80">
+                                {isLoading ? 'Synchronizing…' : `${submissions.length} Entities Indexed`}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex">
-                            <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
-                        </div>
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
+                        <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
                         <AddSubmissions onAddClick={handleAddClick} />
                     </div>
                 </div>
 
                 {/* Row 2: Filters */}
-                <div className="backdrop-blur-sm flex flex-col lg:flex-row items-center gap-3 p-4">
+                <div className="bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col xl:flex-row items-center gap-4 p-4 sm:p-6">
                     <Searchbar
                         value={search}
                         onChange={setSearch}
-                        className="w-full lg:max-w-xs"
+                        className="w-full xl:max-w-md"
                     />
-                    <div className="flex items-center gap-2 lg:ml-auto w-full lg:w-auto">
-                        <ApprovalFilter value={approvalFilter} onChange={setApprovalFilter} className="w-full sm:w-[140px]" />
-                        <DomainFilter value={domainFilter} onChange={setDomainFilter} className="w-full sm:w-[160px]" />
-                        <YearFilter value={yearFilter} onChange={setYearFilter} years={availableYears} className="w-full sm:w-[120px]" />
-                        {hasFilters && (
-                            <button
-                                onClick={clearFilters}
-                                className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:flex items-center gap-2 xl:ml-auto w-full xl:w-auto">
+                        <ApprovalFilter value={approvalFilter} onChange={setApprovalFilter} className="w-full xl:min-w-[140px]" />
+                        <DomainFilter value={domainFilter} onChange={setDomainFilter} className="w-full xl:min-w-[160px]" />
+                        <YearFilter value={yearFilter} onChange={setYearFilter} years={availableYears} className="w-full xl:min-w-[120px]" />
+                        <div className="col-span-2 md:col-span-1 flex justify-end">
+                            {hasFilters && (
+                                <button
+                                    onClick={clearFilters}
+                                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm border border-rose-500/10"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -225,8 +225,8 @@ const Submissions = () => {
                     ) : displayed.length > 0 ? (
                         <div>
                             {viewMode === "grid" ? (
-                                <div className="pr-2 pb-12">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                <div className="pr-1 sm:pr-2 pb-12">
+                                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                                         {displayed.map((item: any) => (
                                             <RecordCard
                                                 key={item.id}
