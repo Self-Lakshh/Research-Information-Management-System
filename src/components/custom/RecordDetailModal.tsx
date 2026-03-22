@@ -8,7 +8,8 @@ import {
     DialogFooter,
 } from "@/components/shadcn/ui/dialog"
 import { Button } from "@/components/shadcn/ui/button"
-import { Calendar, User, FileText, ExternalLink, Download, Clock, CheckCircle2, XCircle, Copy, Link as LinkIcon, Trash2, Edit2, Eye } from 'lucide-react'
+import { Calendar, User, FileText, ExternalLink, Download, Clock, CheckCircle2, XCircle, Copy, Link as LinkIcon, Trash2, Edit2 } from 'lucide-react'
+import { AssetRow } from './AssetRow'
 import { RECORD_TYPE_CONFIG, getStatusColor } from '@/configs/rims.config'
 import { RecordType } from '@/@types/rims.types'
 import { cn } from "@/components/shadcn/utils"
@@ -43,48 +44,7 @@ const UserRefDisplay: React.FC<{ reference: DocumentReference }> = ({ reference 
     return <span>{name}</span>
 }
 
-const AssetRow: React.FC<{ url: string; fileName: string; label?: string }> = ({ url, fileName, label }) => {
-    const handleOpen = (e: React.MouseEvent) => {
-        e.stopPropagation()
-        window.open(url, '_blank', 'noopener,noreferrer')
-    }
 
-    const truncateName = (name: string) => {
-        const limit = 12;
-        if (name.length <= limit + 5) return name;
-        const ext = name.includes('.') ? name.split('.').pop() : '';
-        const base = name.split('.')[0];
-        return base.substring(0, limit) + '...' + (ext ? '.' + ext : '');
-    }
-
-    return (
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-zinc-50/50 dark:bg-zinc-700/50 border border-zinc-100 dark:border-zinc-700/50 transition-all hover:border-primary/30 group">
-            <div className="flex items-center gap-4 min-w-0">
-                <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 shrink-0 shadow-sm border border-rose-500/5">
-                    <FileText className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] font-bold text-zinc-700 dark:text-zinc-200 truncate pr-2" title={fileName}>
-                        {truncateName(fileName)}
-                    </span>
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest opacity-60">
-                        {label || 'Document'}
-                    </span>
-                </div>
-            </div>
-            
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={handleOpen}
-                className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300 shrink-0"
-                title="Preview"
-            >
-                <Eye className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-            </Button>
-        </div>
-    )
-}
 const DocumentRefAsset: React.FC<{ reference: any }> = ({ reference }) => {
     const [data, setData] = React.useState<any | null>(null)
     const [loading, setLoading] = React.useState(true)
@@ -147,6 +107,7 @@ const DocumentRefAsset: React.FC<{ reference: any }> = ({ reference }) => {
             url={data.file_url || data.url || data.media_url || ''} 
             fileName={data.document_name || data.name || 'Supporting Document'} 
             label={data.document_type || 'Research Resource'}
+            isExisting={true}
         />
     )
 }
@@ -361,7 +322,23 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                      return true;
                                  });
 
-                                 const allAssets = [...new Set(allPotentialSources)];
+                                 const seen = new Set();
+                                 const allAssets = allPotentialSources.filter(s => {
+                                     if (!s) return false;
+                                     let key;
+                                     if (typeof s === 'string') {
+                                         // Normalize paths and IDs to just the ID; keep URLs as is
+                                         key = (s.startsWith('http') || s.startsWith('/')) ? s : s.split('/').pop();
+                                     }
+                                     else if (s.path && typeof s.path === 'string') key = s.path.split('/').pop();
+                                     else if (s.id && typeof s.id === 'string') key = s.id;
+                                     else if (s.file_url || s.url || s.media_url) key = s.file_url || s.url || s.media_url;
+                                     else key = JSON.stringify(s);
+
+                                     if (seen.has(key)) return false;
+                                     seen.add(key);
+                                     return true;
+                                 });
 
                                  if (allAssets.length === 0) {
                                      return (
@@ -420,6 +397,7 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                                          url={url}
                                                          fileName={fileName}
                                                          label={label}
+                                                         isExisting={true}
                                                      />
                                                  );
                                              })}

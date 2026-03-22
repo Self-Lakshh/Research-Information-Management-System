@@ -8,6 +8,7 @@ import { Textarea } from '@/components/shadcn/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/ui/select'
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
+import { AssetRow } from './AssetRow'
 
 interface DynamicFormProps {
     fields: FieldConfig[]
@@ -226,7 +227,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
                         {/* File Preview List (Simplified Rows) */}
                         {filesArray.length > 0 && (
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {filesArray.map((file: any, index: number) => {
                                     let fileName = 'Document';
                                     let isExisting = false;
@@ -248,54 +249,22 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                                     }
 
                                     return (
-                                        <div key={index} className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50/50 dark:bg-zinc-700/50 border border-zinc-100 dark:border-zinc-700/50 transition-all group">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className={cn(
-                                                    "p-2 rounded-xl shrink-0 transition-colors",
-                                                    isExisting ? "bg-emerald-500/10 text-emerald-500" : "bg-zinc-200 dark:bg-zinc-600 text-zinc-400"
-                                                )}>
-                                                    <FileText className="w-4 h-4" />
-                                                </div>
-                                                <div className="flex flex-col min-w-0">
-                                                    <span className="text-[13px] font-bold text-zinc-700 dark:text-zinc-200 truncate pr-4">
-                                                        {fileName.length > 20 ? fileName.substring(0, 15) + '...' : fileName}
-                                                    </span>
-                                                    {isExisting && <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest opacity-80">Stored in Cloud</span>}
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex items-center gap-1">
-                                                {isExisting && (
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        type="button"
-                                                        onClick={() => window.open(url, '_blank')}
-                                                        className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all duration-300"
-                                                        title="Preview"
-                                                    >
-                                                        <Eye className="w-3.5 h-3.5" />
-                                                    </Button>
-                                                )}
-                                                <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (isExisting && onDeleteAsset) {
-                                                            onDeleteAsset(url)
-                                                        }
-                                                        if (field.multiple) {
-                                                            onChange(key, filesArray.filter((_, i) => i !== index))
-                                                        } else {
-                                                            onChange(key, null)
-                                                        }
-                                                    }}
-                                                    className="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <AssetRow
+                                            key={index}
+                                            url={url}
+                                            fileName={fileName}
+                                            isExisting={isExisting}
+                                            onDelete={() => {
+                                                if (isExisting && onDeleteAsset) {
+                                                    onDeleteAsset(url)
+                                                }
+                                                if (field.multiple) {
+                                                    onChange(key, filesArray.filter((_, i) => i !== index))
+                                                } else {
+                                                    onChange(key, null)
+                                                }
+                                            }}
+                                        />
                                     )
                                 })}
                             </div>

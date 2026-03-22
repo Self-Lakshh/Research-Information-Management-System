@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { doc, updateDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, serverTimestamp, Timestamp, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/configs/firebase.config';
 import { useAuth } from '@/auth';
 import type { RecordType, RecordFilters } from '@/@types/rims.types';
@@ -383,35 +383,49 @@ export const useSaveRecord = () => {
             const recordId = id || newId()
             const documentIds: string[] = []
 
-            // 1. Handle File Uploads (Generic 'file' field)
-            // It could be a single File or an Array of Files
-            const fileData = data.file
-            if (fileData) {
-                const filesToUpload = Array.isArray(fileData) ? fileData : [fileData]
-                for (const f of filesToUpload) {
-                    if (f instanceof File) {
-                        const uploadResult = await uploadFile(f, userRef.id, recordId)
-                        const docId = newId()
+            // 1. Handle Assets (Mix of new Files and existing URLs)
+            const fileData = data.file;
+            const sourcesList: any[] = [];
+
+            if (fileData !== undefined) {
+                const currentAssets = Array.isArray(fileData) ? fileData : (fileData ? [fileData] : []);
+                
+                for (const asset of currentAssets) {
+                    if (asset instanceof File) {
+                        // A: New File Upload
+                        const uploadResult = await uploadFile(asset, userRef.id, recordId);
+                        const docId = newId();
                         await createDocument(docId, {
-                            document_name: f.name,
+                            document_name: asset.name,
                             document_type: type as any,
                             file_url: uploadResult.fileUrl,
                             status: 'pending',
                             uploaded_by: userRef,
                             upload_date: Timestamp.now() as any,
-                        })
-                        documentIds.push(docId)
+                        });
+                        sourcesList.push(doc(db, 'documents', docId));
+                    } else if (typeof asset === 'string') {
+                        // B: Existing URL - find its original Document Reference
+                        const q = query(collection(db, 'documents'), where('file_url', '==', asset));
+                        const snap = await getDocs(q);
+                        if (!snap.empty) {
+                            sourcesList.push(snap.docs[0].ref);
+                        }
                     }
                 }
-                delete data.file
-            }
-
-            // 2. Map document IDs to schema
-            if (documentIds.length > 0) {
-                data.document_id = documentIds[0] // Primary doc (backward compatibility)
-                data.documents = documentIds // Full list
-                // Standardize as 'sources' array of references for all domains
-                data.sources = documentIds.map(dId => doc(db, 'documents', dId))
+                
+                // Update record's source references
+                data.sources = sourcesList;
+                if (sourcesList.length > 0) {
+                    data.document_id = sourcesList[0].id;
+                    data.documents = sourcesList.map(ref => ref.id);
+                } else {
+                    data.document_id = null;
+                    data.documents = [];
+                    data.sources = [];
+                }
+                
+                delete data.file;
             }
 
             // 3. Inject Metadata

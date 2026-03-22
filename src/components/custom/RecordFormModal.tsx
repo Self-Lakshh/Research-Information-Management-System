@@ -66,14 +66,17 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
         if (isOpen) {
             setValidationError(null)
             if (initialData) {
-                // Pre-resolve any sources (references) into URLs for the form's 'file' field
-                const sources = initialData.sources || []
+                // Pre-resolve any sources (references) or document IDs into URLs for the form
+                const sources = initialData.sources || initialData.documents || []
+                
                 const resolveExistingFiles = async () => {
                     const resolved = await Promise.all(sources.map(async (ref: any) => {
                         try {
-                            const resolvedRef = typeof ref === 'string' 
-                                ? (ref.includes('/') ? doc(db, ref) : doc(db, 'documents', ref))
-                                : ref;
+                            let resolvedRef = ref;
+                            if (typeof ref === 'string') {
+                                resolvedRef = ref.includes('/') ? doc(db, ref) : doc(db, 'documents', ref);
+                            }
+                            
                             const snap = await getDoc(resolvedRef);
                             if (snap.exists()) {
                                 const dData = snap.data() as any;
@@ -84,10 +87,13 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
                     }))
                     
                     const existingFileUrls = resolved.filter(Boolean);
-                    setFormData((prev: any) => ({
-                        ...prev,
-                        file: existingFileUrls.length > 0 ? (config.fields.find(f => f.key === 'file')?.multiple ? existingFileUrls : existingFileUrls[0]) : prev.file
-                    }))
+                    if (existingFileUrls.length > 0) {
+                        setFormData((prev: any) => ({
+                            ...prev,
+                            // If form field exists, check if it's multiple
+                            file: config.fields.find(f => f.key === 'file')?.multiple ? existingFileUrls : existingFileUrls[0]
+                        }))
+                    }
                 }
 
                 setFormData({
@@ -97,7 +103,7 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
                 
                 if (sources.length > 0) resolveExistingFiles();
             } else {
-                // Pre-fill user_select fields for regular users
+                // Pre-fill user_select fields for regular users for NEW records
                 const initial: any = {}
                 if (!isAdmin && user) {
                     const userRef = doc(db, 'users', user.id || (user as any).uid)
@@ -110,7 +116,7 @@ export const RecordFormModal: React.FC<RecordFormModalProps> = ({
                 setFormData(initial)
             }
         }
-    }, [initialData, isOpen, typeKey, isAdmin, user])
+    }, [initialData, isOpen, typeKey, isAdmin, user, config.fields])
 
     if (!config) return null
 
