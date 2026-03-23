@@ -32,7 +32,7 @@ const fetchStatistics = async (opts: { type: string; year?: string; domain?: str
     const token = await user.getIdToken();
 
     const qs = buildQS({ type: opts.type, year: opts.year, domain: opts.domain });
-    const res = await fetch(`/.netlify/functions/statistics${qs}`, {
+    const res = await fetch(`/api/statistics${qs}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

@@ -21,8 +21,21 @@
   targetPort = 5173
   publish = "build"
 
-# ── SPA routing — redirect all non-asset routes to index.html ─────────────────
-# This must be LAST so functions are matched first by Netlify's routing engine.
+# ── Netlify Functions setup ────────────────────────────────────────────────────────
+[functions]
+  # Use esbuild for fast, modern TypeScript bundling.
+  node_bundler = "esbuild"
+  # Specify dependencies to include if needed (usually auto-detected from root package.json)
+  # external_node_modules = ["firebase-admin"]
+
+# ── API routing — proxy /api to serverless functions ─────────────────────────
+# This must come BEFORE the SPA routing rule below.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# ── SPA routing — redirect all remaining routes to index.html ───────────────
 [[redirects]]
   from = "/*"
   to = "/index.html"

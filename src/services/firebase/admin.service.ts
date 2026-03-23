@@ -36,7 +36,7 @@ import { db, auth } from '@/configs/firebase.config';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const FN = '/.netlify/functions';
+const FN = '/api';
 const USERS_COL = 'users';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -227,13 +227,60 @@ export const adminGetUserById = async (userId: string): Promise<AdminUserRecord>
 export const adminCreateUser = async (
     payload: AdminCreateUserPayload
 ): Promise<{ uid: string; email: string; resetLinkSent: boolean }> => {
-    if (!isFunctionsAvailable()) {
-        throw new Error(
-            'Creating users requires `netlify dev` (Firebase Admin SDK needed to create Auth accounts server-side). ' +
-            'Start the app with `netlify dev` instead of `npm run dev`.'
-        );
+    // ── Netlify Functions (Production / netlify dev) ─────────────────────────
+    if (isFunctionsAvailable()) {
+        return fnRequest('POST', '/admin-users', payload);
     }
-    return fnRequest('POST', '/admin-users', payload);
+
+    // ── Client-side Fallback (Local Development Only) ────────────────────────
+    // If we're on localhost and NOT using Netlify Dev, we can't call the 
+    // Admin SDK directly. Instead, we use a temporary secondary Firebase 
+    // app instance to create the Auth account to avoid signing the admin out.
+    console.warn('[admin.service] Functions not available. Using client-side fallback for CREATE USER.');
+    
+    // Lazy imports for dev-only fallback
+    const { initializeApp, deleteApp } = await import('firebase/app');
+    const { getAuth, createUserWithEmailAndPassword } = await import('firebase/auth');
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+
+    const secondaryApp = initializeApp({
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+    }, `SecondaryApp-${Date.now()}`);
+
+    const secondaryAuth = getAuth(secondaryApp);
+
+    try {
+        const tempPassword = Math.random().toString(36).slice(-10);
+        const cred = await createUserWithEmailAndPassword(secondaryAuth, payload.email, tempPassword);
+        const uid = cred.user.uid;
+
+        // Create Firestore profile
+        await setDoc(doc(db, USERS_COL, uid), {
+            uid,
+            name: payload.name,
+            email: payload.email,
+            phone_number: payload.phone_number || '',
+            address: payload.address || '',
+            designation: payload.designation || '',
+            faculty: payload.faculty || '',
+            user_role: payload.user_role || 'user',
+            is_active: true,
+            created_at: serverTimestamp(),
+            updated_at: serverTimestamp(),
+        });
+
+        return { uid, email: payload.email, resetLinkSent: false };
+    } catch (error: any) {
+        console.error('[AdminService] Create fallback error:', error);
+        throw new Error(error.message || 'Failed to create user account locally');
+    } finally {
+        await deleteApp(secondaryApp);
+    }
 };
 
 // ── UPDATE user ───────────────────────────────────────────────────────────────
@@ -334,8 +381,20 @@ export const approveOrRejectRecord = async (
     action: 'approve' | 'reject',
     reason?: string
 ): Promise<void> => {
-    if (!isFunctionsAvailable()) {
-        throw new Error('Record approval requires `netlify dev`.');
+    if (isFunctionsAvailable()) {
+        await fnRequest('PUT', '/admin-approve-record', { domain, record_id: recordId, action, reason });
+        return;
     }
-    await fnRequest('PUT', '/admin-approve-record', { domain, record_id: recordId, action, reason });
+
+    // ── Client-side Fallback (Local Development Only) ────────────────────────
+    const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
+    const recordRef = doc(db, domain, recordId);
+
+    const updates: any = {
+        approval_status: action === 'approve' ? 'approved' : 'rejected',
+        reviewed_at: serverTimestamp(),
+    };
+    if (reason) updates.admin_remarks = reason;
+
+    await updateDoc(recordRef, updates);
 };
