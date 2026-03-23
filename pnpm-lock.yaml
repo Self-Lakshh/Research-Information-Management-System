@@ -134,6 +134,9 @@ importers:
       firebase:
         specifier: ^11.10.0
         version: 11.10.0
+      firebase-admin:
+        specifier: ^13.7.0
+        version: 13.7.0
       framer-motion:
         specifier: 11.15.0
         version: 11.15.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -309,9 +312,6 @@ importers:
       eslint-plugin-react-refresh:
         specifier: ^0.4.14
         version: 0.4.26(eslint@9.39.2(jiti@2.6.1))
-      firebase-admin:
-        specifier: ^13.7.0
-        version: 13.7.0
       postcss:
         specifier: ^8.4.45
         version: 8.5.6
