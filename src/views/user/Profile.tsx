@@ -19,7 +19,10 @@ import {
     GraduationCap,
     Briefcase,
     Calendar,
-    X
+    X,
+    Linkedin,
+    ExternalLink,
+    Globe
 } from "lucide-react"
 
 import { uploadProfilePhoto } from "@/services/firebase"
@@ -44,13 +47,19 @@ const Profile = () => {
         designation: string
         faculty: Faculty | ''
         joining_date: string
+        linkedin_link: string
+        orcid_link: string
+        scopus_link: string
     }>({
         name: user?.name || "",
         phone_number: user?.phone_number || "",
         address: user?.address || "",
         designation: user?.designation || "",
         faculty: (user?.faculty as Faculty) || "",
-        joining_date: user?.joining_date || user?.created_at?.toDate?.()?.toISOString().split('T')[0] || "",
+        joining_date: user?.joining_date || (user?.created_at?.toDate ? user.created_at.toDate().toISOString().split('T')[0] : ""),
+        linkedin_link: (user as any)?.linkedin_link || "",
+        orcid_link: (user as any)?.orcid_link || "",
+        scopus_link: (user as any)?.scopus_link || "",
     })
 
     const handleInputChange = (field: string, value: string) => {
@@ -66,9 +75,10 @@ const Profile = () => {
                 name: formData.name,
                 phone_number: formData.phone_number,
                 address: formData.address,
-                designation: formData.designation,
-                faculty: formData.faculty as Faculty || undefined,
                 joining_date: formData.joining_date,
+                linkedin_link: formData.linkedin_link,
+                orcid_link: formData.orcid_link,
+                scopus_link: formData.scopus_link,
             },
         })
 
@@ -90,7 +100,10 @@ const Profile = () => {
                 address: freshUser.address || "",
                 designation: freshUser.designation || "",
                 faculty: (freshUser.faculty as Faculty) || "",
-                joining_date: freshUser.joining_date || freshUser.created_at?.toDate?.()?.toISOString().split('T')[0] || "",
+                joining_date: freshUser.joining_date || (freshUser.created_at?.toDate ? freshUser.created_at.toDate().toISOString().split('T')[0] : ""),
+                linkedin_link: freshUser.linkedin_link || "",
+                orcid_link: freshUser.orcid_link || "",
+                scopus_link: freshUser.scopus_link || "",
             })
         }
 
@@ -122,7 +135,7 @@ const Profile = () => {
                 media_type: "profile",
                 media_url: photoURL,
                 uploaded_by: userRef,
-                uploaded_at: new Date() as any, // Firebase Server timestamp gets handled by service usually, or we can use Timestamp.now()
+                uploaded_at: new Date() as any, 
                 status: "active"
             })
 
@@ -149,7 +162,7 @@ const Profile = () => {
             }
         } finally {
             setUploading(false)
-            setPreviewUrl(null) // Clear preview — real URL from store takes over
+            setPreviewUrl(null) 
         }
     }
 
@@ -360,6 +373,42 @@ const Profile = () => {
                                 </p>
                             )}
                         </div>
+
+                        {/* PROFESSIONAL LINKS */}
+                        <div className="md:col-span-2 pt-6 border-t">
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">
+                                Professional Links
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <LinkField
+                                    icon={<Linkedin size={16} className="text-[#0077b5]" />}
+                                    label="LinkedIn"
+                                    value={(user as any).linkedin_link}
+                                    editing={isEditing}
+                                    inputValue={formData.linkedin_link}
+                                    onChange={(v: string) => handleInputChange("linkedin_link", v)}
+                                    placeholder="https://linkedin.com/in/..."
+                                />
+                                <LinkField
+                                    icon={<Globe size={16} className="text-[#A6CE39]" />}
+                                    label="ORCID ID"
+                                    value={(user as any).orcid_link}
+                                    editing={isEditing}
+                                    inputValue={formData.orcid_link}
+                                    onChange={(v: string) => handleInputChange("orcid_link", v)}
+                                    placeholder="https://orcid.org/..."
+                                />
+                                <LinkField
+                                    icon={<ExternalLink size={16} className="text-[#f68212]" />}
+                                    label="Scopus Profile"
+                                    value={(user as any).scopus_link}
+                                    editing={isEditing}
+                                    inputValue={formData.scopus_link}
+                                    onChange={(v: string) => handleInputChange("scopus_link", v)}
+                                    placeholder="https://www.scopus.com/..."
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -367,6 +416,36 @@ const Profile = () => {
         </div>
     )
 }
+
+const LinkField = ({ icon, label, value, editing, inputValue, onChange, placeholder }: any) => (
+    <div className="space-y-1">
+        <p className="text-xs text-muted-foreground flex items-center gap-2">
+            {icon}
+            {label}
+        </p>
+        {editing ? (
+            <Input
+                value={inputValue}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className="h-9 text-xs"
+            />
+        ) : (
+            value ? (
+                <a
+                    href={value.startsWith('http') ? value : `https://${value}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-bold text-blue-600 hover:underline flex items-center gap-1.5"
+                >
+                    Visit Link <ExternalLink size={10} />
+                </a>
+            ) : (
+                <p className="text-sm font-medium text-muted-foreground italic">Not Linked</p>
+            )
+        )}
+    </div>
+)
 
 export default Profile
 

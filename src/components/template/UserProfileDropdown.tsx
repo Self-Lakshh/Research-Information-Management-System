@@ -22,16 +22,17 @@ const dropdownItemList: DropdownList[] = [
 
 const _UserDropdown = () => {
     const { avatar, userName, email } = useSessionUser((state) => state.user)
-
     const { signOut } = useAuth()
 
     const handleSignOut = () => {
         signOut()
     }
 
-    const avatarProps = {
-        ...(avatar ? { src: avatar } : { icon: <PiUserDuotone /> }),
-    }
+    const initials = userName?.split(' ')
+        .map(n => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || '?'
 
     return (
         <Dropdown
@@ -39,19 +40,23 @@ const _UserDropdown = () => {
             toggleClassName="flex items-center"
             renderTitle={
                 <div className="cursor-pointer flex items-center">
-                    <Avatar size={32} {...avatarProps} />
+                    <Avatar size={32} src={avatar}>
+                        {!avatar && initials}
+                    </Avatar>
                 </div>
             }
             placement="bottom-end"
         >
             <Dropdown.Item variant="header">
                 <Link className="py-2 px-3 flex items-center gap-3" to="/profile">
-                    <Avatar {...avatarProps} />
+                    <Avatar src={avatar}>
+                        {!avatar && initials}
+                    </Avatar>
                     <div>
-                        <div className="font-bold text-gray-900 dark:text-gray-100">
+                        <div className="font-bold text-gray-900 dark:text-gray-100 leading-tight">
                             {userName || 'Anonymous'}
                         </div>
-                        <div className="text-xs">
+                        <div className="text-[11px] text-muted-foreground mt-0.5">
                             {email || 'No email available'}
                         </div>
                     </div>

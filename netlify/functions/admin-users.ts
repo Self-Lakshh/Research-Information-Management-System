@@ -88,11 +88,13 @@ async function handleGet(params: any) {
 
 // ── POST create user (Auth + Firestore) ───────────────────────────────────────
 async function handlePost(payload: any) {
-    const { email, name, user_role, faculty, phone_number, designation } = payload;
+    const { 
+        email, name, user_role, faculty, phone_number, designation, 
+        joining_date, linkedin_link, orcid_link, scopus_link 
+    } = payload;
     if (!email || !name) return response(400, false, 'Email and Name are required.');
 
     // 1. Create Auth account
-    // For now we set a random password and send a reset link later
     const tempPassword = Math.random().toString(36).slice(-10);
     const authUser = await auth.createUser({
         email,
@@ -111,6 +113,10 @@ async function handlePost(payload: any) {
         faculty: faculty || '',
         phone_number: phone_number || '',
         designation: designation || '',
+        joining_date: joining_date || '',
+        linkedin_link: linkedin_link || '',
+        orcid_link: orcid_link || '',
+        scopus_link: scopus_link || '',
         is_active: true,
         created_at: admin.firestore.FieldValue.serverTimestamp(),
         updated_at: admin.firestore.FieldValue.serverTimestamp()
@@ -120,7 +126,6 @@ async function handlePost(payload: any) {
     let resetLinkSent = false;
     try {
         const resetLink = await auth.generatePasswordResetLink(email);
-        // Note: You normally send this via email service, but we'll return it/flag it
         resetLinkSent = true;
     } catch (err) {
         console.error('Failed to generate reset link:', err);
@@ -135,7 +140,10 @@ async function handlePost(payload: any) {
 
 // ── PUT update user (Auth + Firestore) ────────────────────────────────────────
 async function handlePut(payload: any) {
-    const { user_id, name, is_active, user_role, faculty, phone_number, designation, profile_picture_url } = payload;
+    const { 
+        user_id, name, is_active, user_role, faculty, phone_number, designation, 
+        profile_picture_url, joining_date, linkedin_link, orcid_link, scopus_link 
+    } = payload;
     if (!user_id) return response(400, false, 'User ID is required.');
 
     const updates: any = {};
@@ -146,13 +154,17 @@ async function handlePut(payload: any) {
     if (phone_number !== undefined) updates.phone_number = phone_number;
     if (designation !== undefined) updates.designation = designation;
     if (profile_picture_url !== undefined) updates.profile_picture_url = profile_picture_url;
+    if (joining_date !== undefined) updates.joining_date = joining_date;
+    if (linkedin_link !== undefined) updates.linkedin_link = linkedin_link;
+    if (orcid_link !== undefined) updates.orcid_link = orcid_link;
+    if (scopus_link !== undefined) updates.scopus_link = scopus_link;
     
     updates.updated_at = admin.firestore.FieldValue.serverTimestamp();
 
     // 1. Update Firestore
     await db.collection('users').doc(user_id).update(updates);
 
-    // 2. Update Auth if necessary (e.g. displayName, disabled status)
+    // 2. Update Auth if necessary
     const authUpdates: any = {};
     if (name !== undefined) authUpdates.displayName = name;
     if (is_active !== undefined) authUpdates.disabled = !is_active;

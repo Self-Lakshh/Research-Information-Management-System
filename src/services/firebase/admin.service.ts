@@ -52,6 +52,11 @@ export interface AdminUserRecord {
     faculty?: string;
     user_role: 'user' | 'admin';
     is_active: boolean;
+    joining_date?: string;
+    linkedin_link?: string;
+    orcid_link?: string;
+    scopus_link?: string;
+    profile_picture_url?: string;
     created_at?: any;
     updated_at?: any;
 }
@@ -64,6 +69,10 @@ export interface AdminCreateUserPayload {
     designation?: string;
     faculty?: string;
     user_role?: 'user' | 'admin';
+    joining_date?: string;
+    linkedin_link?: string;
+    orcid_link?: string;
+    scopus_link?: string;
 }
 
 export interface AdminUpdateUserPayload {
@@ -76,6 +85,10 @@ export interface AdminUpdateUserPayload {
     is_active?: boolean;
     user_role?: 'user' | 'admin';
     profile_picture_url?: string;
+    joining_date?: string;
+    linkedin_link?: string;
+    orcid_link?: string;
+    scopus_link?: string;
 }
 
 // ── Runtime detection ─────────────────────────────────────────────────────────
@@ -279,6 +292,10 @@ export const adminCreateUser = async (
             address: payload.address || '',
             designation: payload.designation || '',
             faculty: payload.faculty || '',
+            joining_date: payload.joining_date || '',
+            linkedin_link: payload.linkedin_link || '',
+            orcid_link: payload.orcid_link || '',
+            scopus_link: payload.scopus_link || '',
             user_role: payload.user_role || 'user',
             is_active: true,
             created_at: serverTimestamp(),
@@ -307,6 +324,7 @@ export const adminUpdateUser = async (payload: AdminUpdateUserPayload): Promise<
     const UPDATABLE: (keyof typeof fields)[] = [
         'name', 'phone_number', 'address', 'designation',
         'faculty', 'is_active', 'user_role', 'profile_picture_url',
+        'joining_date', 'linkedin_link', 'orcid_link', 'scopus_link',
     ];
     const updates: Record<string, any> = {};
     for (const f of UPDATABLE) {

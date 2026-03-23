@@ -7,6 +7,22 @@ import { isFunctionsAvailable } from '@/utils/environment';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
+export interface DashboardStats {
+    totalUsers: number;
+    approvedNonPhd: number;
+    pendingNonPhd: number;
+    rejectedNonPhd: number;
+    totalRecords: number;
+    journals: number;
+    conferences: number;
+    books: number;
+    iprs: number;
+    awards: number;
+    grants: number;
+    phd_student: number;
+    others: number;
+}
+
 export interface DashboardParams {
     statsYear?: string;
     statsDomain?: string;
@@ -24,14 +40,29 @@ const buildQS = (params: Record<string, any>): string => {
     return pairs.length ? '?' + new URLSearchParams(pairs.map(([k, v]) => [k, String(v)])).toString() : '';
 };
 
-const fetchStatistics = async (opts: { type: string; year?: string; domain?: string }) => {
+const fetchStatistics = async (opts: { 
+    type: string; 
+    year?: string; 
+    domain?: string;
+    chartYear?: string;
+    chartDomain?: string;
+    compareYears?: string[];
+}) => {
     if (!isFunctionsAvailable()) return null;
 
     const user = auth.currentUser;
     if (!user) throw new Error('Not authenticated');
     const token = await user.getIdToken();
 
-    const qs = buildQS({ type: opts.type, year: opts.year, domain: opts.domain });
+    const qs = buildQS({ 
+        type: opts.type, 
+        year: opts.year, 
+        domain: opts.domain,
+        chartYear: opts.chartYear,
+        chartDomain: opts.chartDomain,
+        compareYears: opts.compareYears?.join(',')
+    });
+    
     const res = await fetch(`/api/statistics${qs}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -47,9 +78,15 @@ const fetchStatistics = async (opts: { type: string; year?: string; domain?: str
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export const useDashboardData = (params: DashboardParams) => {
-    const { statsYear = 'all', statsDomain = 'all', chartYear = new Date().getFullYear().toString(), compareYears = [] } = params;
+    const { 
+        statsYear = 'all', 
+        statsDomain = 'all', 
+        chartYear = new Date().getFullYear().toString(), 
+        chartDomain = 'all',
+        compareYears = [] 
+    } = params;
 
-    // Fetch all records for local aggregation in dev mode
+    // Fetch all records for local aggregation in dev mode (Fallback only)
     const { data: allRecords = [], isLoading: recordsLoading } = useAllRecords({
         type: statsDomain === 'all' ? undefined : statsDomain,
     } as any);
@@ -73,96 +110,56 @@ export const useDashboardData = (params: DashboardParams) => {
                 type: 'admin',
                 year: statsYear !== 'all' ? statsYear : undefined,
                 domain: statsDomain !== 'all' ? statsDomain : undefined,
+                chartYear,
+                chartDomain,
+                compareYears
             });
 
-            // 2. If no function response (local dev), manually aggregate
-            if (!raw) {
-                const yearFiltered = allRecords.filter(r => {
-                    if (statsYear === 'all') return true;
-                    const rYear = r.year_of_publication || r.publicationYear ||
-                        (r.created_at?.toDate ? r.created_at.toDate().getFullYear() : null);
-                    return String(rYear) === statsYear;
-                });
-
-                const byDomain: Record<string, number> = {};
-                const byStatus: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
-
-                yearFiltered.forEach(r => {
-                    const dom = r._domain || r.type || 'other';
-                    byDomain[dom] = (byDomain[dom] || 0) + 1;
-                    const status = (r.approval_status || 'pending').toLowerCase();
-                    byStatus[status] = (byStatus[status] || 0) + 1;
-                });
-
-                const stats = {
-                    totalUsers: userCount,
-                    totalRecords: yearFiltered.length,
-                    pendingApprovals: byStatus.pending ?? 0,
-                    monthlySubmissions: yearFiltered.filter(r => {
-                        const now = new Date();
-                        const rDate = r.created_at?.toDate ? r.created_at.toDate() : new Date();
-                        return rDate.getMonth() === now.getMonth() && rDate.getFullYear() === now.getFullYear();
-                    }).length,
-                    journals: byDomain['journal'] ?? 0,
-                    conferences: byDomain['conference'] ?? 0,
-                    books: byDomain['book'] ?? 0,
-                    iprs: byDomain['ipr'] ?? 0,
-                    awards: byDomain['award'] ?? 0,
-                    grants: byDomain['consultancy'] ?? 0,
-                    phdStudents: byDomain['phd_student'] ?? 0,
-                    others: byDomain['other'] ?? 0,
+            // 2. Return API result if available
+            if (raw) {
+                return {
+                    stats: {
+                        totalUsers: raw.totalUsers,
+                        approvedNonPhd: raw.approvedNonPhd,
+                        pendingNonPhd: raw.pendingNonPhd,
+                        rejectedNonPhd: raw.rejectedNonPhd,
+                        totalRecords: raw.approvedNonPhd,
+                        journals: raw.byDomain?.['journal'] ?? 0,
+                        conferences: raw.byDomain?.['conference'] ?? 0,
+                        books: raw.byDomain?.['book'] ?? 0,
+                        iprs: raw.byDomain?.['ipr'] ?? 0,
+                        awards: raw.byDomain?.['award'] ?? 0,
+                        grants: raw.byDomain?.['consultancy'] ?? 0,
+                        phd_student: raw.byDomain?.['phd_student'] ?? 0,
+                        others: raw.byDomain?.['other'] ?? 0,
+                    },
+                    chartData: raw.chartData || [],
+                    summaryData: [],
+                    raw
                 };
-
-                // Build chart data
-                const chartData = MONTHS.map((name, i) => {
-                    const entry: Record<string, any> = { name };
-
-                    // Current year (target)
-                    const currentYearMatches = allRecords.filter(r => {
-                        const d = r.created_at?.toDate ? r.created_at.toDate() : null;
-                        if (!d) return false;
-                        return d.getFullYear().toString() === chartYear && d.getMonth() === i;
-                    });
-                    entry.current = currentYearMatches.length;
-
-                    // Comparison years
-                    compareYears.forEach(year => {
-                        const compMatches = allRecords.filter(r => {
-                            const d = r.created_at?.toDate ? r.created_at.toDate() : null;
-                            if (!d) return false;
-                            return d.getFullYear().toString() === year && d.getMonth() === i;
-                        });
-                        entry[`year_${year}`] = compMatches.length;
-                    });
-
-                    return entry;
-                });
-
-                return { stats, chartData, summaryData: [], raw: null };
             }
 
-            // 3. Map Cloud Function response
-            const byDomainRaw = raw?.byDomain || {};
-            const byStatusRaw = raw?.byStatus || {};
-            const stats = {
-                totalUsers: raw?.totalUsers ?? 0,
-                totalRecords: raw?.totalRecords ?? 0,
-                pendingApprovals: byStatusRaw.pending ?? 0,
-                monthlySubmissions: (raw?.totalRecords ?? 0),
-                journals: byDomainRaw['journal'] ?? 0,
-                conferences: byDomainRaw['conference'] ?? 0,
-                books: byDomainRaw['book'] ?? 0,
-                iprs: byDomainRaw['ipr'] ?? 0,
-                awards: byDomainRaw['award'] ?? 0,
-                grants: byDomainRaw['consultancy'] ?? 0,
-                phdStudents: byDomainRaw['phd_student'] ?? 0,
-                others: byDomainRaw['other'] ?? 0,
+            // 3. Simple Fallback mapping for local dev
+            return {
+                stats: {
+                    totalUsers: userCount,
+                    approvedNonPhd: 0,
+                    pendingNonPhd: 0,
+                    rejectedNonPhd: 0,
+                    totalRecords: 0,
+                    journals: 0,
+                    conferences: 0,
+                    books: 0,
+                    iprs: 0,
+                    awards: 0,
+                    grants: 0,
+                    phd_student: 0,
+                    others: 0,
+                },
+                chartData: [],
+                summaryData: [],
+                raw: null
             };
-
-            // This part normally uses buildMonthlyChartData but we simplified it
-            const chartData = MONTHS.map((name, i) => ({ name, current: 0 }));
-
-            return { stats, chartData, summaryData: [], raw };
         },
         enabled: !recordsLoading && !usersLoading,
         staleTime: 5 * 60 * 1000,

@@ -22,6 +22,9 @@ export interface User {
   profile_picture_url?: string;
   profile_picture_media?: DocumentReference;
   joining_date?: string;
+  linkedin_link?: string;
+  orcid_link?: string;
+  scopus_link?: string;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -37,6 +40,9 @@ export interface CreateUserData {
   designation?: string
   faculty?: Faculty
   joining_date?: string
+  linkedin_link?: string
+  orcid_link?: string
+  scopus_link?: string
 }
 
 // Update user payload
@@ -47,9 +53,12 @@ export interface UpdateUserData {
   designation?: string
   faculty?: Faculty
   joining_date?: string
+  linkedin_link?: string
+  orcid_link?: string
+  scopus_link?: string
 
   profile_picture_url?: string
   profile_picture_media?: DocumentReference
 
   is_active?: boolean
-} 
+}

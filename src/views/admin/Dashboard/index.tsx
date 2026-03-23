@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { StatCard, ChartHeader, ComparisionFilter, YearFilter, DomainFilter } from '@/components/custom'
 import { RecordsSummaryTable } from './components'
-import { useDashboardData } from '@/hooks/useDashboard'
+import { useDashboardData, type DashboardStats } from '@/hooks/useDashboard'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import type { RecordType } from '@/@types/rims.types'
 import { cn } from '@/components/shadcn/utils'
@@ -73,15 +73,21 @@ const AdminDashboard = () => {
     })
 
     // Get aggregated data from result
-    const stats = data?.stats || {
+    const stats: DashboardStats = (data?.stats as DashboardStats) || {
         totalRecords: 0,
         pendingApprovals: 0,
         totalUsers: 0,
-        monthlySubmissions: 0,
+        approvedNonPhd: 0,
+        pendingNonPhd: 0,
+        rejectedNonPhd: 0,
         iprs: 0,
         journals: 0,
         conferences: 0,
-        grants: 0
+        books: 0,
+        awards: 0,
+        grants: 0,
+        phd_student: 0,
+        others: 0
     }
 
     const monthlyData = data?.chartData || []
@@ -89,11 +95,26 @@ const AdminDashboard = () => {
 
     const COLORS = ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#0ea5e9']
 
+    const getBaseColor = (domain: string) => {
+        switch (domain) {
+            case 'ipr': return 'hsl(199, 89%, 48%)' // Sky
+            case 'journal': return 'hsl(239, 84%, 67%)' // Indigo
+            case 'book': return 'hsl(38, 92%, 50%)' // Amber
+            case 'conference': return 'hsl(217, 91%, 60%)' // Blue
+            case 'award': return 'hsl(341, 90%, 59%)' // Rose
+            default: return 'hsl(var(--primary))'
+        }
+    }
+
+    const mainColor = getBaseColor(chartDomain)
+
     const renderChart = () => {
         const sharedProps = {
             data: monthlyData,
             margin: { top: 10, right: 10, left: -20, bottom: 0 }
         }
+
+        const xDataKey = chartYear === 'all' ? 'name' : 'name' // Both use 'name' but content differs
 
         switch (chartType) {
             case 'line':
@@ -107,9 +128,9 @@ const AdminDashboard = () => {
                             itemStyle={{ fontWeight: 'bold' }}
                         />
                         <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '20px' }} />
-                        <Line type="monotone" dataKey="current" name={`Year ${chartYear}`} stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: 'hsl(var(--primary))' }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="current" name={chartYear === 'all' ? 'Submissions' : `Year ${chartYear}`} stroke={mainColor} strokeWidth={3} dot={{ r: 4, fill: mainColor }} activeDot={{ r: 6 }} />
                         {compareYears.map((year, i) => (
-                            <Line key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={COLORS[i % COLORS.length]} strokeDasharray="5 5" strokeWidth={2} dot={{ r: 3 }} />
+                            <Line key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={mainColor} strokeOpacity={0.4} strokeDasharray="5 5" strokeWidth={2} dot={{ r: 3 }} />
                         ))}
                     </LineChart>
                 )
@@ -117,16 +138,10 @@ const AdminDashboard = () => {
                 return (
                     <AreaChart {...sharedProps}>
                         <defs>
-                            <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            <linearGradient id="colorMain" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={mainColor} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={mainColor} stopOpacity={0} />
                             </linearGradient>
-                            {compareYears.map((year, i) => (
-                                <linearGradient key={year} id={`color_${year}`} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0.1} />
-                                    <stop offset="95%" stopColor={COLORS[i % COLORS.length]} stopOpacity={0} />
-                                </linearGradient>
-                            ))}
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
@@ -134,9 +149,9 @@ const AdminDashboard = () => {
                         <Tooltip
                             contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Area type="monotone" dataKey="current" name={`Year ${chartYear}`} stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorCurrent)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="current" name={chartYear === 'all' ? 'Submissions' : `Year ${chartYear}`} stroke={mainColor} fillOpacity={1} fill="url(#colorMain)" strokeWidth={3} />
                         {compareYears.map((year, i) => (
-                            <Area key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={COLORS[i % COLORS.length]} fillOpacity={1} fill={`url(#color_${year})`} strokeWidth={2} strokeDasharray="4 4" />
+                            <Area key={year} type="monotone" dataKey={`year_${year}`} name={`Year ${year}`} stroke={mainColor} strokeOpacity={0.4} fillOpacity={0} strokeWidth={2} strokeDasharray="4 4" />
                         ))}
                     </AreaChart>
                 )
@@ -147,11 +162,12 @@ const AdminDashboard = () => {
                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                         <Tooltip
+                            cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
                             contentStyle={{ backgroundColor: 'hsl(var(--background))', borderColor: 'hsl(var(--border))', borderRadius: '12px', fontSize: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                         />
-                        <Bar dataKey="current" name={`Year ${chartYear}`} fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={16} />
+                        <Bar dataKey="current" name={chartYear === 'all' ? 'Submissions' : `Year ${chartYear}`} fill={mainColor} radius={[4, 4, 0, 0]} barSize={chartYear === 'all' ? 40 : 16} />
                         {compareYears.map((year, i) => (
-                            <Bar key={year} dataKey={`year_${year}`} name={`Year ${year}`} fill={COLORS[i % COLORS.length]} opacity={0.6} radius={[4, 4, 0, 0]} barSize={16} />
+                            <Bar key={year} dataKey={`year_${year}`} name={`Year ${year}`} fill={mainColor} fillOpacity={0.3} radius={[4, 4, 0, 0]} barSize={16} />
                         ))}
                     </BarChart>
                 )
@@ -167,11 +183,6 @@ const AdminDashboard = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <h2 className="text-xl font-bold text-foreground tracking-tight uppercase">Statistical Overview</h2>
                         <div className="flex items-center gap-3">
-                            <DomainFilter
-                                value={statsDomain}
-                                onChange={setStatsDomain}
-                                className="w-[160px] h-9"
-                            />
                             <YearFilter
                                 value={selectedYear}
                                 onChange={setSelectedYear}
@@ -179,24 +190,47 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-                    {/* Stats Grid */}
+                    {/* Stats Grid - Row 1: System Wide KPIs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <StatCard
+                            label="Total Researchers"
+                            value={(stats.totalUsers ?? 0).toLocaleString()}
+                            icon={Users}
+                            variant="indigo"
+                        />
+                        <StatCard
+                            label="Total Publications"
+                            value={(stats as any).approvedNonPhd?.toLocaleString() || '0'}
+                            icon={FileText}
+                            variant="primary"
+                        />
+                        <StatCard
+                            label="Pending Requests"
+                            value={(stats as any).pendingNonPhd?.toLocaleString() || '0'}
+                            icon={Clock}
+                            variant="warning"
+                        />
+                        <StatCard
+                            label="Rejected Requests"
+                            value={(stats as any).rejectedNonPhd?.toLocaleString() || '0'}
+                            icon={Activity}
+                            variant="rose"
+                        />
+                    </div>
+
+                    {/* Stats Grid - Row 2: Research Domain Breakdown */}
                     <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                         {[
-                            { label: "Researchers", value: stats.totalUsers, icon: Users, variant: 'indigo' },
-                            { label: "Publications", value: stats.totalRecords, icon: FileText, variant: 'primary' },
-                            { label: "Journals", value: stats.journals, icon: BookOpen, variant: 'azure' },
-                            { label: "IPR / Patents", value: stats.iprs, icon: Shield, variant: 'rose' },
-                            { label: "Conf. Papers", value: stats.conferences, icon: Activity, variant: 'amber' },
-                            { label: "Research Grants", value: stats.grants, icon: Briefcase, variant: 'emerald' },
-                            { label: "Books & Chapters", value: (stats as any).books || 0, icon: FileText, variant: 'primary' },
-                            { label: "Other Activity", value: (stats as any).others || 0, icon: TrendingUp, variant: 'indigo' },
-                            { label: "Review Pending", value: stats.pendingApprovals, icon: Clock, variant: 'warning' },
-                            { label: "Monthly Progress", value: stats.monthlySubmissions, icon: PieChart, variant: 'primary' }
+                            { label: "IPR / Patents", value: stats.iprs, icon: Shield, variant: 'rose', domain: 'ipr' },
+                            { label: "Journals", value: stats.journals, icon: BookOpen, variant: 'azure', domain: 'journal' },
+                            { label: "Books & Chapters", value: stats.books, icon: FileText, variant: 'primary', domain: 'book' },
+                            { label: "Conf. Papers", value: stats.conferences, icon: Activity, variant: 'amber', domain: 'conference' },
+                            { label: "Awards & Recognition", value: stats.awards, icon: Award, variant: 'emerald', domain: 'award' },
                         ].map((stat, idx) => (
                             <StatCard
                                 key={idx}
                                 label={stat.label}
-                                value={stat.value.toLocaleString()}
+                                value={(stat.value ?? 0).toLocaleString()}
                                 variant={stat.variant as any}
                                 icon={stat.icon}
                             />
@@ -274,8 +308,8 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Chart Area */}
-                    <div className="h-[320px] w-full -ml-4">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className="h-[320px] min-h-[320px] w-full -ml-4">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                             {renderChart()}
                         </ResponsiveContainer>
                     </div>

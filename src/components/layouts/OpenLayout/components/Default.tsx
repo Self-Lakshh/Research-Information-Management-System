@@ -115,7 +115,7 @@ const OpenLayout = ({ children }: OpenLayoutProps) => {
                 </div>
 
                 {/* Desktop Navigation */}
-                <nav className="hidden lg:flex items-center gap-8">
+                <nav className="hidden lg:flex items-center gap-8 py-6">
                     {navLinks.map((link) => (
                         <a
                             key={link.href}

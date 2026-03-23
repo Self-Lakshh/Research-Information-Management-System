@@ -47,6 +47,10 @@ export interface User {
   faculty?: string;
   department?: string;
   is_active?: boolean;
+  joining_date?: string;
+  linkedin_link?: string;
+  orcid_link?: string;
+  scopus_link?: string;
   created_at?: Timestamp;
 }
 

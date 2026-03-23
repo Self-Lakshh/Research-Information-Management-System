@@ -110,6 +110,10 @@ const UserManagement = () => {
                     faculty: data.faculty,
                     phone_number: data.phone_number,
                     designation: data.designation,
+                    joining_date: data.joining_date,
+                    linkedin_link: data.linkedin_link,
+                    orcid_link: data.orcid_link,
+                    scopus_link: data.scopus_link,
                 })
                 alert(
                     result.resetLinkSent
@@ -126,6 +130,10 @@ const UserManagement = () => {
                     designation: data.designation,
                     is_active: data.status === 'active',
                     user_role: data.role as 'user' | 'admin',
+                    joining_date: data.joining_date,
+                    linkedin_link: data.linkedin_link,
+                    orcid_link: data.orcid_link,
+                    scopus_link: data.scopus_link,
                 })
             }
 
@@ -188,9 +196,17 @@ const UserManagement = () => {
             header: 'Researcher',
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shadow-inner shrink-0">
-                        {(row.original.name || '?').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </div>
+                    {row.original.profile_picture_url ? (
+                        <img
+                            src={row.original.profile_picture_url}
+                            alt=""
+                            className="w-10 h-10 rounded-2xl object-cover shadow-inner shrink-0"
+                        />
+                    ) : (
+                        <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shadow-inner shrink-0">
+                            {(row.original.name || '?').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                        </div>
+                    )}
                     <div>
                         <p className="text-sm font-bold text-foreground leading-tight">{row.original.name || 'Anonymous'}</p>
                         <p className="text-[11px] text-muted-foreground font-medium">{row.original.email || 'No email'}</p>
@@ -214,9 +230,9 @@ const UserManagement = () => {
             cell: ({ row }) => <span className="text-sm font-medium text-muted-foreground">{row.original.designation || '—'}</span>,
         },
         {
-            accessorKey: 'created_at',
-            header: 'Joined',
-            cell: ({ row }) => <span className="text-sm font-medium tabular-nums">{formatDate(row.original.created_at)}</span>,
+            accessorKey: 'joining_date',
+            header: 'Joining Date',
+            cell: ({ row }) => <span className="text-sm font-medium tabular-nums">{row.original.joining_date || formatDate(row.original.created_at)}</span>,
         },
         {
             accessorKey: 'is_active',
@@ -368,6 +384,10 @@ const UserManagement = () => {
                             designation: selectedUser.designation ?? '',
                             phone_number: selectedUser.phone_number ?? '',
                             status: selectedUser.is_active ? 'active' : 'inactive',
+                            joining_date: selectedUser.joining_date ?? '',
+                            linkedin_link: selectedUser.linkedin_link ?? '',
+                            orcid_link: selectedUser.orcid_link ?? '',
+                            scopus_link: selectedUser.scopus_link ?? '',
                         }
                         : undefined
                 }
