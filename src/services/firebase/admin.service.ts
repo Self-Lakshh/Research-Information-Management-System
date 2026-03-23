@@ -29,6 +29,7 @@ import {
     where,
     serverTimestamp,
 } from 'firebase/firestore';
+import { isFunctionsAvailable } from '@/utils/environment';
 import { Record as RimsRecord, RecordType, RecordFilters } from '@/@types/rims.types';
 import { CreateUserData, UpdateUserData } from '@/services/firebase/users/types';
 import { db, auth } from '@/configs/firebase.config';
@@ -84,22 +85,6 @@ export interface AdminUpdateUserPayload {
  * Detected by checking if we're hosted at a Netlify port (8888) or via
  * VITE_APP_ENV env var. On plain `npm run dev` the functions don't exist.
  */
-const isFunctionsAvailable = (): boolean => {
-    // Netlify Dev proxies everything through port 8888 by default.
-    // Vite alone runs on 5173. This detects the proxy reliably.
-    if (typeof window !== 'undefined') {
-        const port = parseInt(window.location.port || '80');
-        // Netlify Dev default port is 8888; Vite is 5173
-        if (port === 8888) return true;
-        if (port === 5173) return false;
-    }
-    // Fallback: check env var that can be set to force one mode
-    if (import.meta.env.VITE_USE_NETLIFY_FUNCTIONS === 'true') return true;
-    if (import.meta.env.VITE_USE_NETLIFY_FUNCTIONS === 'false') return false;
-    // Default: assume available (production build)
-    return true;
-};
-
 // ── Auth token ────────────────────────────────────────────────────────────────
 
 const getToken = async (): Promise<string> => {

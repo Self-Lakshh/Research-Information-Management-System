@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { auth, db } from '@/configs/firebase.config';
 import { useAllRecords } from './useRecords';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { isFunctionsAvailable } from '@/utils/environment';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -15,17 +16,6 @@ export interface DashboardParams {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-// ── Runtime detection ─────────────────────────────────────────────────────────
-
-const isFunctionsAvailable = (): boolean => {
-    if (typeof window !== 'undefined') {
-        const port = parseInt(window.location.port || '80');
-        if (port === 8888) return true;
-        if (port === 5173) return false;
-    }
-    return false;
-};
 
 // ── API helper ────────────────────────────────────────────────────────────────
 
