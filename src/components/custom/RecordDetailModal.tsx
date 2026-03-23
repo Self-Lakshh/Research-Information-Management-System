@@ -409,13 +409,14 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                     </div>
                 </div>
 
-                <DialogFooter className="p-6 bg-zinc-50/50 dark:bg-zinc-700/50 border-t border-zinc-100 dark:border-zinc-700/50 flex items-center justify-between sm:justify-between gap-4">
-                    <div className="flex items-center gap-3">
+                <DialogFooter className="p-8 bg-zinc-50/50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-700/50 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-3 w-full sm:w-auto self-start sm:self-auto">
                         {onDelete && (
                             <Button 
                                 variant="ghost" 
                                 size="icon"
-                                className="h-10 w-10 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl"
+                                title="Delete Submission"
+                                className="h-11 w-11 text-rose-500 hover:bg-rose-500/10 rounded-2xl transition-colors duration-300"
                                 onClick={() => {
                                     onDelete(record.id);
                                     onClose();
@@ -424,28 +425,29 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                                 <Trash2 className="w-5 h-5" />
                             </Button>
                         )}
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                         {onEdit && (
                             <Button 
                                 variant="outline" 
-                                className="rounded-xl border-slate-200 dark:border-slate-700 font-bold text-xs gap-2 h-10 px-6 hover:bg-primary/5 hover:text-primary transition-all duration-300"
+                                className="w-full sm:w-auto rounded-2xl border-primary/20 bg-background dark:bg-zinc-900 font-bold text-xs gap-2.5 h-11 px-8 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all duration-300 shadow-sm"
                                 onClick={() => {
                                     onEdit(record);
-                                    onClose();
                                 }}
                             >
                                 <Edit2 className="w-4 h-4" />
-                                Edit Record
+                                Edit Entry
                             </Button>
                         )}
+                        <Button 
+                            variant="default" 
+                            className="w-full sm:w-auto rounded-2xl font-black text-[10px] uppercase tracking-widest h-11 px-10 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white hover:bg-primary hover:text-white transition-all duration-500 shadow-md transform active:scale-95" 
+                            onClick={onClose}
+                        >
+                            Dismiss
+                        </Button>
                     </div>
-                    
-                    <Button 
-                        variant="default" 
-                        className="rounded-xl font-bold text-xs h-10 px-8 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white hover:bg-primary transition-all duration-300" 
-                        onClick={onClose}
-                    >
-                        Dismiss
-                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

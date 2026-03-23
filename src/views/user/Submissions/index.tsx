@@ -107,9 +107,12 @@ const Submissions = () => {
     }
 
     const handleEdit = (record: any) => {
-        setAddType(record.type || 'journal')
-        setSelected(record)
-        setIsAddOpen(true)
+        setIsDetailOpen(false) // Close detail first
+        setTimeout(() => {
+            setAddType(record.type || 'journal')
+            setSelected(record)
+            setIsAddOpen(true)
+        }, 100) // Small delay to avoid modal overlap rendering issues
     }
 
     const handleDelete = async (id: string) => {
@@ -305,7 +308,11 @@ const Submissions = () => {
 
             <RecordDetailModal
                 isOpen={isDetailOpen}
-                onClose={() => { setIsDetailOpen(false); setSelected(null) }}
+                onClose={() => { 
+                    setIsDetailOpen(false)
+                    // Only clear selection if we're not moving to the edit form
+                    if (!isAddOpen) setSelected(null) 
+                }}
                 record={selected}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
