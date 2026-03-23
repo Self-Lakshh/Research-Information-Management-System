@@ -1,17 +1,28 @@
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY
-    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
-    : undefined;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKeyRaw = process.env.FIREBASE_PRIVATE_KEY;
+
+  if (!projectId || !clientEmail || !privateKeyRaw) {
+    const missing = [];
+    if (!projectId) missing.push('FIREBASE_PROJECT_ID');
+    if (!clientEmail) missing.push('FIREBASE_CLIENT_EMAIL');
+    if (!privateKeyRaw) missing.push('FIREBASE_PRIVATE_KEY');
+    throw new Error(`Cloud-Admin error: Missing required environment variables on Netlify: ${missing.join(', ')}. ` +
+                    `Ensure they are set in Site settings -> Environment variables.`);
+  }
+
+  const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
 
   admin.initializeApp({
     credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: privateKey,
+      projectId,
+      clientEmail,
+      privateKey,
     }),
-    databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
+    databaseURL: `https://${projectId}.firebaseio.com`,
   });
 }
 

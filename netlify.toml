@@ -10,9 +10,12 @@
   # Tell Netlify where to find the serverless functions.
   functions = "netlify/functions"
 
-# ── Environment variables (dev only — set real values in Netlify UI) ──────────
-# [build.environment]
-#   NODE_VERSION = "18"
+# ── Build environment ────────────────────────────────────────────────────────
+[build.environment]
+  NODE_VERSION = "20"
+  # Omit project ID and other non-secret identifiers from scanner to prevent build failures.
+  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,VITE_FIREBASE_PROJECT_ID,VITE_APP_NAME,VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_APP_ID"
+  SECRETS_SCAN_OMIT_PATHS = "scripts/**,.firebaserc"
 
 # ── Netlify Dev (local development) ───────────────────────────────────────────
 [dev]

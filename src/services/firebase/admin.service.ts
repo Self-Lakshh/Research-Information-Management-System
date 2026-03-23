@@ -110,19 +110,30 @@ const fnRequest = async <T = any>(
         body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
+    const contentType = res.headers.get('content-type');
     let json: any;
-    try {
-        json = await res.json();
-    } catch {
-        // Response wasn't JSON — almost certainly the Vite SPA fallback
-        throw new Error(
-            `Netlify Function not available at ${endpoint}. ` +
-            `Run \`netlify dev\` instead of \`npm run dev\` to use backend functions.`
-        );
+
+    if (contentType && contentType.includes('application/json')) {
+        try {
+            json = await res.json();
+        } catch {
+            throw new Error(`Failed to parse JSON response from ${endpoint} (Status: ${res.status})`);
+        }
+    } else {
+        // Response wasn't JSON — could be SPA fallback or a gateway error
+        if (res.status === 200) {
+            // If it's 200 but not JSON, it's almost certainly the SPA's index.html fallback
+            throw new Error(
+                `Backend function not found at ${endpoint}. This request hit the frontend SPA fallback instead. ` +
+                `Ensure that Netlify Functions are correctly deployed and that the /api rewrite rules are working.`
+            );
+        }
+        throw new Error(`Server returned non-JSON response: ${res.status} ${res.statusText}. ` +
+                        `Checking Netlify Function logs in the dashboard may reveal more details.`);
     }
 
     if (!json.success) {
-        throw new Error(json.message || `Request failed (${res.status})`);
+        throw new Error(json.message || `API error (${res.status})`);
     }
 
     return json.data as T;
