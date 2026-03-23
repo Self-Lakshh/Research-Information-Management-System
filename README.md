@@ -107,8 +107,7 @@ For production, ensure the `netlify.toml` redirects are handled:
 
 For support or collaboration:
 - **GitHub**: [Self-Lakshh](https://github.com/Self-Lakshh)
-- **Email**: Support available within the institution's IT helpdesk.
-
+- **GitHub**: [Riya-TheLazyDev](https://github.com/Riya-TheLazyDev)
 ---
 
 *Engineered with excellence for Academic Research Communities.*
