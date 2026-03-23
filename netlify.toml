@@ -5,7 +5,7 @@
 # ── Build settings ─────────────────────────────────────────────────────────────
 [build]
   publish = "build"
-  command = "pnpm run build"
+  command = "netlify dev"
 
   # Tell Netlify where to find the serverless functions.
   # Each .js file in this directory becomes a function endpoint at:
