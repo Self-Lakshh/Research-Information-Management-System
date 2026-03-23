@@ -5,11 +5,9 @@
 # ── Build settings ─────────────────────────────────────────────────────────────
 [build]
   publish = "build"
-  command = "netlify dev"
+  command = "npm run build"
 
   # Tell Netlify where to find the serverless functions.
-  # Each .js file in this directory becomes a function endpoint at:
-  #   https://your-site.netlify.app/.netlify/functions/<filename>
   functions = "netlify/functions"
 
 # ── Environment variables (dev only — set real values in Netlify UI) ──────────
