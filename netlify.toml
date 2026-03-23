@@ -14,8 +14,9 @@
 [build.environment]
   NODE_VERSION = "20"
   # Omit project ID and other non-secret identifiers from scanner to prevent build failures.
-  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,VITE_FIREBASE_PROJECT_ID,VITE_APP_NAME,VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_APP_ID"
-  SECRETS_SCAN_OMIT_PATHS = "scripts/**,.firebaserc"
+  # These are public identifiers used in the frontend.
+  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_PROJECT_ID,VITE_FIREBASE_PROJECT_ID,VITE_APP_NAME,VITE_APP_ENV,VITE_FIREBASE_API_KEY,VITE_FIREBASE_AUTH_DOMAIN,VITE_FIREBASE_STORAGE_BUCKET,VITE_FIREBASE_APP_ID,VITE_FIREBASE_MESSAGING_SENDER_ID,VITE_FIREBASE_MEASUREMENT_ID"
+  SECRETS_SCAN_OMIT_PATHS = "scripts/**,.firebaserc,README.md,build/assets/**"
 
 # ── Netlify Dev (local development) ───────────────────────────────────────────
 [dev]
