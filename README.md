@@ -1,149 +1,114 @@
 # 🚀 Research Information Management System (RIMS)
 
-> A premium, modern, and comprehensive platform for managing academic research contributions.
+> A premium, modern, and comprehensive platform for institutional academic research management.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg) ![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black) ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-11.0-FFCA28?logo=firebase&logoColor=black) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-38B2AC?logo=tailwind-css&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg?style=for-the-badge)](https://rims-spsu.netlify.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-11.0-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 
 ---
 
 ## 🌟 Overview
 
-**RIMS** is a state-of-the-art web application designed to streamline the management of research activities within academic institutions. Built with the latest web technologies, it offers a seamless, role-based experience for both **Faculty Members** (Users) and **Administrators**.
+**RIMS** (Research Information Management System) is a state-of-the-art web application designed to streamline, track, and showcase the dynamic research contributions of academic institutions. Built with a **premium glassmorphism aesthetic**, it provides a role-based environment that facilitates seamless data entry for researchers and powerful analytics for administrators.
 
-The system features a **premium glassmorphism design**, responsive layouts, and real-time data synchronization, ensuring that research data is not just managed, but showcased.
-
----
-
-## ✨ Key Features
-
-### 🔐 **Secure Authentication & Roles**
-*   **Role-Based Access Control (RBAC)**: Distinct dashboards and capabilities for **Admins** and **Users**.
-*   **Secure Login**: Powered by Firebase Authentication with manual session management.
-
-### 📊 **Interactive Dashboards**
-*   **User Dashboard**: Visual overview of personal research contributions with dynamic charts and stats.
-*   **Admin Dashboard**: Comprehensive analytics of institutional research output.
-
-### 📝 **Comprehensive Record Management**
-Manage the entire lifecycle of various research outputs:
-*   💡 **Intellectual Property Rights (IPR)**: Patents, Copyrights, Trademarks.
-*   📰 **Journal Publications**: Track citations, impact factors, and more.
-*   🗣️ **Conferences**: Manage paper presentations and proceedings.
-*   📚 **Books & Chapters**: Catalog published works.
-*   💼 **Consultancy Projects**: Track industrial collaborations and grants.
-*   🏆 **Awards & Recognitions**: Showcase academic achievements.
-*   🎓 **PhD Students**: Monitor supervision and student progress.
-*   🎤 **Events**: Workshops, FDPs, and Seminars.
-
-### 🎨 **Premium UI/UX**
-*   **Glassmorphism Design**: Modern, translucent aesthetic.
-*   **Dark Mode Support**: Fully integrated dark theme.
-*   **Responsive**: Flawless experience across Desktop, Tablet, and Mobile.
-*   **Animations**: Smooth transitions using **Framer Motion**.
+![Mockup](public/rims_mockup.png)
 
 ---
 
 ## 🛠️ Technology Stack
 
-Built with a focus on performance, scalability, and developer experience.
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | React 19 + Vite | High-performance, functional UI |
+| **Language** | TypeScript | Type-safety & robust architecture |
+| **Styling** | Tailwind CSS v4 | Scalable, modern utility styling |
+| **Components** | Radix UI + Shadcn | Accessible & premium primitive components |
+| **State** | Zustand + Query | Effortless global & server state management |
+| **Backend** | Firebase Admin SDK | Secure server-side administrative logic |
+| **Database** | Firestore | Real-time, scalable NoSQL storage |
+| **Auth** | Firebase Auth | Secure, role-based user authentication |
+| **Functions** | Netlify Functions | Serverless backend for Admin SDK operations |
+| **Visuals** | Recharts + Framer Motion | Dynamic visual analytics & fluid animations |
 
-| Category | Technologies |
-|----------|--------------|
-| **Frontend Framework** | [React 19](https://react.dev/) |
-| **Build Tool** | [Vite](https://vitejs.dev/) |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) + [Radix UI](https://www.radix-ui.com/) |
-| **State Management** | [Zustand](https://github.com/pmndrs/zustand) + [TanStack Query](https://tanstack.com/query/latest) |
-| **Backend / DB** | [Firebase](https://firebase.google.com/) (Firestore, Auth, Storage) |
-| **Visuals** | [Lucide React](https://lucide.dev/) (Icons), [Recharts](https://recharts.org/) (Charts) |
+---
+
+## 🏗️ Platform Architecture
+
+RIMS utilizes a modern **Serverless Architecture**:
+- **Front-end**: Hosted on Netlify, ensuring global performance and reliability.
+- **Serverless Backend**: Admin operations (e.g., user creation, status management) are offloaded to **Netlify Functions**, allowing secure interaction with the **Firebase Admin SDK**.
+- **Data Persistence**: Firestore provides real-time updates and flexible document-based research storage.
+- **File Assets**: Firebase Storage manages all uploaded research documents and user profile pictures.
+
+---
+
+## 👥 User Personas & Views
+
+### 👑 Administrator Workspace
+The Admin suite allows for total governance over the institution's research data.
+- **Global Dashboard**: Unified view of research output trends, researcher activity, and domain-wise distributions.
+- **User Management**: Complete control over faculty accounts—create users, deactivate accounts via Admin SDK, and manage roles.
+- **Review System**: Approve or reject research record submissions with administrative remarks.
+- **Research Lifecycle**: Filter and search through Global Records (IPR, Journals, Books, etc.) to monitor institutional metrics.
+
+### 🔬 Researcher Workspace (User)
+Designed for individual faculty members to maintain their professional research portfolio.
+- **Researcher Dashboard**: Quick view of personal submission metrics, status of pending approvals, and recent activity.
+- **Portfolio Management**: Submit and edit various research types (Journal, Conference, IPR, etc.) with automated form validation.
+- **Document Management**: Upload and track attachments for each research record.
+- **Profile Customization**: Update personal faculty information, professional details, and profile images.
+
+---
+
+## 📝 Research Modules
+
+Manage the entire lifecycle of high-impact research contributions:
+-   💡 **IPR Management**: Patents, Copyrights, and Trademarks with detailed status tracking.
+-   📰 **Journal Publications**: Log impact factors, citations, and publication timelines.
+-   🗣️ **Conferences**: Capture paper presentations, proceedings, and keynote sessions.
+-   📚 **Books & Chapters**: Catalog authored books and specific book chapter contributions.
+-   💼 **Consultancy Projects**: Track industry collaborations, funding, and grant statuses.
+-   🏆 **Awards & Recognitions**: Highlight professional honors and academic achievements.
+-   🎓 **PhD Supervision**: Dedicated tracker for supervising PhD students and their progress.
+-   🎤 **Events Monitoring**: Documentation for Workshops, FDPs, and High-level Seminars.
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these steps to set up the project locally.
+### Local Setup
+1. **Clone & Install**:
+   ```bash
+   git clone https://github.com/Self-Lakshh/Research-Information-Management-System.git
+   cd Research-Information-Management-System
+   pnpm install
+   ```
+2. **Environment Configuration**:
+   Create a `.env` in the root and add your Firebase credentials (`VITE_FIREBASE_API_KEY`, etc.).
+3. **Run Dev**:
+   ```bash
+   pnpm run dev
+   ```
 
-### Prerequisites
-*   Node.js (v18 or higher)
-*   npm or yarn
-
-### Installation
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/Self-Lakshh/Research-Information-Management-System.git
-    cd Research-Information-Management-System
-    ```
-
-2.  **Install dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Environment Setup**
-    Create a `.env` file in the root directory and add your Firebase configuration:
-    ```env
-    VITE_FIREBASE_API_KEY=your_api_key
-    VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-    VITE_FIREBASE_PROJECT_ID=your_project_id
-    VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-    VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-    VITE_FIREBASE_APP_ID=your_app_id
-    ```
-
-4.  **Run the development server**
-    ```bash
-    npm run dev
-    ```
-
-5.  Open [http://localhost:5173](http://localhost:5173) in your browser.
-
----
-
-## 📂 Project Structure
-
-```
-src/
-├── @types/          # TypeScript type definitions
-├── auth/            # Authentication logic & context
-├── components/      # Reusable UI components (Shadcn, Shared)
-├── configs/         # App, Navigation, & Route configurations
-├── constants/       # Static constants (Roles, etc.)
-├── hooks/           # Custom React hooks (Data fetching, etc.)
-├── layouts/         # Page layouts (Modern, Deck, Simple)
-├── services/        # API services (Firebase integration)
-├── store/           # Global state (Zustand)
-├── utils/           # Helper functions
-└── views/           # Page views (Auth, User, Admin)
+### Deployment Configuration
+For production, ensure the `netlify.toml` redirects are handled:
+```toml
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
 ```
 
 ---
 
-## 🤝 Contribution
+## 📬 Contact & Support
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+For support or collaboration:
+- **GitHub**: [Self-Lakshh](https://github.com/Self-Lakshh)
+- **Email**: Support available within the institution's IT helpdesk.
 
 ---
 
-## 📬 Contact
-
-For any queries or support, please contact:
-
-**Developer Team**
-*   GitHub: [Self-Lakshh](https://github.com/Self-Lakshh)
-
----
-
-## 🌍 Deployment
-
-For detailed instructions on deploying to Netlify and configuring Firebase, please refer to the [Deployment Guide](DEPLOYMENT_GUIDE.md).
-
----
-
-*Made with ❤️ for Academic Excellence*
+*Engineered with excellence for Academic Research Communities.*
