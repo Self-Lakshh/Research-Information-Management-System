@@ -18,7 +18,9 @@ export const PartnerCard = ({
     description,
     url,
     link,
-}: PartnerCardProps) => {
+    index,
+    total,
+}: PartnerCardProps & { index?: number; total?: number }) => {
     const imgSrc = logo_url || icon || ''
     const href = link || url || '#'
 
@@ -36,10 +38,20 @@ export const PartnerCard = ({
         transition-all
         duration-500
         ease-out
+        relative
         hover:-translate-y-2
         hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)]
         hover:border-primary/20"
         >
+            {/* Index indicator */}
+            {index !== undefined && total !== undefined && (
+                <div className="absolute top-3 right-3 z-10">
+                    <div className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full border border-primary/20 backdrop-blur-sm">
+                        {index + 1} / {total}
+                    </div>
+                </div>
+            )}
+
             <CardContent className="flex h-full flex-col items-center text-center p-4 sm:p-5 lg:p-6">
                 <div className="mb-4 sm:mb-5 lg:mb-6 w-full flex justify-center">
                     <div className="flex h-16 sm:h-18 lg:h-20 w-full items-center justify-center rounded-xl bg-primary/5 transition-all duration-300 overflow-hidden">
