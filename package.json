@@ -56,10 +56,13 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "firebase": "^11.10.0",
+    "firebase-admin": "^13.7.0",
     "framer-motion": "11.15.0",
     "html-react-parser": "^5.2.1",
     "i18next": "^25.7.3",
     "js-cookie": "^3.0.5",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "lodash": "^4.17.21",
     "lucide-react": "^0.562.0",
     "marked": "^15.0.3",
@@ -82,10 +85,10 @@
     "swr": "^2.3.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "xlsx": "^0.18.5",
     "yet-another-react-lightbox": "^3.21.7",
     "zod": "^3.23.8",
-    "zustand": "^5.0.2",
-    "firebase-admin": "^13.7.0"
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.4",
@@ -125,5 +128,11 @@
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5",
     "vite-plugin-dynamic-import": "^1.5.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "19.0.0",
+      "react-dom": "19.0.0"
+    }
   }
 }

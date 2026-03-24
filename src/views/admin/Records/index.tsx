@@ -11,6 +11,13 @@ import {
     RecordFormModal,
     AddSubmissions,
 } from '@/components/custom'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/shadcn/ui/dropdown-menu'
+import { exportToExcel, exportToPDF } from '@/utils/exportUtils'
 import { Spinner } from '@/components/shadcn/ui/spinner'
 import { useAllRecords, useDeleteRecord, useUpdateRecord, useCreateRecord } from '@/hooks/useRecords'
 import type { RecordType } from '@/@types/rims.types'
@@ -138,10 +145,42 @@ const Records = () => {
                     <div className="flex items-center gap-2">
                         <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
                         <AddSubmissions onAddClick={handleAddClick} />
-                        <button className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white transition-all">
-                            <Download className="w-3.5 h-3.5" />
-                            Export CSV
-                        </button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button
+                                    disabled={domainFilter === 'all'}
+                                    className={cn(
+                                        "inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all",
+                                        domainFilter === 'all'
+                                            ? "opacity-50 cursor-not-allowed bg-muted border-muted-foreground/20 text-muted-foreground/60"
+                                            : "bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white"
+                                    )}
+                                    title={domainFilter === 'all' ? "Please select a specific domain to export" : "Export records"}
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    Export Records
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl p-2 w-48 shadow-xl">
+                                <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    Export Options ({domainFilter.toUpperCase()})
+                                </div>
+                                <DropdownMenuItem
+                                    onClick={() => exportToPDF(displayed, domainFilter)}
+                                    className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>Export as PDF</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => exportToExcel(displayed, domainFilter)}
+                                    className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary gap-2"
+                                >
+                                    <Download className="w-4 h-4" />
+                                    <span>Export as EXCEL</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
