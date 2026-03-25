@@ -1,6 +1,6 @@
 import { Badge } from "@/components/shadcn/ui/badge"
 import { StatCard } from "../components/shared/StatCard"
-import { Database, BookOpen, FileText, Users } from "lucide-react"
+import { Database, BookOpen, FileText, BookCopy, Award } from "lucide-react"
 import { useScrollAnimation } from "../hooks/useScrollAnimation"
 
 export const Hero = () => {
@@ -52,8 +52,8 @@ export const Hero = () => {
             { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "1L+", label: "IPR Publications", delay: 0 },
             { icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
             { icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Conference Publications", delay: 200 },
-            { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book/Chapters Publications", delay: 300 },
-            {icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Awards Publications", delay: 300 },
+            { icon: <BookCopy className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book/Chapters Publications", delay: 300 },
+            { icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Awards", delay: 400 },
           ].map((stat, i) => (
             <div
               key={i}
