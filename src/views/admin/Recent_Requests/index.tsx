@@ -211,14 +211,15 @@ const RecentRequests = () => {
                     </div>
 
                 ) : viewMode === 'grid' ? (
-                    <div className="flex-auto overflow-y-auto custom-scrollbar p-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                    <div className="flex-auto overflow-y-auto no-scrollbar p-6">
+                        <div className="grid grid-cols-2 gap-6 w-full max-w-[1200px] mx-auto pb-6">
                             {displayed.map((record) => (
                                 <RecordCard
                                     key={record.id}
                                     record={record}
                                     onView={(r) => { setSelectedRecord(r); setIsDetailOpen(true) }}
                                     actions={approvalActions}
+                                    className="sm:w-full"
                                 />
                             ))}
                         </div>
