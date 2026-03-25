@@ -43,17 +43,17 @@ export const Hero = () => {
 
         {/* Stats Row */}
         <div
-          className={`grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 pt-4 sm:pt-6 transition-all duration-1000 delay-500 ease-out ${isHeroVisible
+          className={`grid grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 pt-4 sm:pt-6 transition-all duration-1000 delay-500 ease-out ${isHeroVisible
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-10'
             }`}
         >
           {[
-            { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "1L+", label: "IPR Publications", delay: 0 },
-            { icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
-            { icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Conference Publications", delay: 200 },
-            { icon: <BookCopy className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book/Chapters Publications", delay: 300 },
-            { icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Awards", delay: 400 },
+            { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50", label: "IPR Publications", delay: 0 },
+            { icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, value: "150", label: "Journal Publications", delay: 100 },
+            { icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200", label: "Conference Publications", delay: 200 },
+            { icon: <BookCopy className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200", label: "Book/Chapters Publications", delay: 300 },
+            { icon: <Award className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50+", label: "Awards & Recognitions", delay: 400 },
           ].map((stat, i) => (
             <div
               key={i}
