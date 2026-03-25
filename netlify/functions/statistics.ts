@@ -8,65 +8,97 @@ export const handler = async (event: any, context: any) => {
     const compYears = compareYears ? compareYears.split(',') : [];
     
     try {
-        console.log('[statistics] Starting aggregation...');
-        // 1. All Users Count (Researchers)
-        const userSnap = await db.collection('users').where('user_role', '==', 'user').get();
-        const totalUsers = userSnap.size;
+        console.log('[statistics] Starting optimized aggregation...');
+        
+        // 1. FAST TOTALS - Using count() aggregation
+        const userCountPromise = db.collection('users').where('user_role', '==', 'user').count().get();
 
-        // 2. Records Query - Fetch from all known domain collections
         const domainCollections = [
             'ipr', 'journals', 'conferences', 'books', 'awards', 
             'consultancy_projects', 'phd_students', 'other_events'
         ];
         
-        // Mapping of collection names back to internal domain keys
         const colToDomain: Record<string, string> = {
-            'ipr': 'ipr',
-            'journals': 'journal',
-            'conferences': 'conference',
-            'books': 'book',
-            'awards': 'award',
-            'consultancy_projects': 'consultancy',
-            'phd_students': 'phd_student',
-            'other_events': 'other'
+            'ipr': 'ipr', 'journals': 'journal', 'conferences': 'conference', 'books': 'book',
+            'awards': 'award', 'consultancy_projects': 'consultancy', 'phd_students': 'phd_student', 'other_events': 'other'
         };
 
-        const allDocsPromises = domainCollections.map(async (colName) => {
-            try {
-                const snap = await db.collection(colName).get();
-                console.log(`[statistics] Fetched ${snap.size} docs from ${colName}`);
-                return snap.docs.map(doc => ({ 
-                    ...doc.data(), 
-                    _id: doc.id, 
-                    _domain: colToDomain[colName] // Force the domain based on the collection it's in
-                }));
-            } catch (e) {
-                console.error(`[statistics] Error fetching collection ${colName}:`, e);
-                return [];
-            }
+        // Aggregation for Stats Overview
+        // We fetch status counts for ALL domains in parallel using count()
+        const domainStatsPromises = domainCollections.map(async (col) => {
+            const [appr, pend, rej] = await Promise.all([
+                db.collection(col).where('approval_status', '==', 'approved').count().get(),
+                db.collection(col).where('approval_status', '==', 'pending').count().get(),
+                db.collection(col).where('approval_status', '==', 'rejected').count().get(),
+            ]);
+            return {
+                col,
+                domain: colToDomain[col],
+                approved: appr.data().count,
+                pending: pend.data().count,
+                rejected: rej.data().count,
+                total: appr.data().count + pend.data().count + rej.data().count
+            };
         });
 
-        const allRecords = (await Promise.all(allDocsPromises)).flat();
-        console.log(`[statistics] Total records to process: ${allRecords.length}`);
+        // 2. CHART DATA - This still requires some document fetching but we use .select()
+        // to minimize payload and speed up processing.
+        // We only fetch docs for the years we actually care about if possible.
+        const yearsToTrack = [chartYear, ...compYears].filter(y => y && y !== 'all');
+        
+        const chartFetchPromises = domainCollections.map(async (col) => {
+            const rDomain = colToDomain[col];
+            // Filter by domain early if possible
+            if (chartDomain && chartDomain !== 'all' && rDomain !== chartDomain) return [];
 
-        // 3. Filter and Aggregate
+            let q: any = db.collection(col);
+            
+            // If we have specific years to track, we try to optimize. 
+            // Note: Since fields vary, we still do some mapping in JS but fetch is faster.
+            // Using .select() drastically reduces data transfer
+            const snap = await q.select('created_at', 'year_of_publication', 'publicationYear', 'approval_status').get();
+            return snap.docs.map((doc: any) => ({ ...doc.data(), _domain: rDomain }));
+        });
+
+        // Resolve all promises
+        const [userSnap, domainStats, ...chartDocsNested] = await Promise.all([
+            userCountPromise,
+            Promise.all(domainStatsPromises),
+            ...chartFetchPromises
+        ]);
+
+        const totalUsers = userSnap.data().count;
+        const allRecordsForChart = chartDocsNested.flat();
+
+        // 3. Process Stats Overview
         const byDomain: Record<string, number> = {};
         const byStatus: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
-        const statsByYear: Record<string, number> = {};
         
         let approvedNonPhd = 0;
         let pendingNonPhd = 0;
         let rejectedNonPhd = 0;
 
-        // MONTHS array for monthly distribution
-        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        // Chart structures
-        const chartMonthly: Record<string, Record<number, number>> = {}; // year -> monthIndex -> count
-        const chartYearly: Record<string, number> = {}; // year -> count
+        domainStats.forEach(ds => {
+            const isPhd = ds.domain === 'phd_student';
+            byDomain[ds.domain] = ds.total;
+            
+            if (!isPhd) {
+                approvedNonPhd += ds.approved;
+                pendingNonPhd += ds.pending;
+                rejectedNonPhd += ds.rejected;
+            }
+            
+            byStatus.approved += ds.approved;
+            byStatus.pending += ds.pending;
+            byStatus.rejected += ds.rejected;
+        });
 
-        allRecords.forEach((item: any) => {
-            const data = item;
+        // 4. Process Chart Data
+        const chartYearly: Record<string, number> = {};
+        const chartMonthly: Record<string, Record<number, number>> = {};
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        allRecordsForChart.forEach((data: any) => {
             const createdAt = data.created_at?.toDate?.() || 
                              (data.created_at && typeof data.created_at.toDate === 'function' ? data.created_at.toDate() : null) ||
                              (data.created_at instanceof Date ? data.created_at : null) || 
@@ -74,44 +106,19 @@ export const handler = async (event: any, context: any) => {
             
             const rYear = data.year_of_publication || data.publicationYear || createdAt.getFullYear();
             const rMonth = createdAt.getMonth();
-            const rDomain = (data._domain || data.type || 'other').toLowerCase();
-            const rStatus = (data.approval_status || 'pending').toLowerCase();
-            const isPhd = (rDomain === 'phd_student' || rDomain === 'phd');
+            const sYear = String(rYear);
 
-            // --- Aggregation for Stats Overview (controlled by 'year' and 'domain' params) ---
-            const matchesStatsYear = !year || String(rYear) === year;
-            const matchesStatsDomain = !domain || rDomain === domain;
+            // Yearly totals (for 'all' view)
+            chartYearly[sYear] = (chartYearly[sYear] || 0) + 1;
 
-            if (matchesStatsYear && matchesStatsDomain) {
-                byDomain[rDomain] = (byDomain[rDomain] || 0) + 1;
-                byStatus[rStatus] = (byStatus[rStatus] || 0) + 1;
-                statsByYear[rYear] = (statsByYear[rYear] || 0) + 1;
-
-                if (!isPhd) {
-                    if (rStatus === 'approved') approvedNonPhd++;
-                    else if (rStatus === 'pending') pendingNonPhd++;
-                    else if (rStatus === 'rejected') rejectedNonPhd++;
-                }
-            }
-
-            // --- Aggregation for Analytics Chart ---
-            const matchesChartDomain = !chartDomain || chartDomain === 'all' || rDomain === chartDomain;
-            if (matchesChartDomain) {
-                // For 'all' years view
-                chartYearly[rYear] = (chartYearly[rYear] || 0) + 1;
-
-                // For monthly view (of chartYear or compareYears)
-                const yearsToTrack = [chartYear, ...compYears];
-                if (yearsToTrack.includes(String(rYear))) {
-                    if (!chartMonthly[rYear]) chartMonthly[rYear] = {};
-                    chartMonthly[rYear][rMonth] = (chartMonthly[rYear][rMonth] || 0) + 1;
-                }
+            // Monthly breakdown (for specific year or comparisons)
+            if (yearsToTrack.includes(sYear)) {
+                if (!chartMonthly[sYear]) chartMonthly[sYear] = {};
+                chartMonthly[sYear][rMonth] = (chartMonthly[sYear][rMonth] || 0) + 1;
             }
         });
 
-        console.log(`[statistics] Final Results - Approved: ${approvedNonPhd}, Pending: ${pendingNonPhd}, Journal: ${byDomain['journal'] || 0}`);
-
-        // 4. Transform Chart Data for Recharts
+        // 5. Transform for Recharts
         let finalChartData = [];
         if (chartYear === 'all') {
             finalChartData = Object.entries(chartYearly)

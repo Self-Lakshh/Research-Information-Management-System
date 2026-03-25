@@ -197,24 +197,28 @@ const AdminDashboard = () => {
                             value={(stats.totalUsers ?? 0).toLocaleString()}
                             icon={Users}
                             variant="indigo"
+                            isLoading={isLoading}
                         />
                         <StatCard
                             label="Total Publications"
                             value={(stats as any).approvedNonPhd?.toLocaleString() || '0'}
                             icon={FileText}
                             variant="primary"
+                            isLoading={isLoading}
                         />
                         <StatCard
                             label="Pending Requests"
                             value={(stats as any).pendingNonPhd?.toLocaleString() || '0'}
                             icon={Clock}
                             variant="warning"
+                            isLoading={isLoading}
                         />
                         <StatCard
                             label="Rejected Requests"
                             value={(stats as any).rejectedNonPhd?.toLocaleString() || '0'}
                             icon={Activity}
                             variant="rose"
+                            isLoading={isLoading}
                         />
                     </div>
 
@@ -233,6 +237,7 @@ const AdminDashboard = () => {
                                 value={(stat.value ?? 0).toLocaleString()}
                                 variant={stat.variant as any}
                                 icon={stat.icon}
+                                isLoading={isLoading}
                             />
                         ))}
                     </div>

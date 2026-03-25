@@ -49,10 +49,11 @@ export const Hero = () => {
             }`}
         >
           {[
-            { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "1L+", label: "IPR & Patents", delay: 0 },
+            { icon: <Database className="w-5 h-5 sm:w-6 sm:h-6" />, value: "1L+", label: "IPR Publications", delay: 0 },
             { icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, value: "50Cr+", label: "Journal Publications", delay: 100 },
             { icon: <FileText className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Conference Publications", delay: 200 },
-            { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book Publications", delay: 300 },
+            { icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Book/Chapters Publications", delay: 300 },
+            {icon: <Users className="w-5 h-5 sm:w-6 sm:h-6" />, value: "200+", label: "Awards Publications", delay: 300 },
           ].map((stat, i) => (
             <div
               key={i}

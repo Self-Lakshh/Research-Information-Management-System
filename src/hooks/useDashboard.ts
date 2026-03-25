@@ -86,13 +86,8 @@ export const useDashboardData = (params: DashboardParams) => {
         compareYears = [] 
     } = params;
 
-    // Fetch all records for local aggregation in dev mode (Fallback only)
-    const { data: allRecords = [], isLoading: recordsLoading } = useAllRecords({
-        type: statsDomain === 'all' ? undefined : statsDomain,
-    } as any);
-
-    // Fetch user count for stats
-    const { data: userCount = 0, isLoading: usersLoading } = useQuery({
+    // Fetch user count for stats (independent of main dashboard query)
+    const { data: userCount = 0 } = useQuery({
         queryKey: ['admin-user-count'],
         queryFn: async () => {
             const q = query(collection(db, 'users'), where('user_role', '==', 'user'));
@@ -103,7 +98,7 @@ export const useDashboardData = (params: DashboardParams) => {
     });
 
     return useQuery({
-        queryKey: ['dashboard-data', params, allRecords.length, userCount],
+        queryKey: ['dashboard-data', { statsYear, statsDomain, chartYear, chartDomain, compareYears }],
         queryFn: async () => {
             // 1. Try fetching from Cloud Function
             const raw = await fetchStatistics({
@@ -119,7 +114,7 @@ export const useDashboardData = (params: DashboardParams) => {
             if (raw) {
                 return {
                     stats: {
-                        totalUsers: raw.totalUsers,
+                        totalUsers: raw.totalUsers ?? userCount,
                         approvedNonPhd: raw.approvedNonPhd,
                         pendingNonPhd: raw.pendingNonPhd,
                         rejectedNonPhd: raw.rejectedNonPhd,
@@ -139,7 +134,7 @@ export const useDashboardData = (params: DashboardParams) => {
                 };
             }
 
-            // 3. Simple Fallback mapping for local dev
+            // 3. Simple Minimal Fallback
             return {
                 stats: {
                     totalUsers: userCount,
@@ -161,7 +156,7 @@ export const useDashboardData = (params: DashboardParams) => {
                 raw: null
             };
         },
-        enabled: !recordsLoading && !usersLoading,
         staleTime: 5 * 60 * 1000,
+        gcTime: 15 * 60 * 1000,
     });
 };
