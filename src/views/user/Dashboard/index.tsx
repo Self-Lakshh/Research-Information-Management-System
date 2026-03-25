@@ -30,15 +30,15 @@ const Dashboard = () => {
     const roseVariant = Award; // Just a helper for Award icon mapping
 
     return (
-        <div className="flex flex-col h-full p-1 overflow-hidden">
+        <div className="flex flex-col gap-6 p-1 h-auto min-h-full">
             {/* Metrics Grid */}
-            <div className="flex flex-col bg-card shadow-sm rounded-md border border-emerald-200 overflow-hidden shrink-0 mb-4">
-                <div className="bg-emerald-600 flex items-center border-b py-1.5 px-4 shrink-0">
+            <div className="flex flex-col bg-card shadow-sm rounded-md border border-emerald-200 overflow-hidden shrink-0">
+                <div className="bg-emerald-600 flex items-center border-b py-2 px-4 shrink-0">
                     <h2 className="text-lg text-white font-bold tracking-tight">
                         My Research Insights
                     </h2>
                 </div>
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3 p-2 sm:p-3 transition-all">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 lg:gap-4 p-4 lg:p-6 transition-all">
                     <StatCard label="IPR Publication" value={stats?.iprCount || 0} icon={Lightbulb} variant="amber" isLoading={statsLoading} className="h-28 sm:h-32" />
                     <StatCard label="Journal Publication" value={stats?.journalCount || 0} icon={FileText} variant="primary" isLoading={statsLoading} className="h-28 sm:h-32" />
                     <StatCard label="Conference Publication" value={stats?.conferenceCount || 0} icon={Users} variant="indigo" isLoading={statsLoading} className="h-28 sm:h-32" />
@@ -47,35 +47,41 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="flex flex-col bg-card shadow-sm rounded-md border-emerald-200 border overflow-hidden flex-1 min-h-0 min-w-0">
-                <div className="flex items-center bg-emerald-600 border-b py-1.5 px-4 shrink-0">
+            {/* Recent Requests Section */}
+            <div className="flex flex-col bg-card shadow-sm rounded-md border-emerald-200 border overflow-hidden shrink-0 min-h-[300px]">
+                <div className="flex items-center bg-emerald-600 border-b py-2 px-4 shrink-0">
                     <h2 className="text-lg text-white font-bold tracking-tight">
                         My Recent Requests
                     </h2>
                 </div>
-                <div className="overflow-x-auto overflow-y-hidden scroll-smooth snap-x snap-mandatory flex gap-5 p-5 show-scrollbar flex-1 items-stretch">
-                    {recordsLoading ? (
-                        <div className="flex h-56 w-full items-center justify-center">
-                            <Spinner />
-                        </div>
-                    ) : records.filter((r) => r.approval_status === "pending").length > 0 ? (
-                        records
-                            .filter((r) => r.approval_status === "pending")
-                            .map((record) => (
-                                <RecordCard
-                                    key={record.id}
-                                    onView={handleView}
-                                    record={record}
-                                    className="snap-start snap-always w-[280px] shrink-0"
-                                />
-                            ))
-                    ) : (
-                        <div className="flex h-56 w-full items-center justify-center">
-                            <p className="text-center text-muted-foreground font-semibold">
-                                No pending requests found.
-                            </p>
-                        </div>
-                    )}
+                <div className="overflow-x-auto overflow-y-hidden scroll-smooth p-6 no-scrollbar bg-zinc-50/50 dark:bg-zinc-900/10">
+                    <div className="flex flex-row flex-nowrap gap-8 items-center min-w-max px-4 pb-4">
+                        {recordsLoading ? (
+                            <div className="flex h-64 w-full items-center justify-center">
+                                <Spinner className="w-8 h-8 text-primary" />
+                            </div>
+                        ) : records.filter((r) => r.approval_status === "pending").length > 0 ? (
+                            records
+                                .filter((r) => r.approval_status === "pending")
+                                .map((record) => (
+                                    <RecordCard
+                                        key={record.id}
+                                        onView={handleView}
+                                        record={record}
+                                        className="w-[320px] shrink-0 h-[220px] shadow-lg hover:shadow-2xl transition-all"
+                                    />
+                                ))
+                        ) : (
+                            <div className="flex h-64 w-full items-center justify-center">
+                                <div className="flex flex-col items-center gap-2 text-muted-foreground opacity-60">
+                                    <p className="text-center font-bold tracking-tight text-base italic">
+                                        No pending requests found.
+                                    </p>
+                                    <p className="text-xs">Your research pipeline is currently clear.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

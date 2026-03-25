@@ -50,7 +50,7 @@ const CardUserDisplay: React.FC<{ reference: any }> = ({ reference }) => {
             setName('N/A')
             return
         }
-        
+
         const resolve = async () => {
             try {
                 // If it's an array, just show "Multiple" or first name
@@ -122,7 +122,7 @@ export const RecordCard: React.FC<RecordCardProps> = ({
         >
             {/* Glossy Overlay */}
             <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
+
             <CardContent className="p-6 flex flex-col h-full relative z-10">
                 <div className="flex flex-col h-full justify-between">
                     {/* Top Row: Domain & Actions */}

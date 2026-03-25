@@ -723,6 +723,15 @@ html {
 	scrollbar-width: thin;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
+.no-scrollbar {
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
 /* Skeleton Shimmer Animation */
 @keyframes shimmer {
 	0% {

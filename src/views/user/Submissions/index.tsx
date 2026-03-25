@@ -149,7 +149,7 @@ const Submissions = () => {
     const hasFilters = !!search || domainFilter !== 'all' || yearFilter !== 'all' || approvalFilter !== 'all'
 
     return (
-        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6 p-1">
+        <div className="flex flex-col h-full min-w-0 overflow-hidden gap-6">
             {/* Header Section */}
             <div className="bg-card backdrop-blur-sm rounded-lg border border-border/50 shadow-premium flex flex-col shrink-0 overflow-hidden">
                 {/* Row 1: Title & Actions */}
@@ -159,7 +159,7 @@ const Submissions = () => {
                         <div className="flex items-center gap-2">
                             <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                             <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-80">
-                                {isLoading ? 'Synchronizing…' : `${submissions.length} Entities Indexed`}
+                                {isLoading ? 'Synchronizing…' : `${submissions.length} Records Found`}
                             </p>
                         </div>
                     </div>
@@ -230,8 +230,8 @@ const Submissions = () => {
                     ) : displayed.length > 0 ? (
                         <div>
                             {viewMode === "grid" ? (
-                                <div className="pr-1 sm:pr-2 pb-12">
-                                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+                                <div className="pr-1 pb-12 overflow-y-auto no-scrollbar">
+                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 max-w-[1600px] mx-auto">
                                         {displayed.map((item: any) => (
                                             <RecordCard
                                                 key={item.id}
