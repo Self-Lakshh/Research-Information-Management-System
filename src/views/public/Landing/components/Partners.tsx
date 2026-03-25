@@ -80,7 +80,7 @@ export const Partners = () => {
     return (
         <section
             id="partners"
-            className="min-h-fit flex flex-col justify-center py-6 sm:py-10 lg:py-16 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden bg-background/50"
+            className="min-h-fit flex flex-col justify-center py-6 sm:py-10 lg:py-16 px-6 sm:px-10 lg:px-12 xl:px-16 relative overflow-hidden"
         >
             <div className="w-full relative z-10 max-w-7xl mx-auto">
                 {/* Header */}
