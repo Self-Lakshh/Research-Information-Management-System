@@ -231,11 +231,12 @@ const Submissions = () => {
                         <div>
                             {viewMode === "grid" ? (
                                 <div className="pr-1 pb-12 overflow-y-auto no-scrollbar">
-                                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 max-w-[1600px] mx-auto">
+                                    <div className="grid grid-cols-2 gap-4 lg:gap-8 w-full">
                                         {displayed.map((item: any) => (
                                             <RecordCard
                                                 key={item.id}
                                                 record={item}
+                                                className="sm:w-full"
                                                 onView={(r) => {
                                                     setSelected(r)
                                                     setIsDetailOpen(true)
