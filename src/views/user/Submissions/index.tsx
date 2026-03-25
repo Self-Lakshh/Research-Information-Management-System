@@ -51,14 +51,9 @@ const Submissions = () => {
 
         // 2. Add years found in data (for legacy or future records)
         submissions.forEach((s: any) => {
-            const dateVal = s.date || s.date_of_publication || s.published_date || s.grant_date || s.month_year || s.year_of_publication || s.publicationYear || ''
+            const dateVal = s.date_of_publication || s.published_date || s.year_of_publication || s.grant_date || s.date || s.month_year || s.publicationYear || ''
             const yearStr = String(dateVal).match(/\d{4}/)?.[0]
             if (yearStr) years.add(yearStr)
-
-            if (s.created_at) {
-                const d = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at)
-                if (!isNaN(d.getTime())) years.add(d.getFullYear().toString())
-            }
         })
         return Array.from(years).sort((a, b) => b.localeCompare(a))
     }, [submissions])
@@ -86,13 +81,9 @@ const Submissions = () => {
 
             let matchesYear = yearFilter === 'all'
             if (!matchesYear) {
-                const dateVal = s.date || s.date_of_publication || s.published_date || s.grant_date || s.month_year || s.year_of_publication || s.publicationYear || ''
-                matchesYear = String(dateVal).includes(yearFilter)
-
-                if (!matchesYear && s.created_at) {
-                    const d = s.created_at.toDate ? s.created_at.toDate() : new Date(s.created_at)
-                    matchesYear = d.getFullYear().toString() === yearFilter
-                }
+                const dateVal = s.date_of_publication || s.published_date || s.year_of_publication || s.grant_date || s.date || s.month_year || s.publicationYear || ''
+                const yearStr = String(dateVal).match(/\d{4}/)?.[0]
+                matchesYear = yearStr === yearFilter
             }
 
             return matchesSearch && matchesDomain && matchesYear && matchesApproval

@@ -20,7 +20,9 @@ export const Domains = () => {
 
   const showcaseItems = useMemo(() => {
     if (activeEvents.length > 0) {
-      return activeEvents.map(event => ({
+      return [...activeEvents]
+        .sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
+        .map(event => ({
         src: event.image_url,
         title: event.title,
         date: event.event_date

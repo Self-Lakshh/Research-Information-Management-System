@@ -11,6 +11,7 @@ export interface EventRecord {
   created_by: string; // "users/{user_id}"
   updated_by?: string; // "users/{user_id}"
   is_active: boolean;
+  position?: number;
 }
 
 export type CreateEventData = Omit<EventRecord, "id" | "created_at" | "updated_at" | "is_active">;

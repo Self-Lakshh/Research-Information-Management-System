@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useAuth } from "@/auth"
 import { useUpdateUser } from "@/hooks/useUsers"
 import { useSessionUser } from "@/store/authStore"
-import { getUserById } from "@/services/firebase"
+import { getUserById, resetPassword } from "@/services/firebase"
 
 import { Button } from "@/components/shadcn/ui/button"
 import { Input } from "@/components/shadcn/ui/input"
@@ -22,7 +22,9 @@ import {
     X,
     Linkedin,
     ExternalLink,
-    Globe
+    Globe,
+    Lock,
+    ShieldCheck
 } from "lucide-react"
 
 import { uploadProfilePhoto } from "@/services/firebase"
@@ -39,6 +41,7 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false)
     const [uploading, setUploading] = useState(false)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [resettingPassword, setResettingPassword] = useState(false)
 
     const [formData, setFormData] = useState<{
         name: string
@@ -163,6 +166,23 @@ const Profile = () => {
         } finally {
             setUploading(false)
             setPreviewUrl(null) 
+        }
+    }
+
+    const handleResetPassword = async () => {
+        if (!user?.email) return
+        
+        if (!window.confirm("Send password reset link to your email?")) return
+
+        setResettingPassword(true)
+        try {
+            await resetPassword(user.email)
+            alert(`A password reset link has been sent to ${user.email}`)
+        } catch (error: any) {
+            console.error("Password reset error:", error)
+            alert(error.message || "Failed to send reset link.")
+        } finally {
+            setResettingPassword(false)
         }
     }
 
@@ -407,6 +427,38 @@ const Profile = () => {
                                     onChange={(v: string) => handleInputChange("scopus_link", v)}
                                     placeholder="https://www.scopus.com/..."
                                 />
+                            </div>
+                        </div>
+
+                        {/* SECURITY SECTION */}
+                        <div className="md:col-span-2 pt-6 border-t overflow-hidden">
+                            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4 flex items-center gap-2">
+                                <ShieldCheck size={16} className="text-emerald-500" />
+                                Account Security
+                            </h3>
+                            <div className="bg-muted/30 rounded-2xl p-4 sm:p-6 border border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold flex items-center gap-2 text-foreground">
+                                        <Lock size={14} className="text-muted-foreground" />
+                                        Password Management
+                                    </p>
+                                    <p className="text-xs text-muted-foreground max-w-sm">
+                                        Send a secure link to your registered email to reset your account password.
+                                    </p>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleResetPassword}
+                                    disabled={resettingPassword}
+                                    className="w-full sm:w-auto shrink-0 font-bold border-rose-200/50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-600 dark:border-rose-500/10 dark:hover:bg-rose-500/10 dark:hover:border-rose-500/20"
+                                >
+                                    {resettingPassword ? (
+                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent animate-spin rounded-full mr-2" />
+                                    ) : (
+                                        <Lock size={14} className="mr-2" />
+                                    )}
+                                    Reset Password
+                                </Button>
                             </div>
                         </div>
                     </div>

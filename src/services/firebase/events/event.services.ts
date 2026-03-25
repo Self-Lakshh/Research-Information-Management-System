@@ -8,7 +8,9 @@ import {
   deleteDoc,
   query,
   where,
+  orderBy,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 
 import { db } from "@/configs/firebase.config";
@@ -78,10 +80,12 @@ export const getActiveEvents = async (): Promise<EventRecord[]> => {
     const q = query(eventsRef, where("is_active", "==", true));
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data(),
-    })) as EventRecord[];
+    return snapshot.docs
+      .map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }))
+      .sort((a: any, b: any) => (a.position || 0) - (b.position || 0)) as EventRecord[];
   } catch (error: any) {
     console.error("Get active events error:", error);
     throw new Error(error.message || "Failed to get active events");
@@ -102,6 +106,25 @@ export const updateEvent = async (
   } catch (error: any) {
     console.error("Update event error:", error);
     throw new Error(error.message || "Failed to update event");
+  }
+};
+
+export const updateEventPositions = async (
+  updates: { id: string; position: number }[]
+): Promise<void> => {
+  try {
+    const batch = writeBatch(db);
+    updates.forEach(({ id, position }) => {
+      const eventRef = doc(db, EVENTS_COLLECTION, id);
+      batch.update(eventRef, { 
+        position,
+        updated_at: serverTimestamp() 
+      } as any);
+    });
+    await batch.commit();
+  } catch (error: any) {
+    console.error("Update event positions error:", error);
+    throw new Error(error.message || "Failed to update event positions");
   }
 };
 

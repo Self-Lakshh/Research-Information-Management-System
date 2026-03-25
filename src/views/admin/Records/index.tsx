@@ -75,11 +75,9 @@ const Records = () => {
             })()
 
             const matchesYear = yearFilter === 'all' || (() => {
-                const dateVal = r.date || r.date_of_publication || r.published_date || r.grant_date || r.month_year || r.year_of_publication || r.publicationYear || ''
-                if (String(dateVal).includes(yearFilter)) return true
-                const ca = r.created_at
-                if (ca?.toDate) return ca.toDate().getFullYear().toString() === yearFilter
-                return false
+                const dateVal = r.date_of_publication || r.published_date || r.year_of_publication || r.grant_date || r.date || r.month_year || r.publicationYear || ''
+                const yearStr = String(dateVal).match(/\d{4}/)?.[0]
+                return yearStr === yearFilter
             })()
 
             return matchesSearch && matchesYear

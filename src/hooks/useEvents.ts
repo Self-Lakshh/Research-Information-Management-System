@@ -4,6 +4,7 @@ import {
     getActiveEvents,
     createEvent,
     updateEvent,
+    updateEventPositions,
     deleteEvent,
     deactivateEvent,
     activateEvent,
@@ -62,6 +63,16 @@ export const useToggleEventStatus = () => {
     return useMutation({
         mutationFn: ({ id, setActive }: { id: string; setActive: boolean }) =>
             setActive ? activateEvent(id) : deactivateEvent(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: EVENTS_QUERY_KEY })
+        },
+    })
+}
+
+export const useUpdateEventPositions = () => {
+    const queryClient = useQueryClient()
+    return useMutation({
+        mutationFn: updateEventPositions,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: EVENTS_QUERY_KEY })
         },

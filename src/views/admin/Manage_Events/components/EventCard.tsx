@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/shadcn/ui/card'
 import { OptimizedImage } from '@/views/public/Landing/components/shared/OptimizedImage'
-import { Edit, Trash2, Calendar } from 'lucide-react'
+import { Edit, Trash2, Calendar, ArrowUp, ArrowDown, GripVertical } from 'lucide-react'
 import { EventRecord } from '@/services/firebase/events/types'
 import { Button } from '@/components/shadcn/ui/button'
 import { cn } from '@/components/shadcn/utils'
@@ -9,22 +9,41 @@ interface EventCardProps {
     event: EventRecord
     onEdit: (event: EventRecord) => void
     onDelete: (id: string) => void
+    onMoveUp?: () => void
+    onMoveDown?: () => void
+    onDragStart?: () => void
+    onDragEnd?: () => void
+    isDragging?: boolean
 }
 
 export const EventCard = ({
     event,
     onEdit,
     onDelete,
+    onMoveUp,
+    onMoveDown,
+    onDragStart,
+    onDragEnd,
+    isDragging,
 }: EventCardProps) => {
     return (
         <Card
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
             className={cn(
                 "group relative h-full w-full rounded-2xl border bg-card shadow-sm transition-all duration-500 overflow-hidden hover:shadow-premium hover:-translate-y-1",
-                !event.is_active && "opacity-70 grayscale-[0.5]"
+                !event.is_active && "opacity-70 grayscale-[0.5]",
+                isDragging && "border-primary ring-2 ring-primary/20 scale-105 z-50 shadow-xl"
             )}
         >
             {/* Image Section */}
             <div className="relative h-48 w-full overflow-hidden bg-muted">
+                {/* Drag Handle */}
+                <div className="absolute top-3 left-3 z-30 flex items-center justify-center p-1.5 bg-white/60 backdrop-blur-md rounded-lg shadow-sm border border-border/20 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <GripVertical className="w-4 h-4" />
+                </div>
+                
                 {event.image_url ? (
                     <OptimizedImage
                         src={event.image_url}
@@ -37,6 +56,30 @@ export const EventCard = ({
                     </div>
                 )}
                 
+                {/* Reorder Controls */}
+                <div className="absolute top-3 left-3 flex flex-col gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    {onMoveUp && (
+                        <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 rounded-full bg-white/80 hover:bg-white text-primary shadow-sm border border-border/20"
+                            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                        >
+                            <ArrowUp className="h-4 w-4" />
+                        </Button>
+                    )}
+                    {onMoveDown && (
+                        <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 rounded-full bg-white/80 hover:bg-white text-primary shadow-sm border border-border/20"
+                            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                        >
+                            <ArrowDown className="h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+
                 {/* Status Badge */}
                 {!event.is_active && (
                     <div className="absolute top-3 right-3 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter shadow-md z-20">
