@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Search, X, LayoutGrid, List } from 'lucide-react'
 import { Card } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
@@ -19,8 +19,11 @@ import { cn } from '@/components/shadcn/utils'
 import { RECORD_TYPE_CONFIG } from '@/configs/rims.config'
 import { useAllUserRecords, useCreateRecord, useUpdateRecord, useDeleteRecord } from '@/hooks/useRecords'
 import type { RecordType } from '@/@types/rims.types'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const Submissions = () => {
+    const location = useLocation()
+    const navigate = useNavigate()
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid')
     const [search, setSearch] = useState('')
     const [domainFilter, setDomainFilter] = useState('all')
@@ -91,6 +94,14 @@ const Submissions = () => {
     }, [submissions, search, domainFilter, yearFilter, approvalFilter])
 
     // ── Handlers ──────────────────────────────────────────────────────────
+    useEffect(() => {
+        if (location.state?.editRecord) {
+            handleEdit(location.state.editRecord)
+            // Clear state after handling
+            navigate(location.pathname, { replace: true, state: {} })
+        }
+    }, [location.state])
+
     const handleAddClick = (type: string) => {
         setAddType(type)
         setSelected(null)
@@ -142,12 +153,12 @@ const Submissions = () => {
             {/* Header Section */}
             <div className="bg-card backdrop-blur-sm rounded-lg border border-border/50 shadow-premium flex flex-col shrink-0 overflow-hidden">
                 {/* Row 1: Title & Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 p-4 sm:p-6 gap-4">
-                    <div className="space-y-1 sm:space-y-2">
-                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Records Portfolio</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border/50 p-3 sm:p-4 gap-4">
+                    <div className="space-y-1 sm:space-y-1.5">
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Records Portfolio</h1>
                         <div className="flex items-center gap-2">
-                            <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
-                            <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-80">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-80">
                                 {isLoading ? 'Synchronizing…' : `${submissions.length} Entities Indexed`}
                             </p>
                         </div>
@@ -160,7 +171,7 @@ const Submissions = () => {
                 </div>
 
                 {/* Row 2: Filters */}
-                <div className="bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col xl:flex-row items-center gap-4 p-4 sm:p-6">
+                <div className="bg-zinc-50/30 dark:bg-zinc-900/10 flex flex-col xl:flex-row items-center gap-3 p-3 sm:p-4">
                     <Searchbar
                         value={search}
                         onChange={setSearch}

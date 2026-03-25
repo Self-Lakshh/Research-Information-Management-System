@@ -87,7 +87,7 @@ export const Showcase = ({
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={1}
-                        onDragEnd={(e, { offset, velocity }: PanInfo) => {
+                        onDragEnd={(_e, { offset, velocity }: PanInfo) => {
                             const swipe = swipePower(offset.x, velocity.x)
                             if (swipe < -swipeConfidenceThreshold) {
                                 paginate(1)
@@ -101,6 +101,7 @@ export const Showcase = ({
                             src={items[itemIndex].src}
                             alt={items[itemIndex].title}
                             className="w-full h-full object-cover pointer-events-none"
+                            priority={true}
                         />
                         <div className="absolute bottom-0 left-0 right-0 
                 p-3 sm:p-4 
@@ -120,6 +121,15 @@ export const Showcase = ({
                         </div>
                     </motion.div>
                 </AnimatePresence>
+
+                {/* Preloading all showcase images in background */}
+                <div className="hidden pointer-events-none aria-hidden" aria-hidden="true">
+                    {items.map((item, idx) => (
+                        idx !== itemIndex && (
+                            <img key={idx} src={item.src} decoding="async" loading="lazy" />
+                        )
+                    ))}
+                </div>
 
                 {/* Navigation Buttons */}
                 <div className="absolute inset-0 flex items-center justify-between p-2 pointer-events-none z-20">

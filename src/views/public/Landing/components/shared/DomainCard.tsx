@@ -7,9 +7,10 @@ interface DomainCardProps {
   description: string
   tags: string[]
   image: string
+  priority?: boolean
 }
 
-export const DomainCard = ({ title, description, tags, image }: DomainCardProps) => {
+export const DomainCard = ({ title, description, tags, image, priority = false }: DomainCardProps) => {
   return (
     <Card
       className={cn(
@@ -26,8 +27,9 @@ export const DomainCard = ({ title, description, tags, image }: DomainCardProps)
           alt={title}
           className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
           skeletonClassName="rounded-xl"
+          priority={priority}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
       </div>
 
       <CardContent className="p-5 sm:p-6 flex flex-col gap-4">

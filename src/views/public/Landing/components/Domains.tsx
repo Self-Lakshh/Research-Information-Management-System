@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import Showcase from "./Showcase"
 import { useScrollAnimation } from "../hooks/useScrollAnimation"
 import { useActiveEvents } from "@/hooks/useEvents"
+import { ShowcaseSkeleton } from "./shared/Skeleton"
 
 export const Domains = () => {
   const [isExpanded, setIsExpanded] = useState(false)
@@ -11,7 +12,7 @@ export const Domains = () => {
   const [cardsRef, isCardsVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.1 })
   const [showcaseRef, isShowcaseVisible] = useScrollAnimation<HTMLDivElement>({ threshold: 0.2 })
 
-  const { data: activeEvents = [] } = useActiveEvents()
+  const { data: activeEvents = [], isLoading: isActiveEventsLoading } = useActiveEvents()
 
   const staticShowcaseItems = [
     { src: "/img/others/car-1.jpg", title: "IIT Professor delivers Expert Lecture on Human Rights and Human Duties at SPSU" },
@@ -136,7 +137,7 @@ export const Domains = () => {
                   }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <DomainCard {...d} />
+                <DomainCard {...d} priority={i < 4} />
               </div>
             ))}
           </div>
@@ -170,9 +171,13 @@ export const Domains = () => {
             : 'opacity-0 translate-y-20'
             }`}
         >
-          <Showcase
-            items={showcaseItems}
-          />
+          {isActiveEventsLoading ? (
+            <ShowcaseSkeleton />
+          ) : (
+            <Showcase
+              items={showcaseItems}
+            />
+          )}
         </div>
 
       </div>

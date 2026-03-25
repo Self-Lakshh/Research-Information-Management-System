@@ -7,6 +7,7 @@ interface OptimizedImageProps {
     alt: string
     className?: string
     skeletonClassName?: string
+    priority?: boolean
     onLoad?: () => void
     onError?: () => void
 }
@@ -16,16 +17,19 @@ export const OptimizedImage = ({
     alt,
     className,
     skeletonClassName,
+    priority = false,
     onLoad,
     onError
 }: OptimizedImageProps) => {
     const [isLoaded, setIsLoaded] = useState(false)
-    const [isInView, setIsInView] = useState(false)
+    const [isInView, setIsInView] = useState(priority)
     const [hasError, setHasError] = useState(false)
     const imgRef = useRef<HTMLDivElement>(null)
 
     // Intersection Observer for lazy loading
     useEffect(() => {
+        if (priority) return
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
@@ -36,8 +40,8 @@ export const OptimizedImage = ({
                 })
             },
             {
-                rootMargin: "100px", // Start loading 100px before entering viewport
-                threshold: 0.1
+                rootMargin: "200px", // Increased margin for smoother appearance
+                threshold: 0.01
             }
         )
 
@@ -46,7 +50,7 @@ export const OptimizedImage = ({
         }
 
         return () => observer.disconnect()
-    }, [])
+    }, [priority])
 
     const handleImageLoad = () => {
         setIsLoaded(true)
@@ -59,18 +63,20 @@ export const OptimizedImage = ({
     }
 
     return (
-        <div ref={imgRef} className="relative w-full h-full overflow-hidden">
+        <div ref={imgRef} className="relative w-full h-full overflow-hidden bg-muted/30">
             {/* Skeleton placeholder */}
             {!isLoaded && !hasError && (
-                <div className={cn("absolute inset-0", skeletonClassName)}>
+                <div className={cn("absolute inset-0 z-10", skeletonClassName)}>
                     <Skeleton className="w-full h-full" />
                 </div>
             )}
 
             {/* Error state */}
             {hasError && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                    <div className="text-muted-foreground text-sm">Failed to load image</div>
+                <div className="absolute inset-0 flex items-center justify-center bg-muted z-20">
+                    <div className="text-muted-foreground text-xs flex flex-col items-center gap-2">
+                        <span className="opacity-50">Image unavailable</span>
+                    </div>
                 </div>
             )}
 
@@ -80,13 +86,15 @@ export const OptimizedImage = ({
                     src={src}
                     alt={alt}
                     className={cn(
-                        "transition-all duration-700 ease-out",
-                        isLoaded ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-105 blur-sm",
+                        "transition-all duration-1000 ease-in-out",
+                        isLoaded 
+                            ? "opacity-100 scale-100 blur-0" 
+                            : "opacity-0 scale-110 blur-xl",
                         className
                     )}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
-                    loading="lazy"
+                    loading={priority ? "eager" : "lazy"}
                     decoding="async"
                 />
             )}
