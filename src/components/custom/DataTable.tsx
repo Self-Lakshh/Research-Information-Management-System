@@ -9,8 +9,9 @@ import {
     DropdownMenuTrigger,
 } from "@/components/shadcn/ui/dropdown-menu"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable, ColumnDef, SortingState } from '@tanstack/react-table'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { cn } from '@/components/shadcn/utils'
+import { Checkbox } from '@/components/shadcn/ui/checkbox'
 
 interface Action {
     label: string
@@ -24,28 +25,72 @@ interface DataTableProps<TData, TValue> {
     data: TData[]
     onRowClick?: (row: TData) => void
     rowActions?: (row: TData) => Action[]
+    enableRowSelection?: boolean
+    onRowSelectionChange?: (selectedRows: TData[]) => void
 }
 
 export function DataTable<TData, TValue>({
     columns,
     data,
     onRowClick,
-    rowActions
+    rowActions,
+    enableRowSelection,
+    onRowSelectionChange
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
+    const [rowSelection, setRowSelection] = useState({})
+
+    const finalColumns = useMemo(() => {
+        if (!enableRowSelection) return columns;
+        
+        const selectColumn: ColumnDef<TData, any> = {
+            id: 'select',
+            header: ({ table }) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected()}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                    className="translate-y-[2px]"
+                />
+            ),
+            cell: ({ row }) => (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                        checked={row.getIsSelected()}
+                        onCheckedChange={(value) => row.toggleSelected(!!value)}
+                        aria-label="Select row"
+                        className="translate-y-[2px]"
+                    />
+                </div>
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        };
+        
+        return [selectColumn, ...columns];
+    }, [columns, enableRowSelection]);
 
     const table = useReactTable({
         data,
-        columns,
+        columns: finalColumns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
+        onRowSelectionChange: setRowSelection,
         state: {
             sorting,
+            rowSelection,
         },
     })
+
+    useEffect(() => {
+        if (onRowSelectionChange) {
+            const selectedRows = table.getSelectedRowModel().rows.map(r => r.original);
+            onRowSelectionChange(selectedRows);
+        }
+    }, [rowSelection])
 
     return (
         <div className="flex flex-col h-full rounded-2xl bg-card border border-muted/30 shadow-xs overflow-hidden">

@@ -23,113 +23,128 @@ export const handler = async (event: any, context: any) => {
             'awards': 'award', 'consultancy_projects': 'consultancy', 'phd_students': 'phd_student', 'other_events': 'other'
         };
 
-        // Aggregation for Stats Overview
-        // We fetch status counts for ALL domains in parallel using count()
-        const domainStatsPromises = domainCollections.map(async (col) => {
-            const [appr, pend, rej] = await Promise.all([
-                db.collection(col).where('approval_status', '==', 'approved').count().get(),
-                db.collection(col).where('approval_status', '==', 'pending').count().get(),
-                db.collection(col).where('approval_status', '==', 'rejected').count().get(),
-            ]);
-            return {
-                col,
-                domain: colToDomain[col],
-                approved: appr.data().count,
-                pending: pend.data().count,
-                rejected: rej.data().count,
-                total: appr.data().count + pend.data().count + rej.data().count
-            };
+        const computedStats: Record<string, { approved: number, pending: number, rejected: number, total: number }> = {};
+        domainCollections.forEach(col => {
+            computedStats[colToDomain[col]] = { approved: 0, pending: 0, rejected: 0, total: 0 };
         });
 
-        // 2. CHART DATA - This still requires some document fetching but we use .select()
-        // to minimize payload and speed up processing.
-        // We only fetch docs for the years we actually care about if possible.
+        // 2 & 4. COMBINED FETCH AND PROCESS - Streamlined to reduce memory and CPU
+        const chartDataMap: Record<string, Record<number, number>> = {};
+        const chartYearlyMap: Record<string, number> = {};
         const yearsToTrack = [chartYear, ...compYears].filter(y => y && y !== 'all');
-        
-        const chartFetchPromises = domainCollections.map(async (col) => {
-            const rDomain = colToDomain[col];
-            // Filter by domain early if possible
-            if (chartDomain && chartDomain !== 'all' && rDomain !== chartDomain) return [];
+        const isAllView = chartYear === 'all';
 
-            let q: any = db.collection(col);
-            
-            // If we have specific years to track, we try to optimize. 
-            // Note: Since fields vary, we still do some mapping in JS but fetch is faster.
-            // Using .select() drastically reduces data transfer
-            const snap = await q.select('created_at', 'year_of_publication', 'publicationYear', 'approval_status').get();
-            return snap.docs.map((doc: any) => ({ ...doc.data(), _domain: rDomain }));
+        // Pre-initialize chart data structure
+        yearsToTrack.forEach(y => chartDataMap[y] = {});
+
+        const chartProcessingPromises = domainCollections.map(async (col) => {
+            const rDomain = colToDomain[col];
+            if (chartDomain && chartDomain !== 'all' && rDomain !== chartDomain) return;
+
+            // Use select to get only necessary fields
+            const snap = await db.collection(col)
+                .select('created_at', 'year_of_publication', 'publicationYear', 'published_date', 'date_of_publication', 'grant_date', 'month_year', 'filing_date', 'approval_status')
+                .get();
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                let rYear: number | null = null;
+                let rMonth: number = -1;
+
+                // Priority 1: Exact explicit dates (YYYY-MM-DD or valid date string)
+                const pubDateStr = data.date_of_publication || data.published_date || data.grant_date || data.filing_date;
+                if (pubDateStr) {
+                    const parsed = new Date(pubDateStr);
+                    if (!isNaN(parsed.getTime())) {
+                        rYear = parsed.getFullYear();
+                        rMonth = parsed.getMonth();
+                    }
+                }
+
+                // Priority 2: "Month Year" strings (used heavily in Awards)
+                if ((!rYear || rMonth === -1) && data.month_year) {
+                    const parsed = new Date(data.month_year);
+                    if (!isNaN(parsed.getTime())) {
+                        rYear = parsed.getFullYear();
+                        rMonth = parsed.getMonth();
+                    } else {
+                        const match = String(data.month_year).match(/\d{4}/);
+                        if (match) rYear = Number(match[0]);
+                    }
+                }
+
+                // Priority 3: Fallback specific year integers (Conferences)
+                rYear = rYear || Number(data.year_of_publication || data.publicationYear) || null;
+
+                // Priority 4: Fallback to System Created Date
+                const createdAt = data.created_at?.toDate?.() || 
+                                 (data.created_at && typeof data.created_at.toDate === 'function' ? data.created_at.toDate() : null) ||
+                                 (data.created_at instanceof Date ? data.created_at : null);
+
+                if (!rYear && createdAt) rYear = createdAt.getFullYear();
+                if (!rYear) rYear = new Date().getFullYear();
+
+                if (rMonth === -1) {
+                    rMonth = createdAt ? createdAt.getMonth() : 0;
+                }
+
+                const sYear = String(rYear);
+
+                chartYearlyMap[sYear] = (chartYearlyMap[sYear] || 0) + 1;
+                if (chartDataMap[sYear]) {
+                    chartDataMap[sYear][rMonth] = (chartDataMap[sYear][rMonth] || 0) + 1;
+                }
+
+                // Aggregate KPIs filtered by the strictly derived publication year
+                if (isAllView || sYear === chartYear) {
+                    const status = data.approval_status || 'pending';
+                    const dStats = computedStats[rDomain];
+                    if (status === 'approved') dStats.approved++;
+                    else if (status === 'pending') dStats.pending++;
+                    else dStats.rejected++;
+                    dStats.total++;
+                }
+            });
         });
 
-        // Resolve all promises
-        const [userSnap, domainStats, ...chartDocsNested] = await Promise.all([
+        // Resolve Processing
+        const [userSnap] = await Promise.all([
             userCountPromise,
-            Promise.all(domainStatsPromises),
-            ...chartFetchPromises
+            Promise.all(chartProcessingPromises)
         ]);
 
         const totalUsers = userSnap.data().count;
-        const allRecordsForChart = chartDocsNested.flat();
 
         // 3. Process Stats Overview
         const byDomain: Record<string, number> = {};
-        const byStatus: Record<string, number> = { pending: 0, approved: 0, rejected: 0 };
-        
         let approvedNonPhd = 0;
         let pendingNonPhd = 0;
         let rejectedNonPhd = 0;
 
-        domainStats.forEach(ds => {
-            const isPhd = ds.domain === 'phd_student';
-            byDomain[ds.domain] = ds.total;
-            
+        Object.entries(computedStats).forEach(([domKey, ds]) => {
+            const isPhd = domKey === 'phd_student';
+            byDomain[domKey] = ds.total;
             if (!isPhd) {
                 approvedNonPhd += ds.approved;
                 pendingNonPhd += ds.pending;
                 rejectedNonPhd += ds.rejected;
             }
-            
-            byStatus.approved += ds.approved;
-            byStatus.pending += ds.pending;
-            byStatus.rejected += ds.rejected;
-        });
-
-        // 4. Process Chart Data
-        const chartYearly: Record<string, number> = {};
-        const chartMonthly: Record<string, Record<number, number>> = {};
-        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        allRecordsForChart.forEach((data: any) => {
-            const createdAt = data.created_at?.toDate?.() || 
-                             (data.created_at && typeof data.created_at.toDate === 'function' ? data.created_at.toDate() : null) ||
-                             (data.created_at instanceof Date ? data.created_at : null) || 
-                             new Date();
-            
-            const rYear = data.year_of_publication || data.publicationYear || createdAt.getFullYear();
-            const rMonth = createdAt.getMonth();
-            const sYear = String(rYear);
-
-            // Yearly totals (for 'all' view)
-            chartYearly[sYear] = (chartYearly[sYear] || 0) + 1;
-
-            // Monthly breakdown (for specific year or comparisons)
-            if (yearsToTrack.includes(sYear)) {
-                if (!chartMonthly[sYear]) chartMonthly[sYear] = {};
-                chartMonthly[sYear][rMonth] = (chartMonthly[sYear][rMonth] || 0) + 1;
-            }
         });
 
         // 5. Transform for Recharts
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         let finalChartData = [];
-        if (chartYear === 'all') {
-            finalChartData = Object.entries(chartYearly)
+        
+        if (isAllView) {
+            finalChartData = Object.entries(chartYearlyMap)
                 .sort(([a], [b]) => Number(a) - Number(b))
                 .map(([name, count]) => ({ name, current: count }));
         } else {
             finalChartData = MONTHS.map((name, i) => {
                 const entry: any = { name, month: i };
-                entry.current = chartMonthly[chartYear]?.[i] || 0;
+                entry.current = chartDataMap[chartYear]?.[i] || 0;
                 compYears.forEach((y: string) => {
-                    entry[`year_${y}`] = chartMonthly[y]?.[i] || 0;
+                    entry[`year_${y}`] = chartDataMap[y]?.[i] || 0;
                 });
                 return entry;
             });
@@ -141,7 +156,6 @@ export const handler = async (event: any, context: any) => {
             pendingNonPhd,
             rejectedNonPhd,
             byDomain,
-            byStatus,
             totalRecords: approvedNonPhd,
             chartData: finalChartData
         };

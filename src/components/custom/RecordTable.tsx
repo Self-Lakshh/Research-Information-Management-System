@@ -37,6 +37,8 @@ interface RecordTableProps {
     onDelete?: (id: string) => void
     showActions?: boolean
     actions?: RecordAction[]
+    enableSelection?: boolean
+    onSelectionChange?: (selectedRecords: any[]) => void
 }
 
 // A small component to resolve user references in table cells
@@ -92,7 +94,9 @@ export const RecordTable: React.FC<RecordTableProps> = ({
     onEdit,
     onDelete,
     showActions = true,
-    actions
+    actions,
+    enableSelection,
+    onSelectionChange
 }) => {
     // Shared safety helper for rendering basic strings/dates
     const renderCellContent = (val: any, field?: any): React.ReactNode => {
@@ -294,6 +298,8 @@ export const RecordTable: React.FC<RecordTableProps> = ({
                 data={records}
                 onRowClick={onView}
                 rowActions={rowActions}
+                enableRowSelection={enableSelection}
+                onRowSelectionChange={onSelectionChange}
             />
         </div>
     );

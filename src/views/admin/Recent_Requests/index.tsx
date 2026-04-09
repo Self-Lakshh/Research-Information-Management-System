@@ -42,6 +42,7 @@ const RecentRequests = () => {
         action: 'approve' | 'reject'
         record: ResearchRecord | null
     }>({ open: false, action: 'approve', record: null })
+    const [selectedRecords, setSelectedRecords] = useState<ResearchRecord[]>([])
 
     // ── Data ──────────────────────────────────────────────────────────────
     const [activeTab, setActiveTab] = useState<StatusTab>('pending')
@@ -120,6 +121,25 @@ const RecentRequests = () => {
         }
     }
 
+    const handleBulkAction = async (action: 'approve' | 'reject') => {
+        if (!selectedRecords.length) return
+        try {
+            await Promise.all(selectedRecords.map(record => {
+                const type = (record._domain || record.type || domainFilter) as RecordType
+                return setStatus.mutateAsync({
+                    type,
+                    recordId: (record as any).id!,
+                    status: action === 'approve' ? 'approved' : 'rejected'
+                })
+            }))
+            setSelectedRecords([])
+            refetch()
+        } catch (err) {
+            console.error(`Bulk ${action} failed:`, err)
+            alert(`Failed to bulk ${action} some records.`)
+        }
+    }
+
     const approvalActions = activeTab === 'pending' ? [
         { label: 'Approve Submission', onClick: openApprove, icon: <CheckCircle className="w-4 h-4" />, variant: 'success' as const },
         { label: 'Reject Submission', onClick: openReject, icon: <X className="w-4 h-4" />, variant: 'danger' as const },
@@ -173,6 +193,28 @@ const RecentRequests = () => {
                     <Searchbar value={search} onChange={setSearch} className="w-full sm:max-w-xs" />
                     
                     <div className="flex-1 hidden sm:block" />
+                    
+                    {selectedRecords.length > 0 && viewMode === 'table' && (
+                        <div className="flex items-center gap-2 mr-2 bg-muted/20 px-3 py-1.5 rounded-lg border border-muted/50 shadow-sm animate-in fade-in-0 duration-200">
+                            <span className="text-xs font-bold text-muted-foreground mr-1">
+                                {selectedRecords.length} selected
+                            </span>
+                            <button
+                                onClick={() => handleBulkAction('approve')}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-md text-xs font-bold transition-all"
+                            >
+                                <CheckCircle className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            {activeTab === 'pending' && (
+                                <button
+                                    onClick={() => handleBulkAction('reject')}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white rounded-md text-xs font-bold transition-all"
+                                >
+                                    <XCircle className="w-3.5 h-3.5" /> Reject
+                                </button>
+                            )}
+                        </div>
+                    )}
                     
                     <div className="flex items-center gap-3 flex-wrap">
                         <DomainFilter value={domainFilter} onChange={setDomainFilter} />
@@ -236,6 +278,8 @@ const RecentRequests = () => {
                             selectedDomain={domainFilter}
                             onView={(r) => { setSelectedRecord(r); setIsDetailOpen(true) }}
                             actions={approvalActions}
+                            enableSelection={true}
+                            onSelectionChange={setSelectedRecords}
                         />
                     </div>
                 )}
