@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
     User, Mail, Phone, MapPin, Briefcase, Building2,
     ArrowLeft, Calendar, FileText, Search, X,
-    Linkedin, Globe, ExternalLink
+    Linkedin, Globe, ExternalLink, GraduationCap
 } from 'lucide-react'
 import { Card } from '@/components/shadcn/ui/card'
 import { Button } from '@/components/shadcn/ui/button'
@@ -124,10 +124,11 @@ const AdminUserProfile = () => {
                     <InfoItem icon={<Calendar className="w-4 h-4" />} label="Joined Date" value={user.joining_date || (user.created_at?.toDate ? user.created_at.toDate().toLocaleDateString() : 'N/A')} />
 
                     {/* Links */}
-                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-border/50">
+                    <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-border/50">
                         <LinkItem icon={<Linkedin className="w-4 h-4 text-[#0077b5]" />} label="LinkedIn" value={user.linkedin_link} />
                         <LinkItem icon={<Globe className="w-4 h-4 text-[#A6CE39]" />} label="ORCID ID" value={user.orcid_link} />
                         <LinkItem icon={<ExternalLink className="w-4 h-4 text-[#f68212]" />} label="Scopus" value={user.scopus_link} />
+                        <LinkItem icon={<GraduationCap className="w-4 h-4 text-[#4285F4]" />} label="Google Scholar" value={user.google_scholar_link} />
                     </div>
                 </Card>
             </div>

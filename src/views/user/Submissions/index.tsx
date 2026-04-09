@@ -84,9 +84,15 @@ const Submissions = () => {
 
             let matchesYear = yearFilter === 'all'
             if (!matchesYear) {
-                const dateVal = s.date_of_publication || s.published_date || s.year_of_publication || s.grant_date || s.date || s.month_year || s.publicationYear || ''
-                const yearStr = String(dateVal).match(/\d{4}/)?.[0]
-                matchesYear = yearStr === yearFilter
+                const dateVal = s.filing_date || s.date_of_publication || s.published_date || s.year_of_publication || s.grant_date || s.date || s.month_year || s.publicationYear || ''
+                
+                // Handle Firestore Timestamp objects
+                if (typeof dateVal === 'object' && (dateVal as any)?.seconds) {
+                    matchesYear = new Date((dateVal as any).seconds * 1000).getFullYear().toString() === yearFilter
+                } else {
+                    const yearStr = String(dateVal).match(/\d{4}/)?.[0]
+                    matchesYear = yearStr === yearFilter
+                }
             }
 
             return matchesSearch && matchesDomain && matchesYear && matchesApproval
@@ -131,17 +137,24 @@ const Submissions = () => {
 
     const handleFormSubmit = async (data: any) => {
         try {
-            const type = addType as RecordType
+            const type = (data.type || addType) as RecordType
+            const isBulk = data._isBulk // Check if it's a bulk row
+            
             if (selected) {
                 await updateRecord.mutateAsync({ recordId: selected.id, data: { ...data, type } })
             } else {
                 await createRecord.mutateAsync({ ...data, type })
             }
-            setIsAddOpen(false)
-            setSelected(null)
-        } catch (err) {
+            
+            // Only close and clear if NOT bulk
+            if (!isBulk) {
+                setIsAddOpen(false)
+                setSelected(null)
+            }
+        } catch (err: any) {
             console.error(err)
-            alert('Failed to save.')
+            // Rethrow for bulk handler to catch
+            throw err
         }
     }
 

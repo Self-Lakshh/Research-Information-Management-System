@@ -171,13 +171,17 @@ const RecentRequests = () => {
 
                 <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-muted/30">
                     <Searchbar value={search} onChange={setSearch} className="w-full sm:max-w-xs" />
-                    <div className="flex items-center gap-2 sm:ml-auto">
+                    
+                    <div className="flex-1 hidden sm:block" />
+                    
+                    <div className="flex items-center gap-3 flex-wrap">
                         <DomainFilter value={domainFilter} onChange={setDomainFilter} />
                         <YearFilter value={yearFilter} onChange={setYearFilter} />
                         {hasFilters && (
                             <button
                                 onClick={() => { setSearch(''); setYearFilter('all') }}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm"
+                                title="Clear filters"
                             >
                                 <X className="w-4 h-4" />
                             </button>

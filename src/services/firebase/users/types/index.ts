@@ -25,6 +25,7 @@ export interface User {
   linkedin_link?: string;
   orcid_link?: string;
   scopus_link?: string;
+  google_scholar_link?: string;
   created_at: Timestamp;
   updated_at: Timestamp;
 }
@@ -43,6 +44,7 @@ export interface CreateUserData {
   linkedin_link?: string
   orcid_link?: string
   scopus_link?: string
+  google_scholar_link?: string
 }
 
 // Update user payload
@@ -56,6 +58,7 @@ export interface UpdateUserData {
   linkedin_link?: string
   orcid_link?: string
   scopus_link?: string
+  google_scholar_link?: string
 
   profile_picture_url?: string
   profile_picture_media?: DocumentReference

@@ -53,6 +53,7 @@ const Profile = () => {
         linkedin_link: string
         orcid_link: string
         scopus_link: string
+        google_scholar_link: string
     }>({
         name: user?.name || "",
         phone_number: user?.phone_number || "",
@@ -63,6 +64,7 @@ const Profile = () => {
         linkedin_link: (user as any)?.linkedin_link || "",
         orcid_link: (user as any)?.orcid_link || "",
         scopus_link: (user as any)?.scopus_link || "",
+        google_scholar_link: (user as any)?.google_scholar_link || "",
     })
 
     const handleInputChange = (field: string, value: string) => {
@@ -82,6 +84,7 @@ const Profile = () => {
                 linkedin_link: formData.linkedin_link,
                 orcid_link: formData.orcid_link,
                 scopus_link: formData.scopus_link,
+                google_scholar_link: formData.google_scholar_link,
             },
         })
 
@@ -107,6 +110,7 @@ const Profile = () => {
                 linkedin_link: freshUser.linkedin_link || "",
                 orcid_link: freshUser.orcid_link || "",
                 scopus_link: freshUser.scopus_link || "",
+                google_scholar_link: freshUser.google_scholar_link || "",
             })
         }
 
@@ -426,6 +430,15 @@ const Profile = () => {
                                     inputValue={formData.scopus_link}
                                     onChange={(v: string) => handleInputChange("scopus_link", v)}
                                     placeholder="https://www.scopus.com/..."
+                                />
+                                <LinkField
+                                    icon={<GraduationCap size={16} className="text-[#4285F4]" />}
+                                    label="Google Scholar"
+                                    value={(user as any).google_scholar_link}
+                                    editing={isEditing}
+                                    inputValue={formData.google_scholar_link}
+                                    onChange={(v: string) => handleInputChange("google_scholar_link", v)}
+                                    placeholder="https://scholar.google.com/..."
                                 />
                             </div>
                         </div>

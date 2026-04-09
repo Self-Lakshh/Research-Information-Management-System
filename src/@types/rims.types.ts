@@ -51,6 +51,7 @@ export interface User {
   linkedin_link?: string;
   orcid_link?: string;
   scopus_link?: string;
+  google_scholar_link?: string;
   created_at?: Timestamp;
 }
 

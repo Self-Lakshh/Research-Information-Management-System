@@ -30,6 +30,7 @@ export interface UserFormData {
     linkedin_link?: string
     orcid_link?: string
     scopus_link?: string
+    google_scholar_link?: string
 }
 
 interface UserFormModalProps {
@@ -61,7 +62,8 @@ export const UserFormModal = ({
         joining_date: '',
         linkedin_link: '',
         orcid_link: '',
-        scopus_link: ''
+        scopus_link: '',
+        google_scholar_link: ''
     })
 
     React.useEffect(() => {
@@ -71,7 +73,8 @@ export const UserFormModal = ({
                 joining_date: initialData.joining_date || '',
                 linkedin_link: initialData.linkedin_link || '',
                 orcid_link: initialData.orcid_link || '',
-                scopus_link: initialData.scopus_link || ''
+                scopus_link: initialData.scopus_link || '',
+                google_scholar_link: initialData.google_scholar_link || ''
             })
         } else {
             setFormData({
@@ -85,7 +88,8 @@ export const UserFormModal = ({
                 joining_date: '',
                 linkedin_link: '',
                 orcid_link: '',
-                scopus_link: ''
+                scopus_link: '',
+                google_scholar_link: ''
             })
         }
     }, [initialData, isOpen])
@@ -240,6 +244,15 @@ export const UserFormModal = ({
                                         placeholder="https://www.scopus.com/..."
                                     />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="scholar">Google Scholar Link</Label>
+                                <Input
+                                    id="scholar"
+                                    value={formData.google_scholar_link}
+                                    onChange={(e) => setFormData({ ...formData, google_scholar_link: e.target.value })}
+                                    placeholder="https://scholar.google.com/..."
+                                />
                             </div>
                         </div>
                     </div>

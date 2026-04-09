@@ -10,6 +10,8 @@ import {
     RecordDetailModal,
     RecordFormModal,
     AddSubmissions,
+    ExportModal,
+    ApprovalFilter,
 } from '@/components/custom'
 import {
     DropdownMenu,
@@ -33,6 +35,7 @@ const Records = () => {
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isAddOpen, setIsAddOpen] = useState(false)
+    const [isExportOpen, setIsExportOpen] = useState(false)
     const [addType, setAddType] = useState<string>('journal')
 
     // ── Fetch ─────────────────────────────────────────────────────────────
@@ -75,7 +78,13 @@ const Records = () => {
             })()
 
             const matchesYear = yearFilter === 'all' || (() => {
-                const dateVal = r.date_of_publication || r.published_date || r.year_of_publication || r.grant_date || r.date || r.month_year || r.publicationYear || ''
+                const dateVal = r.filing_date || r.date_of_publication || r.published_date || r.year_of_publication || r.grant_date || r.date || r.month_year || r.publicationYear || ''
+                
+                // Handle Firestore Timestamp objects
+                if (typeof dateVal === 'object' && (dateVal as any)?.seconds) {
+                    return new Date((dateVal as any).seconds * 1000).getFullYear().toString() === yearFilter
+                }
+
                 const yearStr = String(dateVal).match(/\d{4}/)?.[0]
                 return yearStr === yearFilter
             })()
@@ -143,79 +152,38 @@ const Records = () => {
                     <div className="flex items-center gap-2">
                         <ViewSlider viewMode={viewMode} setViewMode={setViewMode} />
                         <AddSubmissions onAddClick={handleAddClick} />
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    disabled={domainFilter === 'all'}
-                                    className={cn(
-                                        "inline-flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-xl border transition-all",
-                                        domainFilter === 'all'
-                                            ? "opacity-50 cursor-not-allowed bg-muted border-muted-foreground/20 text-muted-foreground/60"
-                                            : "bg-primary/5 text-primary border-primary/20 hover:bg-primary hover:text-white"
-                                    )}
-                                    title={domainFilter === 'all' ? "Please select a specific domain to export" : "Export records"}
-                                >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Export Records
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-xl p-2 w-48 shadow-xl">
-                                <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                    Export Options ({domainFilter.toUpperCase()})
-                                </div>
-                                <DropdownMenuItem
-                                    onClick={() => exportToPDF(displayed, domainFilter)}
-                                    className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary gap-2"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    <span>Export as PDF</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => exportToExcel(displayed, domainFilter)}
-                                    className="rounded-lg cursor-pointer focus:bg-primary/5 focus:text-primary gap-2"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    <span>Export as EXCEL</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <button
+                            disabled={domainFilter === 'all'}
+                            onClick={() => setIsExportOpen(true)}
+                            className={cn(
+                                "inline-flex items-center gap-2 h-10 px-4 text-xs font-bold rounded-lg transition-all shadow-premium",
+                                domainFilter === 'all'
+                                    ? "opacity-50 cursor-not-allowed bg-muted border border-muted-foreground/20 text-muted-foreground/60"
+                                    : "bg-primary text-white hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+                            )}
+                            title={domainFilter === 'all' ? "Please select a specific domain to export" : "Configure and Export records"}
+                        >
+                            <Download className="w-4 h-4" />
+                            Export Records
+                        </button>
                     </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-muted/30">
                     <Searchbar value={search} onChange={setSearch} className="w-full sm:max-w-xs" />
 
-                    <div className="h-6 w-px bg-muted/30 hidden sm:block mx-1" />
+                    <div className="flex-1 hidden sm:block" />
 
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-3 flex-wrap">
                         <DomainFilter value={domainFilter} onChange={v => setDomainFilter(v)} />
                         <YearFilter value={yearFilter} onChange={setYearFilter} />
-
-                        <div className="flex items-center bg-muted/20 p-1 rounded-xl border border-muted/50">
-                            {[
-                                { val: 'approved', label: 'Approved' },
-                                { val: 'rejected', label: 'Rejected' },
-                                { val: 'all', label: 'All Status' }
-                            ].map(opt => (
-                                <button
-                                    key={opt.val}
-                                    onClick={() => setStatusFilter(opt.val)}
-                                    className={cn(
-                                        "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
-                                        statusFilter === opt.val
-                                            ? "bg-background shadow-sm text-primary"
-                                            : "text-muted-foreground hover:text-foreground"
-                                    )}
-                                >
-                                    {opt.label}
-                                </button>
-                            ))}
-                        </div>
+                        <ApprovalFilter value={statusFilter} onChange={setStatusFilter} />
 
                         {hasFilters && (
                             <button
                                 onClick={clearFilters}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                                className="w-10 h-10 flex items-center justify-center rounded-lg bg-rose-500/5 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm border border-rose-500/20"
+                                title="Clear all filters"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -310,6 +278,13 @@ const Records = () => {
                 type={addType as any}
                 onSubmit={handleFormSubmit}
                 loading={createRecord.isPending}
+            />
+
+            <ExportModal
+                isOpen={isExportOpen}
+                onClose={() => setIsExportOpen(false)}
+                records={displayed}
+                domain={domainFilter}
             />
         </div>
     )

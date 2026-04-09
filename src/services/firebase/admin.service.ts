@@ -56,6 +56,7 @@ export interface AdminUserRecord {
     linkedin_link?: string;
     orcid_link?: string;
     scopus_link?: string;
+    google_scholar_link?: string;
     profile_picture_url?: string;
     created_at?: any;
     updated_at?: any;
@@ -73,6 +74,7 @@ export interface AdminCreateUserPayload {
     linkedin_link?: string;
     orcid_link?: string;
     scopus_link?: string;
+    google_scholar_link?: string;
 }
 
 export interface AdminUpdateUserPayload {
@@ -89,6 +91,7 @@ export interface AdminUpdateUserPayload {
     linkedin_link?: string;
     orcid_link?: string;
     scopus_link?: string;
+    google_scholar_link?: string;
 }
 
 // ── Runtime detection ─────────────────────────────────────────────────────────
@@ -296,6 +299,7 @@ export const adminCreateUser = async (
             linkedin_link: payload.linkedin_link || '',
             orcid_link: payload.orcid_link || '',
             scopus_link: payload.scopus_link || '',
+            google_scholar_link: payload.google_scholar_link || '',
             user_role: payload.user_role || 'user',
             is_active: true,
             created_at: serverTimestamp(),
@@ -324,7 +328,7 @@ export const adminUpdateUser = async (payload: AdminUpdateUserPayload): Promise<
     const UPDATABLE: (keyof typeof fields)[] = [
         'name', 'phone_number', 'address', 'designation',
         'faculty', 'is_active', 'user_role', 'profile_picture_url',
-        'joining_date', 'linkedin_link', 'orcid_link', 'scopus_link',
+        'joining_date', 'linkedin_link', 'orcid_link', 'scopus_link', 'google_scholar_link',
     ];
     const updates: Record<string, any> = {};
     for (const f of UPDATABLE) {

@@ -114,6 +114,7 @@ const UserManagement = () => {
                     linkedin_link: data.linkedin_link,
                     orcid_link: data.orcid_link,
                     scopus_link: data.scopus_link,
+                    google_scholar_link: data.google_scholar_link,
                 })
                 alert(
                     result.resetLinkSent
@@ -134,6 +135,7 @@ const UserManagement = () => {
                     linkedin_link: data.linkedin_link,
                     orcid_link: data.orcid_link,
                     scopus_link: data.scopus_link,
+                    google_scholar_link: data.google_scholar_link,
                 })
             }
 
@@ -267,22 +269,24 @@ const UserManagement = () => {
                         </button>
                         <button
                             onClick={openCreate}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-bold rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-soft transition-all duration-300"
+                            className="inline-flex items-center gap-2 h-10 px-4 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-premium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                         >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-4 h-4 stroke-[3px]" />
                             Add User
                         </button>
                     </div>
                 </div>
 
-                {/* Filter bar */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 pt-4 border-t border-border/50">
                     <Searchbar
                         value={filters.searchQuery}
                         onChange={val => setFilter('searchQuery', val)}
                         className="w-full sm:max-w-xs"
                     />
-                    <div className="flex items-center gap-2 sm:ml-auto w-full sm:w-auto">
+
+                    <div className="flex-1 hidden sm:block" />
+
+                    <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto">
                         <RoleFilter
                             value={filters.role}
                             onChange={val => setFilter('role', val)}
@@ -388,6 +392,7 @@ const UserManagement = () => {
                             linkedin_link: selectedUser.linkedin_link ?? '',
                             orcid_link: selectedUser.orcid_link ?? '',
                             scopus_link: selectedUser.scopus_link ?? '',
+                            google_scholar_link: selectedUser.google_scholar_link ?? '',
                         }
                         : undefined
                 }

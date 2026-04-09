@@ -9,9 +9,9 @@ export const AddEvents = ({ onAddClick }: AddEventsProps) => {
     return (
         <Button 
             onClick={onAddClick}
-            className="bg-primary hover:bg-primary/90 text-white shadow-premium transition-all duration-300 hover:scale-105 active:scale-95"
+            className="h-10 px-4 text-xs font-bold rounded-lg bg-primary hover:bg-primary/90 text-white shadow-premium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
         >
-            <Plus className="mr-2 h-4 w-4" /> Add Event
+            <Plus className="mr-2 h-4 w-4 stroke-[3px]" /> Add Event
         </Button>
     )
 }
