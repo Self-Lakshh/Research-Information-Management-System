@@ -13,6 +13,7 @@ import ViewSlider from '@/components/custom/ViewSlider'
 import { Spinner } from '@/components/shadcn/ui/spinner'
 import { usePendingRecords, useSetRecordStatus } from '@/hooks/useRecords'
 import { cn } from '@/components/shadcn/utils'
+import { toast } from 'sonner'
 import type { Record as ResearchRecord, RecordType } from '@/@types/rims.types'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,7 +107,10 @@ const RecentRequests = () => {
     const handleConfirm = async () => {
         const { record, action } = confirmDialog
         if (!record) return
+        
         const type = (record._domain || record.type || domainFilter) as RecordType
+        const toastId = toast.loading(`${action === 'approve' ? 'Approving' : 'Rejecting'} submission...`)
+        
         try {
             await setStatus.mutateAsync({
                 type,
@@ -114,15 +118,21 @@ const RecentRequests = () => {
                 status: action === 'approve' ? 'approved' : 'rejected',
             })
             setConfirmDialog({ open: false, action: 'approve', record: null })
-            refetch()
+            
+            toast.success(`Submission officially ${action}d!`, { id: toastId })
+            await refetch() // Ensure query aligns immediately
         } catch (err) {
             console.error('Status update failed:', err)
-            alert(`Failed to ${action} record.`)
+            toast.error(`Failed to ${action} record.`, { id: toastId })
         }
     }
 
     const handleBulkAction = async (action: 'approve' | 'reject') => {
         if (!selectedRecords.length) return
+        
+        const count = selectedRecords.length
+        const toastId = toast.loading(`Processing ${count} submission(s)...`)
+        
         try {
             await Promise.all(selectedRecords.map(record => {
                 const type = (record._domain || record.type || domainFilter) as RecordType
@@ -132,11 +142,13 @@ const RecentRequests = () => {
                     status: action === 'approve' ? 'approved' : 'rejected'
                 })
             }))
+            
             setSelectedRecords([])
-            refetch()
+            toast.success(`Successfully ${action}d ${count} submission(s)!`, { id: toastId })
+            await refetch()
         } catch (err) {
             console.error(`Bulk ${action} failed:`, err)
-            alert(`Failed to bulk ${action} some records.`)
+            toast.error(`Some records failed to ${action}. Check logs.`, { id: toastId })
         }
     }
 

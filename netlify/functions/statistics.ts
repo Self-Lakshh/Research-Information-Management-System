@@ -96,13 +96,16 @@ export const handler = async (event: any, context: any) => {
                 }
 
                 // Aggregate KPIs filtered by the strictly derived publication year
-                if (isAllView || sYear === chartYear) {
+                // IMPORTANT: We use `year` (which correlates to statsYear on frontend), NOT `chartYear`.
+                const isStatsAllView = !year || year === 'all';
+                if (isStatsAllView || sYear === year) {
                     const status = data.approval_status || 'pending';
-                    const dStats = computedStats[rDomain];
+                    const dStats = computedStats[rDomain] || { approved: 0, pending: 0, rejected: 0, total: 0 };
                     if (status === 'approved') dStats.approved++;
                     else if (status === 'pending') dStats.pending++;
                     else dStats.rejected++;
                     dStats.total++;
+                    computedStats[rDomain] = dStats;
                 }
             });
         });
